@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "lexi-data-pipeline"
+version = "0.1.0"
+description = "The complete data pipeline for lexi"
+authors = ["qudsiramiz <qudsiramiz@gmail.com>"]
+license = "GNU GPLv3"
+readme = "README.md"
+packages = [{include = "lexi_data_pipeline"}]
+
+[tool.poetry.dependencies]
+python = ">=3.10"
+ipython = "^8.21.0"
+spacepy = "^0.4.1"
+pandas = "^2.2.0"
+scikit-learn = "^1.4.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
