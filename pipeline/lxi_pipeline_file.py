@@ -1100,13 +1100,28 @@ def save_data_to_cdf(df=None, file_name=None, file_version="0.0.1"):
     cdf_data.attrs["source_type"] = "csv"
     cdf_data.attrs["source_format"] = "lxi"
     cdf_data.attrs["source_version"] = "0.1.0"
-    cdf_data.attrs["source_description"] = "X-ray data from the LXI spacecraft"
-    cdf_data.attrs["source_description_url"] = "something"
+    cdf_data.attrs["source_description"] = "X-ray data from the LEXI spacecraft"
+    cdf_data.attrs["source_description_url"] = "TODO"
     cdf_data.attrs["source_description_email"] = "qudsira@bu.edu"
     cdf_data.attrs["source_description_institution"] = "BU"
 
     # Convert the array to datetime objects in UTC
     df.index = pd.to_datetime(df.index, utc=True, unit="s")
+    ### Start of the chunk that will need to be removed once the data is in the correct format
+    start_time_ephemeris = "2025-03-02 08:00:00"
+    start_time_ephemeris = pd.to_datetime(start_time_ephemeris, utc=True)
+    start_time_cdf_files = "2024-05-23 21:40:00"
+    start_time_cdf_files = pd.to_datetime(start_time_cdf_files, utc=True)
+
+    # Get the time difference between the start time of the ephemeris and the start time of the
+    # cdf files
+    delta_time_eph_cdf = start_time_ephemeris - start_time_cdf_files
+
+    # Add the time difference to the index
+    df.index = df.index + delta_time_eph_cdf
+
+    ### End of the chunk that will need to be removed once the data is in the correct format
+
     cdf_data["Epoch"] = df.index
     cdf_data["Epoch_unix"] = df.index.astype(int) // 10**9
     # Set the time zone of the Epoch to UTC
