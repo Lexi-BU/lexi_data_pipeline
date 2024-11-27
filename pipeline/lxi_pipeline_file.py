@@ -1555,7 +1555,7 @@ def read_binary_file(file_val=None, t_start=None, t_end=None, multiple_files=Fal
 
     # Read the Ephephermis data
     df_eph = pd.read_csv(
-        "../data/from_spacecraft/2024/sample_lexi_pointing_ephem_edited.csv",
+        "../data/from_spacecraft/2025/20241114_LEXIAngleData_20250302Landing_rad.csv",
         index_col=False,
     )
     # Convert the epoch_utc to datetime object
@@ -1580,8 +1580,8 @@ def read_binary_file(file_val=None, t_start=None, t_end=None, multiple_files=Fal
         df_lexi=df_sci_l1c_temp,
         df_eph=df_eph,
         roll_angle=0,
-        ra_eph_units="deg",
-        dec_eph_units="deg",
+        ra_eph_units="rad",
+        dec_eph_units="rad",
         roll_angle_eph_units="deg",
     )
 

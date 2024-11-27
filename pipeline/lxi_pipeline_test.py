@@ -15,7 +15,7 @@ plt.rc("text", usetex=True)
 plt.rc("font", family="serif")
 
 folder_val = (
-    "/home/vetinari/Desktop/git/Lexi-Bu/lexi_data_pipeline/data/from_lexi/2024/"
+    "/home/cephadrius/Desktop/git/Lexi-BU/lexi_data_pipeline/data/from_lexi/"
 )
 multiple_files = False
 t_start = "2024-05-23 21:00:00"
