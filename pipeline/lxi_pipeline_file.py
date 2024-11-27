@@ -3,6 +3,7 @@ import datetime
 import importlib
 import logging
 import os
+import platform
 import pickle
 import struct
 from pathlib import Path
@@ -231,34 +232,26 @@ def read_binary_data_sci(
     # use the sci_packet_cls else use sci_packet_cls_gsfc
     if "payload" in in_file_name:
         while index < len(raw) - 28:
-            if (
-                raw[index:index + 2] == sync_pit
-                and raw[index + 12:index + 16] == sync_lxi
-            ):
+            if (raw[index:index + 2] == sync_pit and raw[index + 12:index + 16] == sync_lxi):
                 packets.append(sci_packet_cls.from_bytes(raw[index:index + 28]))
                 index += 28
                 continue
-            elif (raw[index:index + 2] == sync_pit) and (
-                raw[index + 12:index + 16] != sync_lxi
-            ):
+            elif (raw[index:index + 2] == sync_pit) and (raw[index + 12:index + 16] != sync_lxi):
                 # Ignore the last packet
                 if index >= len(raw) - 28 - 16:
                     # NOTE: This is a temporary fix. The last packet is ignored because the last
-                    # packet often isn't complete. Need to find a better solution.
+                    # packet often isn't complete. Need to find a better solution. Check the function
+                    # read_binary_data_hk for the same.
                     index += 28
                     continue
                 # Check if sync_lxi is present in the next 16 bytes
                 if sync_lxi in raw[index + 12:index + 28] and index + 28 < len(raw):
                     # Find the index of sync_lxi
-                    index_sync = (
-                        index + 12 + raw[index + 12:index + 28].index(sync_lxi)
-                    )
+                    index_sync = index + 12 + raw[index + 12:index + 28].index(sync_lxi)
                     # Reorder the packet
-                    new_packet = (
-                        raw[index + 28:index + 12 + 28]
-                        + raw[index_sync:index + 28]
-                        + raw[index + 12 + 28:index_sync + 28]
-                    )
+                    new_packet = (raw[index + 28:index + 12 + 28] +
+                                  raw[index_sync:index + 28] +
+                                  raw[index + 12 + 28:index_sync + 28])
                     # Check if the packet length is 28
                     if len(new_packet) != 28:
                         # If the index + 28 is greater than the length of the raw data, then break
@@ -270,33 +263,27 @@ def read_binary_data_sci(
                 # Check if raw[index - 3:index] + raw[index+12:index+13] == sync_lxi
                 elif raw[index - 3:index] + raw[index + 12:index + 13] == sync_lxi:
                     # Reorder the packet
-                    new_packet = (
-                        raw[index:index + 12]
-                        + raw[index - 3:index]
-                        + raw[index + 12:index + 25]
-                    )
+                    new_packet = (raw[index:index + 12] +
+                                  raw[index - 3:index] +
+                                  raw[index + 12:index + 25])
                     packets.append(sci_packet_cls.from_bytes(new_packet))
                     index += 28
                     continue
                 # Check if raw[index - 2:index] + raw[index+12:index+14] == sync_lxi
                 elif raw[index - 2:index] + raw[index + 12:index + 14] == sync_lxi:
                     # Reorder the packet
-                    new_packet = (
-                        raw[index:index + 12]
-                        + raw[index - 2:index]
-                        + raw[index + 13:index + 26]
-                    )
+                    new_packet = (raw[index:index + 12] +
+                                  raw[index - 2:index] +
+                                  raw[index + 13:index + 26])
                     packets.append(sci_packet_cls.from_bytes(new_packet))
                     index += 28
                     continue
                 # Check if raw[index - 1:index] + raw[index+12:index+15] == sync_lxi
                 elif raw[index - 1:index] + raw[index + 12:index + 15] == sync_lxi:
                     # Reorder the packet
-                    new_packet = (
-                        raw[index:index + 12]
-                        + raw[index - 1:index]
-                        + raw[index + 14:index + 27]
-                    )
+                    new_packet = (raw[index:index + 12] +
+                                  raw[index - 1:index] +
+                                  raw[index + 14:index + 27])
                     packets.append(sci_packet_cls.from_bytes(new_packet))
                     index += 28
                     continue
@@ -309,14 +296,20 @@ def read_binary_data_sci(
 
     # Split the file name in a folder and a file name
     # Format filenames and folder names for the different operating systems
-    output_file_name = (
-        os.path.basename(os.path.normpath(in_file_name)).split(".")[0]
-        + "_sci_output.csv"
-    )
-    output_folder_name = (
-        os.path.dirname(os.path.normpath(in_file_name)) + "/processed_data/sci/level_1a"
-    )
-    save_file_name = output_folder_name + "/" + output_file_name
+    if platform.system() == "Linux":
+        output_file_name = os.path.basename(os.path.normpath(in_file_name)).split(".")[0] + "_sci_output.csv"
+        output_folder_name = os.path.dirname(os.path.normpath(in_file_name)) + "/processed_data/sci"
+        save_file_name = output_folder_name + "/" + output_file_name
+    elif platform.system() == "Windows":
+        output_file_name = os.path.basename(os.path.normpath(in_file_name)).split(".")[0] + "_sci_output.csv"
+        output_folder_name = os.path.dirname(os.path.normpath(in_file_name)) + "\\processed_data\\sci"
+        save_file_name = output_folder_name + "\\" + output_file_name
+    elif platform.system() == "Darwin":
+        output_file_name = os.path.basename(os.path.normpath(in_file_name)).split(".")[0] + "_sci_output.csv"
+        output_folder_name = os.path.dirname(os.path.normpath(in_file_name)) + "/processed_data/sci"
+        save_file_name = output_folder_name + "/" + output_file_name
+    else:
+        raise OSError("The operating system is not supported.")
 
     # Check if the save folder exists, if not then create it
     if not Path(output_folder_name).exists():
@@ -374,7 +367,7 @@ def read_binary_data_sci(
     df = pd.read_csv(save_file_name)
 
     # Convert the date column to datetime
-    df["Date"] = pd.to_datetime(df["Date"], format="mixed", utc=True)
+    df["Date"] = pd.to_datetime(df["Date"], utc=True)
 
     # Set index to the date
     df.set_index("Date", inplace=False)
@@ -385,27 +378,21 @@ def read_binary_data_sci(
     except Exception:
         # Set time difference to 0
         time_diff = datetime.timedelta(seconds=0)
-        logger.warning(
-            f"For the science data, the time difference between the current row and the last row is 0 for {input_file_name}."
-        )
+        logger.warning(f"For the science data, the time difference between the current row and the last row is 0 for {input_file_name}.")
     try:
         # For each time difference, get the total number of seconds as an array
         time_diff_seconds = time_diff.dt.total_seconds().values
     except Exception:
         # Set time difference to 0 seconds
         time_diff_seconds = 0
-        logger.warning(
-            f"For the scicence data, the time difference between the current row and the last row is 0 for {input_file_name}."
-        )
+        logger.warning(f"For the scicence data, the time difference between the current row and the last row is 0 for {input_file_name}.")
 
     # Add utc_time and local_time column to the dataframe as NaNs
     df["utc_time"] = np.nan
     df["local_time"] = np.nan
     # For each row, set the utc_time and local_time as sum of created_date_utc and time_diff_seconds
     df["utc_time"] = creation_date_utc + pd.to_timedelta(time_diff_seconds, unit="s")
-    df["local_time"] = creation_date_local + pd.to_timedelta(
-        time_diff_seconds, unit="s"
-    )
+    df["local_time"] = creation_date_local + pd.to_timedelta(time_diff_seconds, unit="s")
 
     # Save the dataframe to a csv file
     df.to_csv(save_file_name, index=False)
@@ -718,7 +705,7 @@ def read_binary_data_hk(
         for ii in range(1, len(df[key])):
             if np.isnan(df[key][ii]):
                 # df[key][ii] = df[key][ii - 1]
-                df.loc[ii, key] = df[key][ii - 1]
+                df.loc[ii, key] = df.loc[ii - 1, key]
 
     # Set the date column to the Date_datetime
     df["Date"] = Date_datetime
@@ -729,9 +716,7 @@ def read_binary_data_hk(
     except Exception:
         # Set time difference to 0 seconds
         time_diff = datetime.timedelta(seconds=0)
-        logger.warning(
-            f"For the housekeeping data, the time difference between the current row and the last row is 0 for {input_file_name}."
-        )
+        logger.warning(f"For the housekeeping data, the time difference between the current row and the last row is 0 for {input_file_name}.")
 
     try:
         # For each time difference, get the total number of seconds as an array
@@ -739,29 +724,32 @@ def read_binary_data_hk(
     except Exception:
         # Set time difference to 0 seconds
         time_diff_seconds = 0
-        logger.warning(
-            f"For the housekeeping data, the time difference between the current row and the last row is 0 for {input_file_name}."
-        )
+        logger.warning(f"For the housekeeping data, the time difference between the current row and the last row is 0 for {input_file_name}.")
     # Add utc_time and local_time column to the dataframe as NaNs
     df["utc_time"] = np.nan
     df["local_time"] = np.nan
     # For each row, set the utc_time and local_time as sum of created_date_utc and time_diff_seconds
     df["utc_time"] = creation_date_utc + pd.to_timedelta(time_diff_seconds, unit="s")
-    df["local_time"] = creation_date_local + pd.to_timedelta(
-        time_diff_seconds, unit="s"
-    )
+    df["local_time"] = creation_date_local + pd.to_timedelta(time_diff_seconds, unit="s")
 
     # Set Date as the index without replacing the column
     df.set_index("Date", inplace=True, drop=False)
     # Split the file name in a folder and a file name
-    output_folder_name = (
-        os.path.dirname(os.path.normpath(in_file_name)) + "/processed_data/hk"
-    )
-    output_file_name = (
-        os.path.basename(os.path.normpath(in_file_name)).split(".")[0]
-        + "_hk_output.csv"
-    )
-    save_file_name = output_folder_name + "/" + output_file_name
+    # Format filenames and folder names for the different operating systems
+    if platform.system() == "Linux":
+        output_folder_name = os.path.dirname(os.path.normpath(in_file_name)) + "/processed_data/hk"
+        output_file_name = os.path.basename(os.path.normpath(in_file_name)).split(".")[0] + "_hk_output.csv"
+        save_file_name = output_folder_name + "/" + output_file_name
+    elif platform.system() == "Windows":
+        output_folder_name = os.path.dirname(os.path.normpath(in_file_name)) + "\\processed_data\\hk"
+        output_file_name = os.path.basename(os.path.normpath(in_file_name)).split(".")[0] + "_hk_output.csv"
+        save_file_name = output_folder_name + "\\" + output_file_name
+    elif platform.system() == "Darwin":
+        output_folder_name = os.path.dirname(os.path.normpath(in_file_name)) + "/processed_data/hk"
+        output_file_name = os.path.basename(os.path.normpath(in_file_name)).split(".")[0] + "_hk_output.csv"
+        save_file_name = output_folder_name + "/" + output_file_name
+    else:
+        raise OSError("Operating system not supported.")
 
     # Check if the save folder exists, if not then create it
     if not Path(output_folder_name).exists():
@@ -777,7 +765,7 @@ def lin_correction(
     x,
     y,
     M_inv=np.array([[0.98678, 0.16204], [0.11385, 0.993497]]),
-    b=np.array([0.00195, 0.56355]),
+    b=np.array([0.00195, 0.0056355]),
 ):
     """
     Function to apply nonlinearity correction to MCP position x/y data
@@ -789,8 +777,8 @@ def lin_correction(
 
 
 def non_lin_correction(
-    x,
-    y,
+        x,
+        y,
 ):
     """
     Function to apply nonlinearity correction to MCP position x/y data. The model to apply the
@@ -811,7 +799,9 @@ def non_lin_correction(
     y_nln : numpy.ndarray
         y position data after applying nonlinearity correction.
     """
-    gp_model_file_name = "../data/gp_models/gp_data_3.0_10_0.0_0.8_4_Matern(length_scale=5, nu=2.5).pickle"
+    gp_model_file_name = (
+        "../data/gp_models/gp_data_3.0_10_0.0_0.8_4_Matern(length_scale=5, nu=2.5).pickle"
+    )
 
     # Get the gp_model from the pickle file
     with open(gp_model_file_name, "rb") as f:
@@ -1148,9 +1138,9 @@ def read_csv_sci(file_val=None, t_start=None, t_end=None):
 
     Parameters
     ----------
-    file_val:str
+    file_val : str
         Path to the input file. Default is None.
-    t_start:float
+    t_start : float
         Start time of the data. Default is None.
     t_end : float
         End time of the data. Default is None.
@@ -1286,8 +1276,8 @@ def read_binary_file(file_val=None, t_start=None, t_end=None, multiple_files=Fal
         # If both t_start and t_end are None, raise a warning stating that the times are set to none
         if t_start is None and t_end is None:
             print(
-                "\n \033[1;91m WARNING: \033[91m Both the start and end time values provided were None"
-                "setting both of them to None \033[0m"
+                "\n \x1b[1;31;255m WARNING: Both the start and end time values provided were None"
+                "setting both of them to None \x1b[0m"
             )
             t_start = None
             t_end = None
@@ -1313,6 +1303,7 @@ def read_binary_file(file_val=None, t_start=None, t_end=None, multiple_files=Fal
 
         # Make sure that file_val is a directory
         if not os.path.isdir(file_val):
+            print(f"\n \x1b[1;31;255m WARNING: {file_val} is not a directory. \x1b[0m")
             raise ValueError("file_val should be a directory.")
 
         # Get the names of all the files in the directory with*.dat or *.txt extension
