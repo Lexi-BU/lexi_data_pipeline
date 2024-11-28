@@ -12,6 +12,7 @@ from typing import NamedTuple
 import numpy as np
 import pandas as pd
 from spacepy.pycdf import CDF as cdf
+import re
 
 import pytz
 
@@ -232,11 +233,16 @@ def read_binary_data_sci(
     # use the sci_packet_cls else use sci_packet_cls_gsfc
     if "payload" in in_file_name:
         while index < len(raw) - 28:
-            if (raw[index:index + 2] == sync_pit and raw[index + 12:index + 16] == sync_lxi):
-                packets.append(sci_packet_cls.from_bytes(raw[index:index + 28]))
+            if (
+                raw[index : index + 2] == sync_pit
+                and raw[index + 12 : index + 16] == sync_lxi
+            ):
+                packets.append(sci_packet_cls.from_bytes(raw[index : index + 28]))
                 index += 28
                 continue
-            elif (raw[index:index + 2] == sync_pit) and (raw[index + 12:index + 16] != sync_lxi):
+            elif (raw[index : index + 2] == sync_pit) and (
+                raw[index + 12 : index + 16] != sync_lxi
+            ):
                 # Ignore the last packet
                 if index >= len(raw) - 28 - 16:
                     # NOTE: This is a temporary fix. The last packet is ignored because the last
@@ -245,13 +251,17 @@ def read_binary_data_sci(
                     index += 28
                     continue
                 # Check if sync_lxi is present in the next 16 bytes
-                if sync_lxi in raw[index + 12:index + 28] and index + 28 < len(raw):
+                if sync_lxi in raw[index + 12 : index + 28] and index + 28 < len(raw):
                     # Find the index of sync_lxi
-                    index_sync = index + 12 + raw[index + 12:index + 28].index(sync_lxi)
+                    index_sync = (
+                        index + 12 + raw[index + 12 : index + 28].index(sync_lxi)
+                    )
                     # Reorder the packet
-                    new_packet = (raw[index + 28:index + 12 + 28] +
-                                  raw[index_sync:index + 28] +
-                                  raw[index + 12 + 28:index_sync + 28])
+                    new_packet = (
+                        raw[index + 28 : index + 12 + 28]
+                        + raw[index_sync : index + 28]
+                        + raw[index + 12 + 28 : index_sync + 28]
+                    )
                     # Check if the packet length is 28
                     if len(new_packet) != 28:
                         # If the index + 28 is greater than the length of the raw data, then break
@@ -261,29 +271,35 @@ def read_binary_data_sci(
                     index += 28
                     continue
                 # Check if raw[index - 3:index] + raw[index+12:index+13] == sync_lxi
-                elif raw[index - 3:index] + raw[index + 12:index + 13] == sync_lxi:
+                elif raw[index - 3 : index] + raw[index + 12 : index + 13] == sync_lxi:
                     # Reorder the packet
-                    new_packet = (raw[index:index + 12] +
-                                  raw[index - 3:index] +
-                                  raw[index + 12:index + 25])
+                    new_packet = (
+                        raw[index : index + 12]
+                        + raw[index - 3 : index]
+                        + raw[index + 12 : index + 25]
+                    )
                     packets.append(sci_packet_cls.from_bytes(new_packet))
                     index += 28
                     continue
                 # Check if raw[index - 2:index] + raw[index+12:index+14] == sync_lxi
-                elif raw[index - 2:index] + raw[index + 12:index + 14] == sync_lxi:
+                elif raw[index - 2 : index] + raw[index + 12 : index + 14] == sync_lxi:
                     # Reorder the packet
-                    new_packet = (raw[index:index + 12] +
-                                  raw[index - 2:index] +
-                                  raw[index + 13:index + 26])
+                    new_packet = (
+                        raw[index : index + 12]
+                        + raw[index - 2 : index]
+                        + raw[index + 13 : index + 26]
+                    )
                     packets.append(sci_packet_cls.from_bytes(new_packet))
                     index += 28
                     continue
                 # Check if raw[index - 1:index] + raw[index+12:index+15] == sync_lxi
-                elif raw[index - 1:index] + raw[index + 12:index + 15] == sync_lxi:
+                elif raw[index - 1 : index] + raw[index + 12 : index + 15] == sync_lxi:
                     # Reorder the packet
-                    new_packet = (raw[index:index + 12] +
-                                  raw[index - 1:index] +
-                                  raw[index + 14:index + 27])
+                    new_packet = (
+                        raw[index : index + 12]
+                        + raw[index - 1 : index]
+                        + raw[index + 14 : index + 27]
+                    )
                     packets.append(sci_packet_cls.from_bytes(new_packet))
                     index += 28
                     continue
@@ -297,16 +313,31 @@ def read_binary_data_sci(
     # Split the file name in a folder and a file name
     # Format filenames and folder names for the different operating systems
     if platform.system() == "Linux":
-        output_file_name = os.path.basename(os.path.normpath(in_file_name)).split(".")[0] + "_sci_output.csv"
-        output_folder_name = os.path.dirname(os.path.normpath(in_file_name)) + "/processed_data/sci"
+        output_file_name = (
+            os.path.basename(os.path.normpath(in_file_name)).split(".")[0]
+            + "_sci_output.csv"
+        )
+        output_folder_name = (
+            os.path.dirname(os.path.normpath(in_file_name)) + "/processed_data/sci"
+        )
         save_file_name = output_folder_name + "/" + output_file_name
     elif platform.system() == "Windows":
-        output_file_name = os.path.basename(os.path.normpath(in_file_name)).split(".")[0] + "_sci_output.csv"
-        output_folder_name = os.path.dirname(os.path.normpath(in_file_name)) + "\\processed_data\\sci"
+        output_file_name = (
+            os.path.basename(os.path.normpath(in_file_name)).split(".")[0]
+            + "_sci_output.csv"
+        )
+        output_folder_name = (
+            os.path.dirname(os.path.normpath(in_file_name)) + "\\processed_data\\sci"
+        )
         save_file_name = output_folder_name + "\\" + output_file_name
     elif platform.system() == "Darwin":
-        output_file_name = os.path.basename(os.path.normpath(in_file_name)).split(".")[0] + "_sci_output.csv"
-        output_folder_name = os.path.dirname(os.path.normpath(in_file_name)) + "/processed_data/sci"
+        output_file_name = (
+            os.path.basename(os.path.normpath(in_file_name)).split(".")[0]
+            + "_sci_output.csv"
+        )
+        output_folder_name = (
+            os.path.dirname(os.path.normpath(in_file_name)) + "/processed_data/sci"
+        )
         save_file_name = output_folder_name + "/" + output_file_name
     else:
         raise OSError("The operating system is not supported.")
@@ -367,7 +398,7 @@ def read_binary_data_sci(
     df = pd.read_csv(save_file_name)
 
     # Convert the date column to datetime
-    df["Date"] = pd.to_datetime(df["Date"], utc=True)
+    df["Date"] = pd.to_datetime(df["Date"], utc=True, format="mixed")
 
     # Set index to the date
     df.set_index("Date", inplace=False)
@@ -378,21 +409,27 @@ def read_binary_data_sci(
     except Exception:
         # Set time difference to 0
         time_diff = datetime.timedelta(seconds=0)
-        logger.warning(f"For the science data, the time difference between the current row and the last row is 0 for {input_file_name}.")
+        logger.warning(
+            f"For the science data, the time difference between the current row and the last row is 0 for {input_file_name}."
+        )
     try:
         # For each time difference, get the total number of seconds as an array
         time_diff_seconds = time_diff.dt.total_seconds().values
     except Exception:
         # Set time difference to 0 seconds
         time_diff_seconds = 0
-        logger.warning(f"For the scicence data, the time difference between the current row and the last row is 0 for {input_file_name}.")
+        logger.warning(
+            f"For the scicence data, the time difference between the current row and the last row is 0 for {input_file_name}."
+        )
 
     # Add utc_time and local_time column to the dataframe as NaNs
     df["utc_time"] = np.nan
     df["local_time"] = np.nan
     # For each row, set the utc_time and local_time as sum of created_date_utc and time_diff_seconds
     df["utc_time"] = creation_date_utc + pd.to_timedelta(time_diff_seconds, unit="s")
-    df["local_time"] = creation_date_local + pd.to_timedelta(time_diff_seconds, unit="s")
+    df["local_time"] = creation_date_local + pd.to_timedelta(
+        time_diff_seconds, unit="s"
+    )
 
     # Save the dataframe to a csv file
     df.to_csv(save_file_name, index=False)
@@ -474,15 +511,15 @@ def read_binary_data_hk(
 
     while index < len(raw) - 28:
         if (
-            raw[index:index + 2] == sync_pit
-            and raw[index + 12:index + 16] == sync_lxi
+            raw[index : index + 2] == sync_pit
+            and raw[index + 12 : index + 16] == sync_lxi
         ):
-            packets.append(hk_packet_cls.from_bytes(raw[index:index + 28]))
+            packets.append(hk_packet_cls.from_bytes(raw[index : index + 28]))
             index += 28
             continue
         elif (
-            raw[index:index + 2] == sync_pit
-            and raw[index + 12:index + 16] != sync_lxi
+            raw[index : index + 2] == sync_pit
+            and raw[index + 12 : index + 16] != sync_lxi
         ):
             # Ignore the last packet
             if index >= len(raw) - 28 - 16:
@@ -492,14 +529,14 @@ def read_binary_data_hk(
                 index += 28
                 continue
             # Check if sync_lxi is present in the next 16 bytes
-            if sync_lxi in raw[index + 12:index + 28] and index + 28 < len(raw):
+            if sync_lxi in raw[index + 12 : index + 28] and index + 28 < len(raw):
                 # Find the index of sync_lxi
-                index_sync = index + 12 + raw[index + 12:index + 28].index(sync_lxi)
+                index_sync = index + 12 + raw[index + 12 : index + 28].index(sync_lxi)
                 # Reorder the packet
                 new_packet = (
-                    raw[index:index + 12]
-                    + raw[index_sync:index + 28]
-                    + raw[index + 12 + 28:index_sync + 28]
+                    raw[index : index + 12]
+                    + raw[index_sync : index + 28]
+                    + raw[index + 12 + 28 : index_sync + 28]
                 )
                 # Check if the packet length is 28
                 if len(new_packet) != 28:
@@ -514,34 +551,34 @@ def read_binary_data_hk(
                 index += 28
                 continue
             # Check if raw[index - 3:index] + raw[index+12:index+13] == sync_lxi
-            elif raw[index - 3:index] + raw[index + 12:index + 13] == sync_lxi:
+            elif raw[index - 3 : index] + raw[index + 12 : index + 13] == sync_lxi:
                 # Reorder the packet
                 new_packet = (
-                    raw[index:index + 12]
-                    + raw[index - 3:index]
-                    + raw[index + 12:index + 25]
+                    raw[index : index + 12]
+                    + raw[index - 3 : index]
+                    + raw[index + 12 : index + 25]
                 )
                 packets.append(hk_packet_cls.from_bytes(new_packet))
                 index += 28
                 continue
             # Check if raw[index - 2:index] + raw[index+12:index+14] == sync_lxi
-            elif raw[index - 2:index] + raw[index + 12:index + 14] == sync_lxi:
+            elif raw[index - 2 : index] + raw[index + 12 : index + 14] == sync_lxi:
                 # Reorder the packet
                 new_packet = (
-                    raw[index:index + 12]
-                    + raw[index - 2:index]
-                    + raw[index + 13:index + 26]
+                    raw[index : index + 12]
+                    + raw[index - 2 : index]
+                    + raw[index + 13 : index + 26]
                 )
                 packets.append(hk_packet_cls.from_bytes(new_packet))
                 index += 28
                 continue
             # Check if raw[index - 1:index] + raw[index+12:index+15] == sync_lxi
-            elif raw[index - 1:index] + raw[index + 12:index + 15] == sync_lxi:
+            elif raw[index - 1 : index] + raw[index + 12 : index + 15] == sync_lxi:
                 # Reorder the packet
                 new_packet = (
-                    raw[index:index + 12]
-                    + raw[index - 1:index]
-                    + raw[index + 14:index + 27]
+                    raw[index : index + 12]
+                    + raw[index - 1 : index]
+                    + raw[index + 14 : index + 27]
                 )
                 packets.append(hk_packet_cls.from_bytes(new_packet))
                 index += 28
@@ -716,7 +753,9 @@ def read_binary_data_hk(
     except Exception:
         # Set time difference to 0 seconds
         time_diff = datetime.timedelta(seconds=0)
-        logger.warning(f"For the housekeeping data, the time difference between the current row and the last row is 0 for {input_file_name}.")
+        logger.warning(
+            f"For the housekeeping data, the time difference between the current row and the last row is 0 for {input_file_name}."
+        )
 
     try:
         # For each time difference, get the total number of seconds as an array
@@ -724,29 +763,48 @@ def read_binary_data_hk(
     except Exception:
         # Set time difference to 0 seconds
         time_diff_seconds = 0
-        logger.warning(f"For the housekeeping data, the time difference between the current row and the last row is 0 for {input_file_name}.")
+        logger.warning(
+            f"For the housekeeping data, the time difference between the current row and the last row is 0 for {input_file_name}."
+        )
     # Add utc_time and local_time column to the dataframe as NaNs
     df["utc_time"] = np.nan
     df["local_time"] = np.nan
     # For each row, set the utc_time and local_time as sum of created_date_utc and time_diff_seconds
     df["utc_time"] = creation_date_utc + pd.to_timedelta(time_diff_seconds, unit="s")
-    df["local_time"] = creation_date_local + pd.to_timedelta(time_diff_seconds, unit="s")
+    df["local_time"] = creation_date_local + pd.to_timedelta(
+        time_diff_seconds, unit="s"
+    )
 
     # Set Date as the index without replacing the column
     df.set_index("Date", inplace=True, drop=False)
     # Split the file name in a folder and a file name
     # Format filenames and folder names for the different operating systems
     if platform.system() == "Linux":
-        output_folder_name = os.path.dirname(os.path.normpath(in_file_name)) + "/processed_data/hk"
-        output_file_name = os.path.basename(os.path.normpath(in_file_name)).split(".")[0] + "_hk_output.csv"
+        output_folder_name = (
+            os.path.dirname(os.path.normpath(in_file_name)) + "/processed_data/hk"
+        )
+        output_file_name = (
+            os.path.basename(os.path.normpath(in_file_name)).split(".")[0]
+            + "_hk_output.csv"
+        )
         save_file_name = output_folder_name + "/" + output_file_name
     elif platform.system() == "Windows":
-        output_folder_name = os.path.dirname(os.path.normpath(in_file_name)) + "\\processed_data\\hk"
-        output_file_name = os.path.basename(os.path.normpath(in_file_name)).split(".")[0] + "_hk_output.csv"
+        output_folder_name = (
+            os.path.dirname(os.path.normpath(in_file_name)) + "\\processed_data\\hk"
+        )
+        output_file_name = (
+            os.path.basename(os.path.normpath(in_file_name)).split(".")[0]
+            + "_hk_output.csv"
+        )
         save_file_name = output_folder_name + "\\" + output_file_name
     elif platform.system() == "Darwin":
-        output_folder_name = os.path.dirname(os.path.normpath(in_file_name)) + "/processed_data/hk"
-        output_file_name = os.path.basename(os.path.normpath(in_file_name)).split(".")[0] + "_hk_output.csv"
+        output_folder_name = (
+            os.path.dirname(os.path.normpath(in_file_name)) + "/processed_data/hk"
+        )
+        output_file_name = (
+            os.path.basename(os.path.normpath(in_file_name)).split(".")[0]
+            + "_hk_output.csv"
+        )
         save_file_name = output_folder_name + "/" + output_file_name
     else:
         raise OSError("Operating system not supported.")
@@ -777,8 +835,8 @@ def lin_correction(
 
 
 def non_lin_correction(
-        x,
-        y,
+    x,
+    y,
 ):
     """
     Function to apply nonlinearity correction to MCP position x/y data. The model to apply the
@@ -799,9 +857,7 @@ def non_lin_correction(
     y_nln : numpy.ndarray
         y position data after applying nonlinearity correction.
     """
-    gp_model_file_name = (
-        "../data/gp_models/gp_data_3.0_10_0.0_0.8_4_Matern(length_scale=5, nu=2.5).pickle"
-    )
+    gp_model_file_name = "../data/gp_models/gp_data_3.0_10_0.0_0.8_4_Matern(length_scale=5, nu=2.5).pickle"
 
     # Get the gp_model from the pickle file
     with open(gp_model_file_name, "rb") as f:
@@ -874,8 +930,8 @@ def compute_position_xy(v1=None, v2=None, n_bins=401, bin_min=0, bin_max=4):
     # Find the index where the histogram is the maximum
     # NOTE/TODO: I don't quite understand why the offset is computed this way. Need to talk to
     # Dennis about this and get an engineering/physics reason for it.
-    max_index_v1 = np.argmax(hist_v1[0][0:int(n_bins / 2)])
-    max_index_v2 = np.argmax(hist_v2[0][0:int(n_bins / 2)])
+    max_index_v1 = np.argmax(hist_v1[0][0 : int(n_bins / 2)])
+    max_index_v2 = np.argmax(hist_v2[0][0 : int(n_bins / 2)])
 
     z1_min = 1000 * xx[max_index_v1]
 
@@ -1090,20 +1146,6 @@ def save_data_to_cdf(df=None, file_name=None, file_version="0.0.1"):
     print(
         f"Creating CDF file: \033[1;94m {Path(cdf_file).parent}/\033[1;92m{Path(cdf_file).name} \033[0m"
     )
-    cdf_file = str(cdf_file)
-    cdf_data = cdf(cdf_file, "")
-    cdf_data.attrs["title"] = cdf_file.split("/")[-1].split(".")[0]
-    cdf_data.attrs["created"] = str(pd.Timestamp.now())
-    cdf_data.attrs["TimeZone"] = "UTC"
-    cdf_data.attrs["creator"] = "Ramiz A. Qudsi"
-    cdf_data.attrs["source"] = cdf_file
-    cdf_data.attrs["source_type"] = "csv"
-    cdf_data.attrs["source_format"] = "lxi"
-    cdf_data.attrs["source_version"] = "0.1.0"
-    cdf_data.attrs["source_description"] = "X-ray data from the LEXI spacecraft"
-    cdf_data.attrs["source_description_url"] = "TODO"
-    cdf_data.attrs["source_description_email"] = "qudsira@bu.edu"
-    cdf_data.attrs["source_description_institution"] = "BU"
 
     # Convert the array to datetime objects in UTC
     df.index = pd.to_datetime(df.index, utc=True, unit="s")
@@ -1119,6 +1161,34 @@ def save_data_to_cdf(df=None, file_name=None, file_version="0.0.1"):
 
     # Add the time difference to the index
     df.index = df.index + delta_time_eph_cdf
+
+    time_stamp = df.index.astype(int) // 10**9
+    time_stamp = time_stamp[0]
+
+    cdf_file = str(cdf_file)
+
+    date_str = cdf_file.split("_")[-5]
+
+    cdf_file = re.sub(re.escape(date_str), str(time_stamp), cdf_file)
+
+    # Check if the cdf file already exists, if it does then remove it
+    if Path(cdf_file).exists():
+        Path(cdf_file).unlink()
+
+    cdf_file = str(cdf_file)
+    cdf_data = cdf(cdf_file, "")
+    cdf_data.attrs["title"] = cdf_file.split("/")[-1].split(".")[0]
+    cdf_data.attrs["created"] = str(pd.Timestamp.now())
+    cdf_data.attrs["TimeZone"] = "UTC"
+    cdf_data.attrs["creator"] = "Ramiz A. Qudsi"
+    cdf_data.attrs["source"] = cdf_file
+    cdf_data.attrs["source_type"] = "csv"
+    cdf_data.attrs["source_format"] = "lxi"
+    cdf_data.attrs["source_version"] = "0.1.0"
+    cdf_data.attrs["source_description"] = "X-ray data from the LEXI spacecraft"
+    cdf_data.attrs["source_description_url"] = "TODO"
+    cdf_data.attrs["source_description_email"] = "qudsira@bu.edu"
+    cdf_data.attrs["source_description_institution"] = "BU"
 
     ### End of the chunk that will need to be removed once the data is in the correct format
 
@@ -1510,14 +1580,20 @@ def read_binary_file(file_val=None, t_start=None, t_end=None, multiple_files=Fal
     # file name should be the first and last file name. Else, the file name should be the first file
     if len(file_name_sci_list) > 1:
         file_name_sci = (
-            str(save_dir_l1b) + "/"
-            + file_name_sci_list[0].split("/")[-1].split(".")[0].split("_")[1] +
-            "_" + file_name_sci_list[0].split("/")[-1].split(".")[0].split("_")[0] +
-            "_" + file_name_sci_list[0].split("/")[-1].split(".")[0].split("_")[2] +
-            "_" + file_name_sci_list[0].split("/")[-1].split(".")[0].split("_")[3] +
-            "_" + file_name_sci_list[-1].split("/")[-1].split(".")[0].split("_")[-4] +
-            "_" + file_name_sci_list[-1].split("/")[-1].split(".")[0].split("_")[-3] +
-            "_level_1b.csv"
+            str(save_dir_l1b)
+            + "/"
+            + file_name_sci_list[0].split("/")[-1].split(".")[0].split("_")[1]
+            + "_"
+            + file_name_sci_list[0].split("/")[-1].split(".")[0].split("_")[0]
+            + "_"
+            + file_name_sci_list[0].split("/")[-1].split(".")[0].split("_")[2]
+            + "_"
+            + file_name_sci_list[0].split("/")[-1].split(".")[0].split("_")[3]
+            + "_"
+            + file_name_sci_list[-1].split("/")[-1].split(".")[0].split("_")[-4]
+            + "_"
+            + file_name_sci_list[-1].split("/")[-1].split(".")[0].split("_")[-3]
+            + "_level_1b.csv"
         )
     else:
         file_name_sci = (
