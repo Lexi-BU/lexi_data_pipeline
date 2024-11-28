@@ -1160,7 +1160,7 @@ def save_data_to_cdf(df=None, file_name=None, file_version="0.0.1"):
     delta_time_eph_cdf = start_time_ephemeris - start_time_cdf_files
 
     # Add the time difference to the index
-    df.index = df.index + delta_time_eph_cdf
+    # df.index = df.index + delta_time_eph_cdf
 
     time_stamp = df.index.astype(int) // 10**9
     time_stamp = time_stamp[0]
@@ -1500,7 +1500,7 @@ def read_binary_file(file_val=None, t_start=None, t_end=None, multiple_files=Fal
         t_end = df_sci_l1b.index.max()
 
     # Select only those where "IsCommanded" is False
-    df_sci = df_sci_l1b[~df_sci_l1b["IsCommanded"]]
+    df_sci_l1b = df_sci_l1b[~df_sci_l1b["IsCommanded"]]
 
     # Select only rows where all channels are greater than 0
     df_sci_l1b = df_sci_l1b[
@@ -1626,6 +1626,23 @@ def read_binary_file(file_val=None, t_start=None, t_end=None, multiple_files=Fal
     # Copy the dataframe to a new dataframe called df_sci_l1c
     df_sci_l1c_temp = df_sci_l1b.copy()
 
+    # NOTE: Chheck this later for thresholding
+    v_lower_threshold = 1.3
+    v_upper_threshold = 3.2
+
+    # Select only rows where all channels are greater than v_lower_threshold and less than
+    # v_upper_threshold
+    df_sci_l1c_temp = df_sci_l1c_temp[
+        (df_sci_l1c_temp["Channel1"] > v_lower_threshold)
+        & (df_sci_l1c_temp["Channel2"] > v_lower_threshold)
+        & (df_sci_l1c_temp["Channel3"] > v_lower_threshold)
+        & (df_sci_l1c_temp["Channel4"] > v_lower_threshold)
+        & (df_sci_l1c_temp["Channel1"] < v_upper_threshold)
+        & (df_sci_l1c_temp["Channel2"] < v_upper_threshold)
+        & (df_sci_l1c_temp["Channel3"] < v_upper_threshold)
+        & (df_sci_l1c_temp["Channel4"] < v_upper_threshold)
+    ]
+
     # Set the index time zone to UTC
     df_sci_l1c_temp.index = df_sci_l1c_temp.index.tz_convert("UTC")
 
@@ -1635,9 +1652,10 @@ def read_binary_file(file_val=None, t_start=None, t_end=None, multiple_files=Fal
         index_col=False,
     )
     # Convert the epoch_utc to datetime object
-    df_eph["epoch_utc"] = pd.to_datetime(df_eph["epoch_utc"], utc=True)
+    df_eph["epoch_utc"] = pd.to_datetime(df_eph["epoch_utc"], utc=True, unit="s")
     # Set the index to epoch_utc and set time zone to UTC
     df_eph.set_index("epoch_utc", inplace=True)
+
     # Set the time zone to UTC
     df_eph.index = df_eph.index.tz_convert("UTC")
 
@@ -1645,11 +1663,21 @@ def read_binary_file(file_val=None, t_start=None, t_end=None, multiple_files=Fal
     # and the last index of df_sci_l1c and the last index of df_eph
     # NOTE: This needs to be removed later. Curently this is done because the ephemeris data is over
     # a much longer time range than the science data.
-    time_diff_start = df_sci_l1c_temp.index[0] - df_eph.index[0]
+
+    ### Start of the chunk that will need to be removed once the data is in the correct format
+    start_time_ephemeris = "2025-03-02 08:00:00"
+    start_time_ephemeris = pd.to_datetime(start_time_ephemeris, utc=True)
+    start_time_cdf_files = "2024-05-23 21:40:00"
+    start_time_cdf_files = pd.to_datetime(start_time_cdf_files, utc=True)
+
+    # Get the time difference between the start time of the ephemeris and the start time of the
+    # cdf files
+    delta_time_eph_cdf = start_time_ephemeris - start_time_cdf_files
+    # time_diff_start = df_sci_l1c_temp.index[0] - df_eph.index[0]
 
     # Shift the index of df_eph by the time difference
     # TODO: Remove this later
-    df_eph.index = df_eph.index + time_diff_start
+    df_sci_l1c_temp.index = df_sci_l1c_temp.index + delta_time_eph_cdf
 
     # Compute the RA and DEC of the photons in J2000 coordinate system
     df_sci_l1c = compute_position_radec(

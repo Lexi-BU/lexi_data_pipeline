@@ -14,7 +14,7 @@ importlib.reload(lpf)
 plt.rc("text", usetex=True)
 plt.rc("font", family="serif")
 
-folder_val = "../data/from_lexi/2024/"
+folder_val = "../data/from_lexi/2025/"
 folder_val = Path(folder_val).expanduser().resolve()
 
 multiple_files = False
@@ -40,11 +40,12 @@ file_val_list = [
     and (int(file_val.split("/")[-1].split("_")[2]) <= t_end_unix)
 ]
 
-for i, file_val in enumerate(file_val_list[827:]):
+for i, file_val in enumerate(file_val_list[:]):
     file_name, df_sci, df_sci_l1b, df_sci_l1c, df_eph = lpf.read_binary_file(
         file_val=file_val, t_start=t_start, t_end=t_end, multiple_files=multiple_files
     )
-    print(f"file saved for file number {i}")
+    # Print in bold red color the file number and the file name
+    print(f"\033[1;31;40mFile number {i}\033[0m")
 #     # Make a time series plot of RA, dec
 #     fig, ax = plt.subplots(2, 1, figsize=(8, 8))
 #     ax[0].scatter(

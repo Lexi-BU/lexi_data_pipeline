@@ -4,7 +4,7 @@
 import glob
 import numpy as np
 
-folder_name = "/home/vetinari/Desktop/git/Lexi-Bu/lexi_data_pipeline/data/from_lexi/2024/processed_data/sci/level_1c/cdf/1.0.0"
+folder_name = "/home/vetinari/Desktop/git/Lexi-Bu/lexi_data_pipeline/data/from_lexi/2025/processed_data/sci/level_1c/cdf/1.0.0/"
 
 file_name_list = np.sort(glob.glob(folder_name + "/*.cdf"))
 
