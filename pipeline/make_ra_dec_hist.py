@@ -118,20 +118,21 @@ ax[1].tick_params(axis="x", rotation=45)
 plt.savefig("../figures/ra_dec_time_series_look_direction.png")
 
 
-folder_name = "/home/vetinari/Desktop/git/Lexi-Bu/lexi_data_pipeline/data/from_lexi/2025/processed_data/sci/level_1c/cdf/1.0.0"
+folder_name = "/home/cephadrius/Desktop/git/Lexi-Bu/lexi_data_pipeline/data/from_lexi/2025/processed_data/sci/level_1c/cdf/1.0.0"
 
 file_name_list = np.sort(glob.glob(folder_name + "/*.cdf"))
+print(file_name_list)
 
 ra_list = []
 dec_list = []
 epoch_unix_list = []
 
-for file_name in file_name_list[:]:
-    dat = CDF(file_name)
-    ra_list.append(dat["ra_J2000_deg"][:])
-    dec_list.append(dat["dec_J2000_deg"][:])
-    epoch_unix_list.append(dat["Epoch"][:])
-    dat.close()
+# for file_name in file_name_list[:]:
+#     dat = CDF(file_name)
+#     ra_list.append(dat["ra_J2000_deg"][:])
+#     dec_list.append(dat["dec_J2000_deg"][:])
+#     epoch_unix_list.append(dat["Epoch"][:])
+#     dat.close()
 
 
 # Turn on the latex rendering
