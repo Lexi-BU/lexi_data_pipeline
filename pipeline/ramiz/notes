@@ -1,0 +1,25 @@
+This should contain all of the software needed, and the SMILE versions of the calibration files.
+
+sxi_cxrb_bkg is the top level program
+sxi_gen_spec creates a SMILE spectrum from the spectral parameters. We can replace this with a routine that creates a LEXI count rate from the spectral parameters. OR, you can simply replace this idea with a map containing the LEXI count rate.
+sxi_read_atti read the attitude file, which contains the time, R.A, Dec., and Roll Angle for each time step.
+sxi_gti_filt reads the GTI (Good Time Interval) file to determine how much of each time step the instrument is actually on.
+coor_head reads a .fits header and extracts the WCS keywords
+
+wcsxy2sph and wcssph2xy are IDLLIB library routines that have py equivalents
+euler is an IDLLIB library routine that should have a py equivalent - it transforms from (R.A.,Dec) to Galactic (Long.,Lat.) and vice versa
+
+You will also need ang2pix_ring and ang2pix_nest which are from the HEALPix library which is definitely in py.
+
+In calib you will find
+
+cxrb_fak1.fits - a map of the sky in spectral coordinates
+smile_apec.fits - the thermal spectrum as a function of kT
+smile_tbab.fits - trasmission as a function of N(H)
+sxi_sim_test.arf - the effective area file - need to create a new one for LEXI
+sxi_sim_test.rmf - the line redistribution function - have one that we are using, but we probably need a new one. We probably want one that is un-real and simple.
+
+And, as I said at the meeting, what we probably want to do in-house is convert the spectral parameters to LEXI count rates, and just provide a map of the LEXI count rate. So you probably don't have to worry about sxi_gen_spec. I'll get back to working on that in a couple of days when the current SMILE disaster is taken care off.
+
+As always, email or text me or phone me if you've got questions.
+

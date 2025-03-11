@@ -26,7 +26,12 @@ logger.setLevel(logging.INFO)
 formatter = logging.Formatter("%(asctime)s:%(name)s:%(message)s")
 
 # Check if the log folder exists, if not then create it
-Path("../log").mkdir(parents=True, exist_ok=True)
+log_folder = "../log/"
+log_folder = Path(log_folder).expanduser().resolve()
+if not Path(log_folder).exists():
+    # Print the path in green color
+    print(f"\033[92mThe log folder is created at {log_folder}\033[0m")
+    Path(log_folder).mkdir(parents=True, exist_ok=True)
 
 file_handler = logging.FileHandler("../log/lxi_read_binary_data.log")
 file_handler.setFormatter(formatter)
@@ -81,17 +86,20 @@ class sci_packet_cls(NamedTuple):
     def from_bytes(cls, bytes_: bytes):
         structure_time = struct.unpack(">d", bytes_[2:10])
         structure = struct.unpack(packet_format_sci, bytes_[12:])
-        return cls(
-            Date=structure_time[0],
-            is_commanded=bool(
-                structure[1] & 0x40000000
-            ),  # mask to test for commanded event type
-            timestamp=structure[1] & 0x3FFFFFFF,  # mask for getting all timestamp bits
-            channel1=structure[2] * volts_per_count,
-            channel2=structure[3] * volts_per_count,
-            channel3=structure[4] * volts_per_count,
-            channel4=structure[5] * volts_per_count,
-        )
+        if structure[1] & 0x80000000:
+            return
+        else:
+            return cls(
+                Date=structure_time[0],
+                is_commanded=bool(
+                    structure[1] & 0x40000000
+                ),  # mask to test for commanded event type
+                timestamp=structure[1] & 0x3FFFFFFF,  # mask for getting all timestamp bits
+                channel1=structure[2] * volts_per_count,
+                channel2=structure[3] * volts_per_count,
+                channel3=structure[4] * volts_per_count,
+                channel4=structure[5] * volts_per_count,
+            )
 
 
 class hk_packet_cls(NamedTuple):
@@ -198,9 +206,7 @@ def read_binary_data_sci(
             Name of the output file.
     """
     if in_file_name is None:
-        in_file_name = (
-            "../data/raw_data/2022_03_03_1030_LEXI_raw_2100_newMCP_copper.txt"
-        )
+        raise FileNotFoundError("The input file name must be specified.")
 
     # Check if the file exists, if does not exist raise an error
     if not Path(in_file_name).is_file():
@@ -214,14 +220,6 @@ def read_binary_data_sci(
         raise TypeError("The number of decimals to save must be an integer.")
 
     input_file_name = in_file_name
-
-    # Get the creation date of the file in UTC and local time
-    creation_date_utc = datetime.datetime.utcfromtimestamp(
-        os.path.getctime(input_file_name)
-    )
-    creation_date_local = datetime.datetime.fromtimestamp(
-        os.path.getctime(input_file_name)
-    )
 
     with open(input_file_name, "rb") as file:
         raw = file.read()
@@ -314,29 +312,29 @@ def read_binary_data_sci(
     # Format filenames and folder names for the different operating systems
     if platform.system() == "Linux":
         output_file_name = (
-            os.path.basename(os.path.normpath(in_file_name)).split(".")[0]
-            + "_sci_output.csv"
+            os.path.basename(os.path.normpath(in_file_name)).split(".")[0] + "_sci_output_L1a.csv"
         )
+        output_folder_name_list = os.path.dirname(os.path.normpath(in_file_name)).split("/")
         output_folder_name = (
-            os.path.dirname(os.path.normpath(in_file_name)) + "/processed_data/sci"
+            "/".join(output_folder_name_list[:-2]) + "/L1a/sci/" + output_folder_name_list[-1]
         )
         save_file_name = output_folder_name + "/" + output_file_name
     elif platform.system() == "Windows":
         output_file_name = (
-            os.path.basename(os.path.normpath(in_file_name)).split(".")[0]
-            + "_sci_output.csv"
+            os.path.basename(os.path.normpath(in_file_name)).split(".")[0] + "_sci_output_L1a.csv"
         )
+        output_folder_name_list = os.path.dirname(os.path.normpath(in_file_name)).split("\\")
         output_folder_name = (
-            os.path.dirname(os.path.normpath(in_file_name)) + "\\processed_data\\sci"
+            "\\".join(output_folder_name_list[:-2]) + "\\L1a\\sci\\" + output_folder_name_list[-1]
         )
         save_file_name = output_folder_name + "\\" + output_file_name
     elif platform.system() == "Darwin":
         output_file_name = (
-            os.path.basename(os.path.normpath(in_file_name)).split(".")[0]
-            + "_sci_output.csv"
+            os.path.basename(os.path.normpath(in_file_name)).split(".")[0] + "_sci_output_L1a.csv"
         )
+        output_folder_name_list = os.path.dirname(os.path.normpath(in_file_name)).split("/")
         output_folder_name = (
-            os.path.dirname(os.path.normpath(in_file_name)) + "/processed_data/sci"
+            "/".join(output_folder_name_list[:-2]) + "/L1a/sci/" + output_folder_name_list[-1]
         )
         save_file_name = output_folder_name + "/" + output_file_name
     else:
@@ -398,7 +396,15 @@ def read_binary_data_sci(
     df = pd.read_csv(save_file_name)
 
     # Convert the date column to datetime
-    df["Date"] = pd.to_datetime(df["Date"], utc=True, format="mixed")
+    if platform.system() == "Windows":
+        df["Date"] = pd.to_datetime(df["Date"], format="mixed")
+    else:
+        try:
+            df["Date"] = pd.to_datetime(df["Date"])
+        except Exception:
+            df["Date"] = pd.to_datetime(df["Date"], format="mixed")
+        except Exception:
+            df["Date"] = pd.to_datetime(df["Date"], format="ISO8601")
 
     # Set index to the date
     df.set_index("Date", inplace=False)
@@ -421,15 +427,6 @@ def read_binary_data_sci(
         logger.warning(
             f"For the scicence data, the time difference between the current row and the last row is 0 for {input_file_name}."
         )
-
-    # Add utc_time and local_time column to the dataframe as NaNs
-    df["utc_time"] = np.nan
-    df["local_time"] = np.nan
-    # For each row, set the utc_time and local_time as sum of created_date_utc and time_diff_seconds
-    df["utc_time"] = creation_date_utc + pd.to_timedelta(time_diff_seconds, unit="s")
-    df["local_time"] = creation_date_local + pd.to_timedelta(
-        time_diff_seconds, unit="s"
-    )
 
     # Save the dataframe to a csv file
     df.to_csv(save_file_name, index=False)

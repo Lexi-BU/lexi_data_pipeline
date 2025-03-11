@@ -33,7 +33,7 @@ folder_val_str = str(folder_val)
 file_val_list = np.sort(glob.glob(folder_val_str + "/*.dat"))
 
 # Selecct the files that are within the time range
-file_val_list = [
+file_val_list = [f
     file_val
     for file_val in file_val_list
     if (int(file_val.split("/")[-1].split("_")[2]) >= t_start_unix)
