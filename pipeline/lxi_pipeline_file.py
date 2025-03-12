@@ -3,20 +3,18 @@ import datetime
 import importlib
 import logging
 import os
-import platform
 import pickle
+import platform
+import re
 import struct
 from pathlib import Path
 from typing import NamedTuple
 
+import lxi_misc_code as lmsc
 import numpy as np
 import pandas as pd
-from spacepy.pycdf import CDF as cdf
-import re
-
 import pytz
-
-import lxi_misc_code as lmsc
+from spacepy.pycdf import CDF as cdf
 
 importlib.reload(lmsc)
 
@@ -227,86 +225,67 @@ def read_binary_data_sci(
     index = 0
     packets = []
 
-    # Check if the "file_name" has payload in its name or not. If it has payload in its name, then
-    # use the sci_packet_cls else use sci_packet_cls_gsfc
-    if "payload" in in_file_name:
-        while index < len(raw) - 28:
-            if (
-                raw[index : index + 2] == sync_pit
-                and raw[index + 12 : index + 16] == sync_lxi
-            ):
-                packets.append(sci_packet_cls.from_bytes(raw[index : index + 28]))
+    while index < len(raw) - 28:
+        if raw[index : index + 2] == sync_pit and raw[index + 12 : index + 16] == sync_lxi:
+            packets.append(sci_packet_cls.from_bytes(raw[index : index + 28]))
+            index += 28
+            continue
+        elif (raw[index : index + 2] == sync_pit) and (raw[index + 12 : index + 16] != sync_lxi):
+            # Ignore the last packet
+            if index >= len(raw) - 28 - 16:
+                # NOTE: This is a temporary fix. The last packet is ignored because the last
+                # packet often isn't complete. Need to find a better solution. Check the function
+                # read_binary_data_hk for the same.
                 index += 28
                 continue
-            elif (raw[index : index + 2] == sync_pit) and (
-                raw[index + 12 : index + 16] != sync_lxi
-            ):
-                # Ignore the last packet
-                if index >= len(raw) - 28 - 16:
-                    # NOTE: This is a temporary fix. The last packet is ignored because the last
-                    # packet often isn't complete. Need to find a better solution. Check the function
-                    # read_binary_data_hk for the same.
-                    index += 28
-                    continue
-                # Check if sync_lxi is present in the next 16 bytes
-                if sync_lxi in raw[index + 12 : index + 28] and index + 28 < len(raw):
-                    # Find the index of sync_lxi
-                    index_sync = (
-                        index + 12 + raw[index + 12 : index + 28].index(sync_lxi)
-                    )
-                    # Reorder the packet
-                    new_packet = (
-                        raw[index + 28 : index + 12 + 28]
-                        + raw[index_sync : index + 28]
-                        + raw[index + 12 + 28 : index_sync + 28]
-                    )
-                    # Check if the packet length is 28
-                    if len(new_packet) != 28:
-                        # If the index + 28 is greater than the length of the raw data, then break
-                        if index + 28 > len(raw):
-                            break
-                    packets.append(sci_packet_cls.from_bytes(new_packet))
-                    index += 28
-                    continue
-                # Check if raw[index - 3:index] + raw[index+12:index+13] == sync_lxi
-                elif raw[index - 3 : index] + raw[index + 12 : index + 13] == sync_lxi:
-                    # Reorder the packet
-                    new_packet = (
-                        raw[index : index + 12]
-                        + raw[index - 3 : index]
-                        + raw[index + 12 : index + 25]
-                    )
-                    packets.append(sci_packet_cls.from_bytes(new_packet))
-                    index += 28
-                    continue
-                # Check if raw[index - 2:index] + raw[index+12:index+14] == sync_lxi
-                elif raw[index - 2 : index] + raw[index + 12 : index + 14] == sync_lxi:
-                    # Reorder the packet
-                    new_packet = (
-                        raw[index : index + 12]
-                        + raw[index - 2 : index]
-                        + raw[index + 13 : index + 26]
-                    )
-                    packets.append(sci_packet_cls.from_bytes(new_packet))
-                    index += 28
-                    continue
-                # Check if raw[index - 1:index] + raw[index+12:index+15] == sync_lxi
-                elif raw[index - 1 : index] + raw[index + 12 : index + 15] == sync_lxi:
-                    # Reorder the packet
-                    new_packet = (
-                        raw[index : index + 12]
-                        + raw[index - 1 : index]
-                        + raw[index + 14 : index + 27]
-                    )
-                    packets.append(sci_packet_cls.from_bytes(new_packet))
-                    index += 28
-                    continue
+            # Check if sync_lxi is present in the next 16 bytes
+            if sync_lxi in raw[index + 12 : index + 28] and index + 28 < len(raw):
+                # Find the index of sync_lxi
+                index_sync = index + 12 + raw[index + 12 : index + 28].index(sync_lxi)
+                # Reorder the packet
+                new_packet = (
+                    raw[index + 28 : index + 12 + 28]
+                    + raw[index_sync : index + 28]
+                    + raw[index + 12 + 28 : index_sync + 28]
+                )
+                # Check if the packet length is 28
+                if len(new_packet) != 28:
+                    # If the index + 28 is greater than the length of the raw data, then break
+                    if index + 28 > len(raw):
+                        break
+                packets.append(sci_packet_cls.from_bytes(new_packet))
+                index += 28
+                continue
+            # Check if raw[index - 3:index] + raw[index +12:index +13] == sync_lxi
+            elif raw[index - 3 : index] + raw[index + 12 : index + 13] == sync_lxi:
+                # Reorder the packet
+                new_packet = (
+                    raw[index : index + 12] + raw[index - 3 : index] + raw[index + 12 : index + 25]
+                )
+                packets.append(sci_packet_cls.from_bytes(new_packet))
+                index += 28
+                continue
+            # Check if raw[index - 2:index] + raw[index +12:index +14] == sync_lxi
+            elif raw[index - 2 : index] + raw[index + 12 : index + 14] == sync_lxi:
+                # Reorder the packet
+                new_packet = (
+                    raw[index : index + 12] + raw[index - 2 : index] + raw[index + 13 : index + 26]
+                )
+                packets.append(sci_packet_cls.from_bytes(new_packet))
+                index += 28
+                continue
+            # Check if raw[index - 1:index] + raw[index +12:index +15] == sync_lxi
+            elif raw[index - 1 : index] + raw[index + 12 : index + 15] == sync_lxi:
+                # Reorder the packet
+                new_packet = (
+                    raw[index : index + 12] + raw[index - 1 : index] + raw[index + 14 : index + 27]
+                )
+                packets.append(sci_packet_cls.from_bytes(new_packet))
                 index += 28
                 continue
             index += 28
-    else:
-        # Raise FileNameError mentioning that the file name does not contain proper keywords
-        raise FileNotFoundError("The file name does not contain the keyword 'payload'.")
+            continue
+        index += 28
 
     # Split the file name in a folder and a file name
     # Format filenames and folder names for the different operating systems
@@ -344,6 +323,8 @@ def read_binary_data_sci(
     if not Path(output_folder_name).exists():
         Path(output_folder_name).mkdir(parents=True, exist_ok=True)
 
+    # Get rid of None in the packets list
+    packets = [p for p in packets if p is not None]
     if "payload" in in_file_name:
         with open(save_file_name, "w", newline="") as file:
             dict_writer = csv.DictWriter(
@@ -362,21 +343,13 @@ def read_binary_data_sci(
             try:
                 dict_writer.writerows(
                     {
-                        "Date": datetime.datetime.utcfromtimestamp(sci_packet_cls.Date),
+                        "Date": datetime.datetime.fromtimestamp(sci_packet_cls.Date, tz=pytz.UTC),
                         "TimeStamp": sci_packet_cls.timestamp / 1e3,
                         "IsCommanded": sci_packet_cls.is_commanded,
-                        "Channel1": np.round(
-                            sci_packet_cls.channel1, decimals=number_of_decimals
-                        ),
-                        "Channel2": np.round(
-                            sci_packet_cls.channel2, decimals=number_of_decimals
-                        ),
-                        "Channel3": np.round(
-                            sci_packet_cls.channel3, decimals=number_of_decimals
-                        ),
-                        "Channel4": np.round(
-                            sci_packet_cls.channel4, decimals=number_of_decimals
-                        ),
+                        "Channel1": np.round(sci_packet_cls.channel1, decimals=number_of_decimals),
+                        "Channel2": np.round(sci_packet_cls.channel2, decimals=number_of_decimals),
+                        "Channel3": np.round(sci_packet_cls.channel3, decimals=number_of_decimals),
+                        "Channel4": np.round(sci_packet_cls.channel4, decimals=number_of_decimals),
                     }
                     for sci_packet_cls in packets
                 )
@@ -422,8 +395,7 @@ def read_binary_data_sci(
         # For each time difference, get the total number of seconds as an array
         time_diff_seconds = time_diff.dt.total_seconds().values
     except Exception:
-        # Set time difference to 0 seconds
-        time_diff_seconds = 0
+
         logger.warning(
             f"For the scicence data, the time difference between the current row and the last row is 0 for {input_file_name}."
         )
@@ -507,17 +479,11 @@ def read_binary_data_hk(
     packets = []
 
     while index < len(raw) - 28:
-        if (
-            raw[index : index + 2] == sync_pit
-            and raw[index + 12 : index + 16] == sync_lxi
-        ):
+        if raw[index : index + 2] == sync_pit and raw[index + 12 : index + 16] == sync_lxi:
             packets.append(hk_packet_cls.from_bytes(raw[index : index + 28]))
             index += 28
             continue
-        elif (
-            raw[index : index + 2] == sync_pit
-            and raw[index + 12 : index + 16] != sync_lxi
-        ):
+        elif raw[index : index + 2] == sync_pit and raw[index + 12 : index + 16] != sync_lxi:
             # Ignore the last packet
             if index >= len(raw) - 28 - 16:
                 # NOTE: This is a temporary fix. The last packet is ignored because the last
@@ -547,35 +513,29 @@ def read_binary_data_hk(
                 packets.append(hk_packet_cls.from_bytes(new_packet))
                 index += 28
                 continue
-            # Check if raw[index - 3:index] + raw[index+12:index+13] == sync_lxi
+            # Check if raw[index - 3:index] + raw[index +12:index +13] == sync_lxi
             elif raw[index - 3 : index] + raw[index + 12 : index + 13] == sync_lxi:
                 # Reorder the packet
                 new_packet = (
-                    raw[index : index + 12]
-                    + raw[index - 3 : index]
-                    + raw[index + 12 : index + 25]
+                    raw[index : index + 12] + raw[index - 3 : index] + raw[index + 12 : index + 25]
                 )
                 packets.append(hk_packet_cls.from_bytes(new_packet))
                 index += 28
                 continue
-            # Check if raw[index - 2:index] + raw[index+12:index+14] == sync_lxi
+            # Check if raw[index - 2:index] + raw[index +12:index +14] == sync_lxi
             elif raw[index - 2 : index] + raw[index + 12 : index + 14] == sync_lxi:
                 # Reorder the packet
                 new_packet = (
-                    raw[index : index + 12]
-                    + raw[index - 2 : index]
-                    + raw[index + 13 : index + 26]
+                    raw[index : index + 12] + raw[index - 2 : index] + raw[index + 13 : index + 26]
                 )
                 packets.append(hk_packet_cls.from_bytes(new_packet))
                 index += 28
                 continue
-            # Check if raw[index - 1:index] + raw[index+12:index+15] == sync_lxi
+            # Check if raw[index - 1:index] + raw[index +12:index +15] == sync_lxi
             elif raw[index - 1 : index] + raw[index + 12 : index + 15] == sync_lxi:
                 # Reorder the packet
                 new_packet = (
-                    raw[index : index + 12]
-                    + raw[index - 1 : index]
-                    + raw[index + 14 : index + 27]
+                    raw[index : index + 12] + raw[index - 1 : index] + raw[index + 14 : index + 27]
                 )
                 packets.append(hk_packet_cls.from_bytes(new_packet))
                 index += 28
@@ -883,7 +843,7 @@ def volt_to_mcp(x, y):
     return x_mcp, y_mcp
 
 
-def compute_position_xy(v1=None, v2=None, n_bins=401, bin_min=0, bin_max=4):
+def compute_position_xy(v1=None, v2=None, n_bins=401, bin_min=1, bin_max=4.51):
     """
     The function computes the position of the particle in the xy-plane. The ratios to compute
     both the x and y position are taken from Dennis' code. The code computes the offset of the
@@ -916,30 +876,34 @@ def compute_position_xy(v1=None, v2=None, n_bins=401, bin_min=0, bin_max=4):
     v2_shift: float
         Offset corrected voltage of the second channel.
     """
-    bin_size = (bin_max - bin_min) / (n_bins - 1)
+    # bin_size = (bin_max - bin_min) / (n_bins - 1)
 
     # make 1-D histogram of all 4 channels
-    hist_v1 = np.histogram(v1, bins=n_bins, range=(bin_min, bin_max))
-    hist_v2 = np.histogram(v2, bins=n_bins, range=(bin_min, bin_max))
+    # hist_v1 = np.histogram(v1, bins=n_bins, range=(bin_min, bin_max))
+    # hist_v2 = np.histogram(v2, bins=n_bins, range=(bin_min, bin_max))
 
-    xx = bin_min + bin_size * np.arange(n_bins)
+    # xx = bin_min + bin_size * np.arange(n_bins)
 
     # Find the index where the histogram is the maximum
     # NOTE/TODO: I don't quite understand why the offset is computed this way. Need to talk to
-    # Dennis about this and get an engineering/physics reason for it.
-    max_index_v1 = np.argmax(hist_v1[0][0 : int(n_bins / 2)])
-    max_index_v2 = np.argmax(hist_v2[0][0 : int(n_bins / 2)])
+    # Dennis about this and get an engineering/physics reason for it. (see below)
+    # max_index_v1 = np.argmax(hist_v1[0][0 : int(n_bins / 2)])
+    # max_index_v2 = np.argmax(hist_v2[0][0 : int(n_bins / 2)])
 
-    z1_min = 1000 * xx[max_index_v1]
+    # z1_min = 1000 * xx[max_index_v1]
+    # z2_min = 1000 * xx[max_index_v2]
 
-    z2_min = 1000 * xx[max_index_v2]
+    # n1_z = z1_min / 1000
+    # n2_z = z2_min / 1000
 
-    n1_z = z1_min / 1000
-    n2_z = z2_min / 1000
-
-    v1_shift = v1 - n1_z
-    v2_shift = v2 - n2_z
-
+    # v1_shift = v1 - n1_z
+    # v2_shift = v2 - n2_z
+    # NOTE: The offset is fixed to 1V, since that is what we have seen in most cases. If the offeset
+    # is not fixed to this value, then depending on the threshold being provided to the four
+    # channels, the computation of position can vary. However, based on the data we have seen, and
+    # the discussion with Dennis on 2025-03-12, the values don't change much and thus can be fixed to 1V.
+    v1_shift = v1 - 1
+    v2_shift = v2 - 1
     particle_pos = v2_shift / (v2_shift + v1_shift)
 
     return particle_pos, v1_shift, v2_shift
@@ -1269,11 +1233,11 @@ def read_csv_sci(file_val=None, t_start=None, t_end=None):
             t_end = t_end.replace(tzinfo=pytz.utc)
 
     x, v1_shift, v3_shift = compute_position_xy(
-        v1=df["Channel1"], v2=df["Channel3"], n_bins=401, bin_min=0, bin_max=4
+        v1=df["Channel1"], v2=df["Channel3"], n_bins=401, bin_min=1, bin_max=4.51
     )
 
     y, v4_shift, v2_shift = compute_position_xy(
-        v1=df["Channel4"], v2=df["Channel2"], n_bins=401, bin_min=0, bin_max=4
+        v1=df["Channel4"], v2=df["Channel2"], n_bins=401, bin_min=1, bin_max=4.51
     )
 
     # Correct for the non-linearity in the positions
@@ -1499,259 +1463,261 @@ def read_binary_file(file_val=None, t_start=None, t_end=None, multiple_files=Fal
     # Select only those where "IsCommanded" is False
     df_sci_l1b = df_sci_l1b[~df_sci_l1b["IsCommanded"]]
 
-    # Select only rows where all channels are greater than 0
-    df_sci_l1b = df_sci_l1b[
-        (df_sci_l1b["Channel1"] > 0)
-        & (df_sci_l1b["Channel2"] > 0)
-        & (df_sci_l1b["Channel3"] > 0)
-        & (df_sci_l1b["Channel4"] > 0)
-    ]
+    # Check if df_sci_l1b is empty, if it is not then proceed
+    if not df_sci_l1b.empty:
+        # Select only rows where all channels are greater than 0
+        df_sci_l1b = df_sci_l1b[
+            (df_sci_l1b["Channel1"] > 0)
+            & (df_sci_l1b["Channel2"] > 0)
+            & (df_sci_l1b["Channel3"] > 0)
+            & (df_sci_l1b["Channel4"] > 0)
+        ]
 
-    # For the entire dataframes, compute the x and y-coordinates and the shift in the voltages
-    x, v1_shift, v3_shift = compute_position_xy(
-        v1=df_sci_l1b["Channel1"],
-        v2=df_sci_l1b["Channel3"],
-        n_bins=401,
-        bin_min=0,
-        bin_max=4,
-    )
-
-    df_sci_l1b.loc[:, "x_val"] = x
-    df_sci_l1b.loc[:, "v1_shift"] = v1_shift
-    df_sci_l1b.loc[:, "v3_shift"] = v3_shift
-
-    y, v4_shift, v2_shift = compute_position_xy(
-        v1=df_sci_l1b["Channel4"],
-        v2=df_sci_l1b["Channel2"],
-        n_bins=401,
-        bin_min=0,
-        bin_max=4,
-    )
-
-    # Add the y-coordinate to the dataframe
-    df_sci_l1b.loc[:, "y_val"] = y
-    df_sci_l1b.loc[:, "v4_shift"] = v4_shift
-    df_sci_l1b.loc[:, "v2_shift"] = v2_shift
-
-    # Correct for the non-linearity in the positions using linear correction
-    # NOTE: Linear correction must be applied to the data when the data is in the
-    # voltage/dimensionless units.
-    x_lin, y_lin = lin_correction(x, y)
-
-    # Get the x,y value in mcp units
-    x_mcp, y_mcp = volt_to_mcp(x, y)
-    x_mcp_lin, y_mcp_lin = volt_to_mcp(x_lin, y_lin)
-
-    # Correct for the non-linearity in the positions using non-linear correction model
-    # NOTE: The non-linear correction is only applied on the mcp coordinates after linear correction
-    # has been applied.
-    x_mcp_nln, y_mcp_nln = non_lin_correction(x_mcp_lin, y_mcp_lin)
-
-    # Add the x-coordinate to the dataframe
-    df_sci_l1b.loc[:, "x_val_lin"] = x_lin
-    df_sci_l1b.loc[:, "x_mcp"] = x_mcp
-    df_sci_l1b.loc[:, "x_mcp_lin"] = x_mcp_lin
-    df_sci_l1b.loc[:, "x_mcp_nln"] = x_mcp_nln
-
-    # Add the y-coordinate to the dataframe
-    df_sci_l1b.loc[:, "y_val_lin"] = y_lin
-    df_sci_l1b.loc[:, "y_mcp"] = y_mcp
-    df_sci_l1b.loc[:, "y_mcp_lin"] = y_mcp_lin
-    df_sci_l1b.loc[:, "y_mcp_nln"] = y_mcp_nln
-
-    if multiple_files is True:
-        # Set file_names_sci to dates of first and last files
-        save_dir_l1b = Path(Path(file_val), "processed_data/sci/level_1b")
-
-        # If the save_dir_l1b does not exist, create it using Path
-        Path(save_dir_l1b).mkdir(parents=True, exist_ok=True)
-    else:
-        # Set file_names_sci to dates of first and last files
-        save_dir_l1b = Path(Path(file_val).parent, "processed_data/sci/level_1b")
-
-        # If the save_dir_l1b does not exist, create it using Path
-        Path(save_dir_l1b).mkdir(parents=True, exist_ok=True)
-
-    # Get the file name
-    # Check if the length of file_name_sci_list is greater than 1. If it is greater than 1, then the
-    # file name should be the first and last file name. Else, the file name should be the first file
-    if len(file_name_sci_list) > 1:
-        file_name_sci = (
-            str(save_dir_l1b)
-            + "/"
-            + file_name_sci_list[0].split("/")[-1].split(".")[0].split("_")[1]
-            + "_"
-            + file_name_sci_list[0].split("/")[-1].split(".")[0].split("_")[0]
-            + "_"
-            + file_name_sci_list[0].split("/")[-1].split(".")[0].split("_")[2]
-            + "_"
-            + file_name_sci_list[0].split("/")[-1].split(".")[0].split("_")[3]
-            + "_"
-            + file_name_sci_list[-1].split("/")[-1].split(".")[0].split("_")[-4]
-            + "_"
-            + file_name_sci_list[-1].split("/")[-1].split(".")[0].split("_")[-3]
-            + "_level_1b.csv"
-        )
-    else:
-        file_name_sci = (
-            str(save_dir_l1b)
-            + "/"
-            + file_name_sci_list[0].split("/")[-1].split(".")[0].split("_")[1]
-            + "_"
-            + file_name_sci_list[0].split("/")[-1].split(".")[0].split("_")[0]
-            + "_"
-            + file_name_sci_list[0].split("/")[-1].split(".")[0].split("_")[2]
-            + "_"
-            + file_name_sci_list[0].split("/")[-1].split(".")[0].split("_")[3]
-            + "_level_1b.csv"
+        # For the entire dataframes, compute the x and y-coordinates and the shift in the voltages
+        x, v1_shift, v3_shift = compute_position_xy(
+            v1=df_sci_l1b["Channel1"],
+            v2=df_sci_l1b["Channel3"],
+            n_bins=401,
+            bin_min=1,
+            bin_max=4.51,
         )
 
-    # Save the dataframe to a csv file
-    df_sci_l1b.to_csv(file_name_sci, index=False)
-    # Print in green color that the file has been saved
-    print(
-        f"\n Saved the dataframes to csv files. \n"
-        f"The Science File name =\033[1;94m {Path(file_name_sci).parent}/\033[1;92m{Path(file_name_sci).name} \033[0m \n"
-    )
+        df_sci_l1b.loc[:, "x_val"] = x
+        df_sci_l1b.loc[:, "v1_shift"] = v1_shift
+        df_sci_l1b.loc[:, "v3_shift"] = v3_shift
 
-    # TODO: Working to get Level 1c data, which is the final data in the J2000 coordinate system. The
-    # output will have the following columns:
-    #  -- Date: time of the packet as received from the PIT
-    #  -- RA: Right Ascension of the particle in J2000 coordinate system
-    #  -- Dec: Declination of the particle in J2000 coordinate system
-
-    # Copy the dataframe to a new dataframe called df_sci_l1c
-    df_sci_l1c_temp = df_sci_l1b.copy()
-
-    # NOTE: Chheck this later for thresholding
-    v_lower_threshold = 1.3
-    v_upper_threshold = 3.2
-
-    # Select only rows where all channels are greater than v_lower_threshold and less than
-    # v_upper_threshold
-    df_sci_l1c_temp = df_sci_l1c_temp[
-        (df_sci_l1c_temp["Channel1"] > v_lower_threshold)
-        & (df_sci_l1c_temp["Channel2"] > v_lower_threshold)
-        & (df_sci_l1c_temp["Channel3"] > v_lower_threshold)
-        & (df_sci_l1c_temp["Channel4"] > v_lower_threshold)
-        & (df_sci_l1c_temp["Channel1"] < v_upper_threshold)
-        & (df_sci_l1c_temp["Channel2"] < v_upper_threshold)
-        & (df_sci_l1c_temp["Channel3"] < v_upper_threshold)
-        & (df_sci_l1c_temp["Channel4"] < v_upper_threshold)
-    ]
-
-    # Set the index time zone to UTC
-    df_sci_l1c_temp.index = df_sci_l1c_temp.index.tz_convert("UTC")
-
-    # Read the Ephephermis data
-    df_eph = pd.read_csv(
-        "../data/from_spacecraft/2025/20241114_LEXIAngleData_20250302Landing_rad.csv",
-        index_col=False,
-    )
-    # Convert the epoch_utc to datetime object
-    df_eph["epoch_utc"] = pd.to_datetime(df_eph["epoch_utc"], utc=True, unit="s")
-    # Set the index to epoch_utc and set time zone to UTC
-    df_eph.set_index("epoch_utc", inplace=True)
-
-    # Set the time zone to UTC
-    df_eph.index = df_eph.index.tz_convert("UTC")
-
-    # Find the time difference between the first index of df_sci_l1c and the first index of df_eph
-    # and the last index of df_sci_l1c and the last index of df_eph
-    # NOTE: This needs to be removed later. Curently this is done because the ephemeris data is over
-    # a much longer time range than the science data.
-
-    ### Start of the chunk that will need to be removed once the data is in the correct format
-    start_time_ephemeris = "2025-03-02 08:00:00"
-    start_time_ephemeris = pd.to_datetime(start_time_ephemeris, utc=True)
-    start_time_cdf_files = "2024-05-23 21:40:00"
-    start_time_cdf_files = pd.to_datetime(start_time_cdf_files, utc=True)
-
-    # Get the time difference between the start time of the ephemeris and the start time of the
-    # cdf files
-    delta_time_eph_cdf = start_time_ephemeris - start_time_cdf_files
-    # time_diff_start = df_sci_l1c_temp.index[0] - df_eph.index[0]
-
-    # Shift the index of df_eph by the time difference
-    # TODO: Remove this later
-    df_sci_l1c_temp.index = df_sci_l1c_temp.index + delta_time_eph_cdf
-
-    # Compute the RA and DEC of the photons in J2000 coordinate system
-    df_sci_l1c = compute_position_radec(
-        df_lexi=df_sci_l1c_temp,
-        df_eph=df_eph,
-        roll_angle=0,
-        ra_eph_units="rad",
-        dec_eph_units="rad",
-        roll_angle_eph_units="deg",
-    )
-
-    if multiple_files is True:
-        # Set file_names_sci to dates of first and last files
-        save_dir_l1c = Path(Path(file_val), "processed_data/sci/level_1c")
-
-        # If the save_dir_l1c does not exist, create it using Path
-        Path(save_dir_l1c).mkdir(parents=True, exist_ok=True)
-    else:
-        # Set file_names_sci to dates of first and last files
-        save_dir_l1c = Path(Path(file_val).parent, "processed_data/sci/level_1c")
-
-        # If the save_dir_l1c does not exist, create it using Path
-        Path(save_dir_l1c).mkdir(parents=True, exist_ok=True)
-
-    # Get the file name
-    # Check if the length of file_name_sci_list is greater than 1. If it is greater than 1, then the
-    # file name should be the first and last file name. Else, the file name should be the first file
-    if len(file_name_sci_list) > 1:
-        file_name_sci = (
-            str(save_dir_l1c)
-            + "/"
-            + file_name_sci_list[0].split("/")[-1].split(".")[0].split("_")[1]
-            + "_"
-            + file_name_sci_list[0].split("/")[-1].split(".")[0].split("_")[0]
-            + "_"
-            + file_name_sci_list[0].split("/")[-1].split(".")[0].split("_")[2]
-            + "_"
-            + file_name_sci_list[0].split("/")[-1].split(".")[0].split("_")[3]
-            + "_"
-            + file_name_sci_list[-1].split("/")[-1].split(".")[0].split("_")[-4]
-            + "_"
-            + file_name_sci_list[-1].split("/")[-1].split(".")[0].split("_")[-3]
-            + "_level_1c.csv"
-        )
-    else:
-        file_name_sci = (
-            str(save_dir_l1c)
-            + "/"
-            + file_name_sci_list[0].split("/")[-1].split(".")[0].split("_")[1]
-            + "_"
-            + file_name_sci_list[0].split("/")[-1].split(".")[0].split("_")[0]
-            + "_"
-            + file_name_sci_list[0].split("/")[-1].split(".")[0].split("_")[2]
-            + "_"
-            + file_name_sci_list[0].split("/")[-1].split(".")[0].split("_")[3]
-            + "_level_1c.csv"
+        y, v4_shift, v2_shift = compute_position_xy(
+            v1=df_sci_l1b["Channel4"],
+            v2=df_sci_l1b["Channel2"],
+            n_bins=401,
+            bin_min=1,
+            bin_max=4.51,
         )
 
-    # Save the dataframe to a csv file
-    df_sci_l1c.to_csv(file_name_sci, index=False)
-    # Print in green color that the file has been saved
-    print(
-        f"\n Saved the dataframes to csv files. \n"
-        f"The Science File name =\033[1;94m {Path(file_name_sci).parent}/\033[1;92m{Path(file_name_sci).name} \033[0m \n"
-    )
+        # Add the y-coordinate to the dataframe
+        df_sci_l1b.loc[:, "y_val"] = y
+        df_sci_l1b.loc[:, "v4_shift"] = v4_shift
+        df_sci_l1b.loc[:, "v2_shift"] = v2_shift
 
-    # For a selected number of keys, save data to a cdf file
-    key_list_csv = ["ra_J2000_deg", "dec_J2000_deg"]
+        # Correct for the non-linearity in the positions using linear correction
+        # NOTE: Linear correction must be applied to the data when the data is in the
+        # voltage/dimensionless units.
+        x_lin, y_lin = lin_correction(x, y)
 
-    # Create a dataframe with only the selected keys
-    df_sci_l1c_cdf = pd.DataFrame(
-        {key: df_sci_l1c[key] for key in key_list_csv}, index=df_sci_l1c.index
-    )
+        # Get the x,y value in mcp units
+        x_mcp, y_mcp = volt_to_mcp(x, y)
+        x_mcp_lin, y_mcp_lin = volt_to_mcp(x_lin, y_lin)
 
-    # Save the data to a CDF file
-    _ = save_data_to_cdf(
-        df=df_sci_l1c_cdf, file_name=file_name_sci, file_version="1.0.0"
-    )
+        # Correct for the non-linearity in the positions using non-linear correction model
+        # NOTE: The non-linear correction is only applied on the mcp coordinates after linear correction
+        # has been applied.
+        x_mcp_nln, y_mcp_nln = non_lin_correction(x_mcp_lin, y_mcp_lin)
 
-    return file_name_sci, df_sci, df_sci_l1b, df_sci_l1c, df_eph
+        # Add the x-coordinate to the dataframe
+        df_sci_l1b.loc[:, "x_val_lin"] = x_lin
+        df_sci_l1b.loc[:, "x_mcp"] = x_mcp
+        df_sci_l1b.loc[:, "x_mcp_lin"] = x_mcp_lin
+        df_sci_l1b.loc[:, "x_mcp_nln"] = x_mcp_nln
+
+        # Add the y-coordinate to the dataframe
+        df_sci_l1b.loc[:, "y_val_lin"] = y_lin
+        df_sci_l1b.loc[:, "y_mcp"] = y_mcp
+        df_sci_l1b.loc[:, "y_mcp_lin"] = y_mcp_lin
+        df_sci_l1b.loc[:, "y_mcp_nln"] = y_mcp_nln
+
+        if multiple_files is True:
+            # Set file_names_sci to dates of first and last files
+            save_dir_l1b = Path(Path(file_val), "processed_data/sci/level_1b")
+
+            # If the save_dir_l1b does not exist, create it using Path
+            Path(save_dir_l1b).mkdir(parents=True, exist_ok=True)
+        else:
+            # Set file_names_sci to dates of first and last files
+            save_dir_l1b = Path(Path(file_val).parent, "processed_data/sci/level_1b")
+
+            # If the save_dir_l1b does not exist, create it using Path
+            Path(save_dir_l1b).mkdir(parents=True, exist_ok=True)
+
+        # Get the file name
+        # Check if the length of file_name_sci_list is greater than 1. If it is greater than 1, then the
+        # file name should be the first and last file name. Else, the file name should be the first file
+        if len(file_name_sci_list) > 1:
+            file_name_sci = (
+                str(save_dir_l1b)
+                + "/"
+                + file_name_sci_list[0].split("/")[-1].split(".")[0].split("_")[1]
+                + "_"
+                + file_name_sci_list[0].split("/")[-1].split(".")[0].split("_")[0]
+                + "_"
+                + file_name_sci_list[0].split("/")[-1].split(".")[0].split("_")[2]
+                + "_"
+                + file_name_sci_list[0].split("/")[-1].split(".")[0].split("_")[3]
+                + "_"
+                + file_name_sci_list[-1].split("/")[-1].split(".")[0].split("_")[-4]
+                + "_"
+                + file_name_sci_list[-1].split("/")[-1].split(".")[0].split("_")[-3]
+                + "_level_1b.csv"
+            )
+        else:
+            file_name_sci = (
+                str(save_dir_l1b)
+                + "/"
+                + file_name_sci_list[0].split("/")[-1].split(".")[0].split("_")[1]
+                + "_"
+                + file_name_sci_list[0].split("/")[-1].split(".")[0].split("_")[0]
+                + "_"
+                + file_name_sci_list[0].split("/")[-1].split(".")[0].split("_")[2]
+                + "_"
+                + file_name_sci_list[0].split("/")[-1].split(".")[0].split("_")[3]
+                + "_level_1b.csv"
+            )
+
+        # Save the dataframe to a csv file
+        df_sci_l1b.to_csv(file_name_sci, index=True)
+        # Print in green color that the file has been saved
+        print(
+            f"\n Saved the dataframes to csv files. \n"
+            f"The Science File name =\033[1;94m {Path(file_name_sci).parent}/\033[1;92m{Path(file_name_sci).name} \033[0m \n"
+        )
+
+        # TODO: Working to get Level 1c data, which is the final data in the J2000 coordinate system. The
+        # output will have the following columns:
+        #  -- Date: time of the packet as received from the PIT
+        #  -- RA: Right Ascension of the particle in J2000 coordinate system
+        #  -- Dec: Declination of the particle in J2000 coordinate system
+
+        # Copy the dataframe to a new dataframe called df_sci_l1c
+        df_sci_l1c_temp = df_sci_l1b.copy()
+
+        # NOTE: Chheck this later for thresholding
+        v_lower_threshold = 1.3
+        v_upper_threshold = 3.2
+
+        # Select only rows where all channels are greater than v_lower_threshold and less than
+        # v_upper_threshold
+        df_sci_l1c_temp = df_sci_l1c_temp[
+            (df_sci_l1c_temp["Channel1"] > v_lower_threshold)
+            & (df_sci_l1c_temp["Channel2"] > v_lower_threshold)
+            & (df_sci_l1c_temp["Channel3"] > v_lower_threshold)
+            & (df_sci_l1c_temp["Channel4"] > v_lower_threshold)
+            & (df_sci_l1c_temp["Channel1"] < v_upper_threshold)
+            & (df_sci_l1c_temp["Channel2"] < v_upper_threshold)
+            & (df_sci_l1c_temp["Channel3"] < v_upper_threshold)
+            & (df_sci_l1c_temp["Channel4"] < v_upper_threshold)
+        ]
+
+        # If df_sci_l1c_temp index is not in UTC, convert it to UTC
+        if df_sci_l1c_temp.index.tz is None:
+            df_sci_l1c_temp.index = df_sci_l1c_temp.index.tz_localize("UTC")
+        # Set the index time zone to UTC
+        # df_sci_l1c_temp.index = df_sci_l1c_temp.index.tz_localize("UTC")
+
+        # Read the Ephephermis data
+        df_eph = pd.read_csv(
+            "../data/from_spacecraft/2025/20241114_LEXIAngleData_20250302Landing_rad.csv",
+            index_col=False,
+        )
+        # Convert the epoch_utc to datetime object
+        df_eph["epoch_utc"] = pd.to_datetime(df_eph["epoch_utc"], utc=True, unit="s")
+        # Set the index to epoch_utc and set time zone to UTC
+        df_eph.set_index("epoch_utc", inplace=True)
+
+        # Find the time difference between the first index of df_sci_l1c and the first index of df_eph
+        # and the last index of df_sci_l1c and the last index of df_eph
+        # NOTE: This needs to be removed later. Curently this is done because the ephemeris data is over
+        # a much longer time range than the science data.
+
+        ### Start of the chunk that will need to be removed once the data is in the correct format
+        start_time_ephemeris = "2025-03-02 08:00:00"
+        start_time_ephemeris = pd.to_datetime(start_time_ephemeris, utc=True)
+        start_time_cdf_files = "2024-05-23 21:40:00"
+        start_time_cdf_files = pd.to_datetime(start_time_cdf_files, utc=True)
+
+        # Get the time difference between the start time of the ephemeris and the start time of the
+        # cdf files
+        # delta_time_eph_cdf = start_time_ephemeris - start_time_cdf_files
+        # time_diff_start = df_sci_l1c_temp.index[0] - df_eph.index[0]
+
+        # Shift the index of df_eph by the time difference
+        # TODO: Remove this later
+        # df_sci_l1c_temp.index = df_sci_l1c_temp.index + delta_time_eph_cdf
+
+        # Compute the RA and DEC of the photons in J2000 coordinate system
+        df_sci_l1c = compute_position_radec(
+            df_lexi=df_sci_l1c_temp,
+            df_eph=df_eph,
+            roll_angle=0,
+            ra_eph_units="rad",
+            dec_eph_units="rad",
+            roll_angle_eph_units="deg",
+        )
+
+        if multiple_files is True:
+            # Set file_names_sci to dates of first and last files
+            save_dir_l1c = Path(Path(file_val), "processed_data/sci/level_1c")
+
+            # If the save_dir_l1c does not exist, create it using Path
+            Path(save_dir_l1c).mkdir(parents=True, exist_ok=True)
+        else:
+            # Set file_names_sci to dates of first and last files
+            save_dir_l1c = Path(Path(file_val).parent, "processed_data/sci/level_1c")
+
+            # If the save_dir_l1c does not exist, create it using Path
+            Path(save_dir_l1c).mkdir(parents=True, exist_ok=True)
+
+        # Get the file name
+        # Check if the length of file_name_sci_list is greater than 1. If it is greater than 1, then the
+        # file name should be the first and last file name. Else, the file name should be the first file
+        if len(file_name_sci_list) > 1:
+            file_name_sci = (
+                str(save_dir_l1c)
+                + "/"
+                + file_name_sci_list[0].split("/")[-1].split(".")[0].split("_")[1]
+                + "_"
+                + file_name_sci_list[0].split("/")[-1].split(".")[0].split("_")[0]
+                + "_"
+                + file_name_sci_list[0].split("/")[-1].split(".")[0].split("_")[2]
+                + "_"
+                + file_name_sci_list[0].split("/")[-1].split(".")[0].split("_")[3]
+                + "_"
+                + file_name_sci_list[-1].split("/")[-1].split(".")[0].split("_")[-4]
+                + "_"
+                + file_name_sci_list[-1].split("/")[-1].split(".")[0].split("_")[-3]
+                + "_level_1c.csv"
+            )
+        else:
+            file_name_sci = (
+                str(save_dir_l1c)
+                + "/"
+                + file_name_sci_list[0].split("/")[-1].split(".")[0].split("_")[1]
+                + "_"
+                + file_name_sci_list[0].split("/")[-1].split(".")[0].split("_")[0]
+                + "_"
+                + file_name_sci_list[0].split("/")[-1].split(".")[0].split("_")[2]
+                + "_"
+                + file_name_sci_list[0].split("/")[-1].split(".")[0].split("_")[3]
+                + "_level_1c.csv"
+            )
+
+        # Save the dataframe to a csv file
+        df_sci_l1c.to_csv(file_name_sci, index=True)
+        # Print in green color that the file has been saved
+        print(
+            f"\n Saved the dataframes to csv files. \n"
+            f"The Science File name =\033[1;94m {Path(file_name_sci).parent}/\033[1;92m{Path(file_name_sci).name} \033[0m \n"
+        )
+
+        # For a selected number of keys, save data to a cdf file
+        key_list_csv = ["ra_J2000_deg", "dec_J2000_deg"]
+
+        # Create a dataframe with only the selected keys
+        df_sci_l1c_cdf = pd.DataFrame(
+            {key: df_sci_l1c[key] for key in key_list_csv}, index=df_sci_l1c.index
+        )
+
+        # Save the data to a CDF file
+        _ = save_data_to_cdf(df=df_sci_l1c_cdf, file_name=file_name_sci, file_version="1.0.0")
+
+        return file_name_sci, df_sci, df_sci_l1b, df_sci_l1c, df_eph
+    else:
+        return None, df_sci, df_sci_l1b, None, None
