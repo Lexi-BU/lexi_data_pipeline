@@ -12,7 +12,7 @@ from tkinter import filedialog
 from typing import NamedTuple
 
 import global_variables
-import lxi_misc_code as lmsc
+import lxi_misc_codes as lmsc
 import numpy as np
 import pandas as pd
 import pytz
@@ -101,6 +101,46 @@ class sci_packet_cls(NamedTuple):
             )
 
 
+class sci_packet_cls_gsfc(NamedTuple):
+    """
+    Class for the science packet.
+    The code unpacks the science packet into a named tuple. Based on the packet format, each packet
+    is unpacked into following parameters:
+    - timestamp: int (32 bit)
+    - IsCommanded: bool (1 bit)
+    - voltage channel1: float (16 bit)
+    - voltage channel2: float (16 bit)
+    - voltage channel3: float (16 bit)
+    - voltage channel4: float (16 bit)
+
+    TimeStamp is the time stamp of the packet in seconds.
+    IsCommand tells you if the packet was commanded.
+    Voltages 1 to 4 are the voltages of corresponding different channels.
+    """
+
+    is_commanded: bool
+    timestamp: int
+    channel1: float
+    channel2: float
+    channel3: float
+    channel4: float
+
+    @classmethod
+    def from_bytes(cls, bytes_: bytes):
+        structure = struct.unpack(packet_format_sci, bytes_)
+        if structure[1] & 0x80000000:
+            return None
+        else:
+            return cls(
+                is_commanded=bool(structure[1] & 0x40000000),  # mask to test for commanded event type
+                timestamp=structure[1] & 0x3FFFFFFF,  # mask for getting all timestamp bits
+                channel1=structure[2] * volts_per_count,
+                channel2=structure[3] * volts_per_count,
+                channel3=structure[4] * volts_per_count,
+                channel4=structure[5] * volts_per_count,
+            )
+
+
 class hk_packet_cls(NamedTuple):
     """
     Class for the housekeeping packet.
@@ -162,6 +202,71 @@ class hk_packet_cls(NamedTuple):
 
             return cls(
                 Date=Date,
+                timestamp=timestamp,
+                hk_id=hk_id,
+                hk_value=hk_value,
+                delta_event_count=delta_event_count,
+                delta_drop_event_count=delta_drop_event_count,
+                delta_lost_event_count=delta_lost_event_count,
+            )
+
+
+class hk_packet_cls_gsfc(NamedTuple):
+    """
+    Class for the housekeeping packet.
+    The code unpacks the HK packet into a named tuple. Based on the document and data structure,
+    each packet is unpacked into
+    - "timestamp",
+    - "hk_id" (this tells us what "hk_value" stores inside it),
+    - "hk_value",
+    - "delta_event_count",
+    - "delta_drop_event_count", and
+    - "delta_lost_event_count".
+
+    Based on the value of "hk_id", "hk_value" might correspond to value of following parameters:
+    NOTE: "hk_id" is a number, and varies from 0 to 15.
+    0: PinPuller Temperature
+    1: Optics Temperature
+    2: LEXI Base Temperature
+    3: HV Supply Temperature
+    4: Current Correspoding to the HV Supply (5.2V)
+    5: Current Correspoding to the HV Supply (10V)
+    6: Current Correspoding to the HV Supply (3.3V)
+    7: Anode Voltage Monitor
+    8: Current Correspoding to the HV Supply (28V)
+    9: ADC Ground
+    10: Command Count
+    11: Pin Puller Armmed
+    12: Unused
+    13: Unused
+    14: MCP HV after auto change
+    15: MCP HV after manual change
+    """
+
+    timestamp: int
+    hk_id: int
+    hk_value: float
+    delta_event_count: int
+    delta_drop_event_count: int
+    delta_lost_event_count: int
+
+    @classmethod
+    def from_bytes(cls, bytes_: bytes):
+        structure = struct.unpack(packet_format_hk, bytes_)
+        # Check if the present packet is the house-keeping packet. Only the house-keeping packets
+        # are processed.
+        if structure[1] & 0x80000000:
+            timestamp = structure[1] & 0x3FFFFFFF  # mask for getting all timestamp bits
+            hk_id = (structure[2] & 0xF000) >> 12  # Down-shift 12 bits to get the hk_id
+            if hk_id == 10 or hk_id == 11:
+                hk_value = structure[2] & 0xFFF
+            else:
+                hk_value = (structure[2] & 0xFFF) << 4  # Up-shift 4 bits to get the hk_value
+            delta_event_count = structure[3]
+            delta_drop_event_count = structure[4]
+            delta_lost_event_count = structure[5]
+
+            return cls(
                 timestamp=timestamp,
                 hk_id=hk_id,
                 hk_value=hk_value,
@@ -1112,12 +1217,15 @@ def compute_position(v1=None, v2=None, n_bins=401, bin_min=0, bin_max=4):
 
     n1_z = z1_min / 1000
     n2_z = z2_min / 1000
+    print(f"n1_z = {n1_z}, n2_z = {n2_z}")
 
+    # n1_z = 1
+    # n2_z = 1
     v1_shift = v1 - n1_z
     v2_shift = v2 - n2_z
 
-    # particle_pos = v2_shift / (v2_shift + v1_shift)
-    particle_pos = v2 / (v2 + v1)
+    particle_pos = v2_shift / (v2_shift + v1_shift)
+    # particle_pos = v2 / (v2 + v1)
 
     return particle_pos, v1_shift, v2_shift
 
