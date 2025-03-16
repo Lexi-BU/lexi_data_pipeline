@@ -87,9 +87,9 @@ def make_2d_histogram(df, key1, key2, bins=100, norm_style="log", save_fig=False
     fig, ax = plt.subplots(figsize=(8, 6))
     mincnt = 1
     if norm_style == "log":
-        norm = mpl.colors.LogNorm(vmin=mincnt)
+        norm = mpl.colors.LogNorm(vmin=mincnt, vmax=350)
     else:
-        norm = mpl.colors.Normalize(vmin=0)
+        norm = mpl.colors.Normalize(vmin=0, vmax=350)
     # Create a hexbin plot
     ax.hexbin(
         df[key1],
@@ -121,10 +121,12 @@ def make_2d_histogram(df, key1, key2, bins=100, norm_style="log", save_fig=False
         location="right",
     )
     cb.ax.xaxis.set_ticks_position("top")
-    ax.grid(True)
+    ax.grid(True, color="c", alpha=0.2)
     ax.tick_params(labelsize=12)
     ax.set_xlim(df[key1].min(), df[key1].max())
     ax.set_ylim(df[key2].min(), df[key2].max())
+    ax.set_xlim(-1, 1)
+    ax.set_ylim(-1, 1)
     plt.title(f"{key1} vs {key2} 2D Histogram")
     plt.tight_layout()
     if save_fig:
@@ -142,26 +144,52 @@ def make_2d_histogram(df, key1, key2, bins=100, norm_style="log", save_fig=False
     return fig, ax
 
 
-data_folder_location = "/mnt/cephadrius/bu_research/lexi_data/L1b/sci/cdf/"
+data_folder_location = "C:\\Users\\Lexi-Admin\\Documents\\GitHub\\Lexi-BU\\lxi_gui\\data\\processed_lexi_data\\L1b\\sci\\cdf\\"
 
-start_time = "2025-03-06T15:05:00.00Z"
-end_time = "2025-03-06T16:34:00.00Z"
+n = 9
+number_of_intervals = 20 * n
+interval_length = 5
+interval_index = 173
 
-start_time = parser.parse(start_time)
-end_time = parser.parse(end_time)
+while interval_index < number_of_intervals:
 
-# Get the list of files
-file_list = get_file_list(data_folder_location, start_time, end_time)
+    try:
+        start_hour = 15
+        start_minute = 5
+        start_h = start_hour + interval_index * interval_length // 60
+        start_m = start_minute + interval_index * interval_length % 60
+        end_h = start_hour + (interval_index + 1) * interval_length // 60
+        end_m = start_minute + (interval_index + 1) * interval_length % 60
+        if end_m > 59:
+            end_m = 59
+        if start_m > 59:
+            start_m = 59
 
-# Read all the data files
-df = read_all_data_files(file_list, return_data_type="dataframe")
+        start_time = f"2025-03-06T{start_h}:{start_m}:00.00Z"
+        end_time = f"2025-03-06T{end_h}:{end_m}:00.00Z"
 
-# Make a 2D histogram of x_cm vs y_cm
-fig, ax = make_2d_histogram(
-    df,
-    key1="x_cm",
-    key2="y_cm",
-    bins=200,
-    norm_style="linear",
-    save_fig=True,
-)
+        start_time = parser.parse(start_time)
+        end_time = parser.parse(end_time)
+
+        # Get the list of files
+        file_list = get_file_list(data_folder_location, start_time, end_time)
+
+        # Read all the data files
+        df = read_all_data_files(file_list, return_data_type="dataframe")
+
+        # Make a 2D histogram of x_cm vs y_cm
+        fig, ax = make_2d_histogram(
+            df,
+            key1="x_cm",
+            key2="y_cm",
+            bins=200,
+            norm_style="linear",
+            save_fig=True,
+        )
+        plt.close("all")
+        print(f"Figure plotted for index==> {interval_index}/{number_of_intervals}\n")
+        interval_index += 1
+    except Exception:
+        interval_index += 1
+    
+
