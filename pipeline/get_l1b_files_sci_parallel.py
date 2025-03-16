@@ -4,12 +4,14 @@ import importlib
 import re
 import warnings
 from collections import defaultdict
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 import save_data_to_cdf as sdtc
 from dateutil import parser
+from tqdm import tqdm  # Import tqdm for the progress bar
 
 importlib.reload(sdtc)
 
@@ -64,41 +66,7 @@ def level1b_data_processing(df=None):
     return df
 
 
-# Get the list of files in the folder and subfolders
-sci_folder = "/mnt/cephadrius/bu_research/lexi_data/L1a/sci/"
-
-# Get all files in the folder and subfolders
-file_val_list = sorted(glob.glob(str(sci_folder) + "/**/*.csv", recursive=True))
-
-# Randomly select 100 files for testing
-np.random.seed(43)
-selected_file_val_list = np.random.choice(file_val_list, size=1000, replace=False)
-
-# Define reference start time
-start_time = datetime.datetime(2025, 1, 16, 0, 0, 0, tzinfo=datetime.timezone.utc)
-# Dictionary to store grouped files
-grouped_files = defaultdict(list)
-# Extract timestamps from filenames and group by 1-hour periods
-for file in selected_file_val_list:
-    match = re.search(r"payload_lexi_(\d+)_", file)
-    if match:
-        timestamp = int(match.group(1))
-        file_time = datetime.datetime.fromtimestamp(timestamp, tz=datetime.timezone.utc)
-
-        # Compute the hour bin index
-        delta = file_time - start_time
-        hour_bin = delta.total_seconds() // 3600
-
-        # Assign to the corresponding group (fix incorrect append)
-        grouped_files[hour_bin].append((file, file_time))
-# Convert groups to a sorted list
-sorted_groups = {k: sorted(v, key=lambda x: x[1]) for k, v in sorted(grouped_files.items())}
-# Output folder for merged files
-output_sci_folder = Path("/mnt/cephadrius/bu_research/lexi_data/L1b/sci/csv/")
-output_sci_folder.mkdir(parents=True, exist_ok=True)
-
-# Save each group to a CSV file
-for hour_bin, files in sorted_groups.items():
+def process_file_group(hour_bin, files, start_time, output_sci_folder):
     bin_start_time = start_time + datetime.timedelta(hours=hour_bin)
     bin_end_time = bin_start_time + datetime.timedelta(hours=1)
 
@@ -116,7 +84,7 @@ for hour_bin, files in sorted_groups.items():
     # Get the date and time for the filename
     bin_start_time_str = bin_start_time.strftime("%Y-%m-%d")
 
-    # correct file path
+    # Correct file path
     output_sci_file_name = (
         output_sci_folder
         / bin_start_time_str
@@ -149,15 +117,17 @@ for hour_bin, files in sorted_groups.items():
 
     # Save merged CSV
     # combined_df.to_csv(output_sci_file_name, index=False)
-    print(
-        f"\n Saved \033[1;94m {Path(output_sci_file_name).parent}/\033[1;92m{Path(output_sci_file_name).name} \033[0m"
-    )
+    # print(
+    #     f"\n Saved \033[1;94m {Path(output_sci_file_name).parent}/\033[1;92m{Path(output_sci_file_name).name} \033[0m"
+    # )
 
     # Set the Date as index
-    combined_df["Date"] = combined_df["Date"].apply(parser.parse)
-    combined_df["Date"] = combined_df["Date"].dt.tz_convert("UTC")
-    # combined_df["Date"] = pd.to_datetime(combined_df["Date"], utc=True)
-    # combined_df.set_index("Date", inplace=True)
+    processed_df["Date"] = processed_df["Date"].apply(parser.parse)
+    try:
+        processed_df["Date"] = processed_df["Date"].dt.tz_convert("UTC")
+    except Exception:
+        processed_df["Date"] = processed_df["Date"].dt.tz_localize("UTC")
+    processed_df.set_index("Date", inplace=True)
 
     # Save the data as cdf file
     sdtc.save_data_to_cdf(
@@ -165,3 +135,85 @@ for hour_bin, files in sorted_groups.items():
         file_name=output_sci_file_name,
         file_version=f"{primary_version}.{secondary_version}",
     )
+
+
+def main(start_time=None, end_time=None):
+    # Get the list of files in the folder and subfolders
+    sci_folder = "/mnt/cephadrius/bu_research/lexi_data/L1a/sci/"
+
+    # Get all files in the folder and subfolders
+    file_val_list = sorted(glob.glob(str(sci_folder) + "/**/*.csv", recursive=True))
+
+    # Filter files based on the start and end time
+    if start_time is not None and end_time is not None:
+        start_time = parser.parse(start_time)
+        end_time = parser.parse(end_time)
+        file_val_list = [
+            file
+            for file in file_val_list
+            if start_time
+            <= datetime.datetime.fromtimestamp(
+                int(re.search(r"payload_lexi_(\d+)_", file).group(1)), tz=datetime.timezone.utc
+            )
+            <= end_time
+        ]
+    else:
+        # Select all files
+        file_val_list = sorted(glob.glob(str(sci_folder) + "/**/*.csv", recursive=True))
+    # Randomly select 100 files for testing
+    # np.random.seed(43)
+    # selected_file_val_list = np.random.choice(file_val_list, size=1000, replace=False)
+    # selected_file_val_list = file_val_list[start_index:end_index]
+
+    # Define reference start time
+    start_time = datetime.datetime(2025, 1, 16, 0, 0, 0, tzinfo=datetime.timezone.utc)
+    # Dictionary to store grouped files
+    grouped_files = defaultdict(list)
+    # Extract timestamps from filenames and group by 1-hour periods
+    for file in file_val_list:
+        match = re.search(r"payload_lexi_(\d+)_", file)
+        if match:
+            timestamp = int(match.group(1))
+            file_time = datetime.datetime.fromtimestamp(timestamp, tz=datetime.timezone.utc)
+
+            # Compute the hour bin index
+            delta = file_time - start_time
+            hour_bin = delta.total_seconds() // 3600
+
+            # Assign to the corresponding group (fix incorrect append)
+            grouped_files[hour_bin].append((file, file_time))
+    # Convert groups to a sorted list
+    sorted_groups = {k: sorted(v, key=lambda x: x[1]) for k, v in sorted(grouped_files.items())}
+    # Output folder for merged files
+    output_sci_folder = Path("/mnt/cephadrius/bu_research/lexi_data/L1b/sci/csv/")
+    output_sci_folder.mkdir(parents=True, exist_ok=True)
+
+    # Use ProcessPoolExecutor to parallelize the processing of file groups
+    with ProcessPoolExecutor() as executor:
+        # Submit tasks to the executor
+        futures = {
+            executor.submit(
+                process_file_group, hour_bin, files, start_time, output_sci_folder
+            ): hour_bin
+            for hour_bin, files in sorted_groups.items()
+        }
+
+        # Use tqdm to display a progress bar
+        for future in tqdm(
+            as_completed(futures), total=len(futures), desc="Processing file groups"
+        ):
+            hour_bin = futures[future]
+            try:
+                future.result()
+            except Exception as e:
+                print(f"Error processing hour bin {hour_bin}: {e}")
+
+
+if __name__ == "__main__":
+    for month in range(3, 4):
+        for day in range(8, 9):
+            for hour in range(23, 24):
+                start_time = f"2025-{month:02d}-{day:02d}T{hour:02d}:00:00Z"
+                end_time = f"2025-{month:02d}-{day:02d}T{hour:02d}:59:59Z"
+                print(f"Processing from {start_time} to {end_time}")
+                main(start_time=start_time, end_time=end_time)

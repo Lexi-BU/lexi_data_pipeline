@@ -4,18 +4,18 @@ import importlib
 import re
 import warnings
 from collections import defaultdict
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
-import save_data_to_cdf as sdtc
+import save_data_to_cdf_lib as sdtc
 from dateutil import parser
 
 importlib.reload(sdtc)
 
 # Suppress warnings
-warnings.filterwarnings("ignore", category=UserWarning)
-warnings.filterwarnings("ignore", category=RuntimeWarning)
+warnings.filterwarnings("ignore")
 
 # Get the list of files in the folder and subfolders
 hk_folder = "/mnt/cephadrius/bu_research/lexi_data/L1a/hk/"
@@ -25,9 +25,8 @@ file_val_list = sorted(glob.glob(str(hk_folder) + "/**/*.csv", recursive=True))
 
 # Randomly select 100 files for testing
 np.random.seed(42)
-# selected_file_val_list = np.random.choice(file_val_list, size=200, replace=False)
-
-selected_file_val_list = file_val_list[0:]
+# selected_file_val_list = np.random.choice(file_val_list, size=1000, replace=False)
+selected_file_val_list = file_val_list[0:200]
 
 # Define reference start time
 start_time = datetime.datetime(2025, 1, 16, 0, 0, 0, tzinfo=datetime.timezone.utc)
@@ -56,8 +55,9 @@ sorted_groups = {k: sorted(v, key=lambda x: x[1]) for k, v in sorted(grouped_fil
 output_hk_folder = Path("/mnt/cephadrius/bu_research/lexi_data/L1b/hk/csv/")
 output_hk_folder.mkdir(parents=True, exist_ok=True)
 
-# Save each group to a CSV file
-for hour_bin, files in sorted_groups.items():
+
+# Function to process a single hour bin
+def process_hour_bin(hour_bin, files):
     bin_start_time = start_time + datetime.timedelta(hours=hour_bin)
     bin_end_time = bin_start_time + datetime.timedelta(hours=1)
 
@@ -107,15 +107,17 @@ for hour_bin, files in sorted_groups.items():
     output_hk_file_name.parent.mkdir(parents=True, exist_ok=True)
 
     # Save merged CSV
-    combined_df.to_csv(output_hk_file_name, index=False)
+    # combined_df.to_csv(output_hk_file_name, index=False)
     # print(
     #     f"\n Saved \033[1;94m {Path(output_hk_file_name).parent}/\033[1;92m{Path(output_hk_file_name).name} \033[0m"
     # )
 
     # Set the Date as index
+    # combined_df["Date"] = pd.to_datetime(combined_df["Date"], utc=True)
+    # combined_df.set_index("Date", inplace=True)
     combined_df["Date"] = combined_df["Date"].apply(parser.parse)
     try:
-        combined_df["Date"] = combined_df["Date"].dt.tz_convert("UTC")
+        combined_df["Date"] = combined_df["Date"].dt.tz_localize("UTC")
     except Exception:
         combined_df["Date"] = combined_df["Date"].dt.tz_localize("UTC")
     combined_df.set_index("Date", inplace=True)
@@ -126,8 +128,13 @@ for hour_bin, files in sorted_groups.items():
         file_name=output_hk_file_name,
         file_version=f"{primary_version}.{secondary_version}",
     )
-    # Print the progress recursively as percentage using \r
-    print(
-        f"\rProgress: {((hour_bin + 1) / len(selected_file_val_list)) * 100:.5f}%",
-        end="",
-    )
+
+
+# Use ThreadPoolExecutor to parallelize processing of hour bins
+with ThreadPoolExecutor(max_workers=5) as executor:
+    futures = [
+        executor.submit(process_hour_bin, hour_bin, files)
+        for hour_bin, files in sorted_groups.items()
+    ]
+    for future in as_completed(futures):
+        future.result()  # Wait for all tasks to complete
