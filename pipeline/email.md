@@ -1,3 +1,8 @@
+TLDR: Link to the LEXI processed data:
+https://drive.google.com/drive/folders/1TqmHeMzn5vApPTiIhGK-ZsD0yeh115I-?usp=sharing
+
+
+
 Dear LEXIers,
 Apologies for taking this long to get the data to you all. The biggest issue I have faced so far is
 that the calibration done on the ground for linear correction as well as non-linear correction
