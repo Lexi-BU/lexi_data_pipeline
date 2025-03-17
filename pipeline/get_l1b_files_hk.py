@@ -18,10 +18,10 @@ warnings.filterwarnings("ignore", category=UserWarning)
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 
 # Get the list of files in the folder and subfolders
-hk_folder = "/mnt/cephadrius/bu_research/lexi_data/L1a/hk/"
+hk_folder = "/mnt/cephadrius/bu_research/lexi_data/L1a/hk/csv/2025-03-16/"
 
 # Get all files in the folder and subfolders
-file_val_list = sorted(glob.glob(str(hk_folder) + "/**/*.csv", recursive=True))
+file_val_list = sorted(glob.glob(str(hk_folder) + "*.csv", recursive=True))
 
 # Randomly select 100 files for testing
 np.random.seed(42)

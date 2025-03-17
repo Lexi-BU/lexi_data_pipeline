@@ -139,10 +139,10 @@ def process_file_group(hour_bin, files, start_time, output_sci_folder):
 
 def main(start_time=None, end_time=None):
     # Get the list of files in the folder and subfolders
-    sci_folder = "/mnt/cephadrius/bu_research/lexi_data/L1a/sci/"
+    sci_folder = "/mnt/cephadrius/bu_research/lexi_data/L1a/sci/csv/2025-03-16/"
 
     # Get all files in the folder and subfolders
-    file_val_list = sorted(glob.glob(str(sci_folder) + "/**/*.csv", recursive=True))
+    file_val_list = sorted(glob.glob(str(sci_folder) + "/*.csv", recursive=True))
 
     # Filter files based on the start and end time
     if start_time is not None and end_time is not None:

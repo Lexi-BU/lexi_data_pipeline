@@ -165,5 +165,6 @@ cython_debug/
 # Ignore the data folder
 data/*
 figures/*
+movies/*
 
 pipeline/ramiz/calib/cxrb_fak1.fits

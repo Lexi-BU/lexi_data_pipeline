@@ -65,21 +65,21 @@ def level1b_data_processing(df=None):
 
 
 # Get the list of files in the folder and subfolders
-sci_folder = "/mnt/cephadrius/bu_research/lexi_data/L1a/sci/"
+sci_folder = "/mnt/cephadrius/bu_research/lexi_data/L1a/sci/csv/2025-03-16/"
 
 # Get all files in the folder and subfolders
-file_val_list = sorted(glob.glob(str(sci_folder) + "/**/*.csv", recursive=True))
+file_val_list = sorted(glob.glob(str(sci_folder) + "*.csv", recursive=True))
 
 # Randomly select 100 files for testing
 np.random.seed(43)
-selected_file_val_list = np.random.choice(file_val_list, size=1000, replace=False)
+# selected_file_val_list = np.random.choice(file_val_list, size=1000, replace=False)
 
 # Define reference start time
 start_time = datetime.datetime(2025, 1, 16, 0, 0, 0, tzinfo=datetime.timezone.utc)
 # Dictionary to store grouped files
 grouped_files = defaultdict(list)
 # Extract timestamps from filenames and group by 1-hour periods
-for file in selected_file_val_list:
+for file in file_val_list:
     match = re.search(r"payload_lexi_(\d+)_", file)
     if match:
         timestamp = int(match.group(1))
@@ -148,7 +148,7 @@ for hour_bin, files in sorted_groups.items():
     output_sci_file_name.parent.mkdir(parents=True, exist_ok=True)
 
     # Save merged CSV
-    # combined_df.to_csv(output_sci_file_name, index=False)
+    combined_df.to_csv(output_sci_file_name, index=False)
     print(
         f"\n Saved \033[1;94m {Path(output_sci_file_name).parent}/\033[1;92m{Path(output_sci_file_name).name} \033[0m"
     )

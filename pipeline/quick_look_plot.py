@@ -127,7 +127,9 @@ def make_2d_histogram(df, key1, key2, bins=100, norm_style="log", save_fig=False
     ax.set_ylim(df[key2].min(), df[key2].max())
     ax.set_xlim(-1, 1)
     ax.set_ylim(-1, 1)
-    plt.title(f"{key1} vs {key2} 2D Histogram")
+    index_min_str = df.index.min().strftime("%Y-%m-%d %H:%M:%S")
+    index_max_str = df.index.max().strftime("%Y-%m-%d %H:%M:%S")
+    plt.title(f"{key1} vs {key2} 2D Histogram\n from {index_min_str} to {index_max_str}")
     plt.tight_layout()
     if save_fig:
         save_fig_folder = Path("../figures")

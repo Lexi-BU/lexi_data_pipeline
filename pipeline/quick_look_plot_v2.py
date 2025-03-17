@@ -93,7 +93,7 @@ def make_2d_histogram(df, key1, key2, bins=100, norm_style="log", save_fig=False
     fig, ax = plt.subplots(figsize=(8, 6))
     mincnt = 1
     if norm_style == "log":
-        norm = mpl.colors.LogNorm(vmin=mincnt, vmax=1000)
+        norm = mpl.colors.LogNorm(vmin=mincnt, vmax=100)
     else:
         norm = mpl.colors.Normalize(vmin=0, vmax=350)
     # Create a hexbin plot
@@ -132,10 +132,12 @@ def make_2d_histogram(df, key1, key2, bins=100, norm_style="log", save_fig=False
     # ax.set_ylim(df[key2].min(), df[key2].max())
     ax.set_xlim(-2, 2)
     ax.set_ylim(-2, 2)
-    plt.title(f"{key1} vs {key2} 2D Histogram")
+    index_min_str = df.index.min().strftime("%Y-%m-%d %H:%M:%S")
+    index_max_str = df.index.max().strftime("%Y-%m-%d %H:%M:%S")
+    plt.title(f"2D Histogram of {key1} vs {key2}\n{index_min_str} to {index_max_str}")
     plt.tight_layout()
     if save_fig:
-        save_fig_folder = Path("../figures")
+        save_fig_folder = Path("../figures/1_min")
         save_fig_folder.mkdir(parents=True, exist_ok=True)
         min_time = df.index.min().strftime("%Y-%m-%d_%H-%M-%S")
         max_time = df.index.max().strftime("%Y-%m-%d_%H-%M-%S")
@@ -207,9 +209,9 @@ def main(start_time_str, interval_length, stop_time_str, data_folder_location):
 
 if __name__ == "__main__":
     # Example inputs
-    start_time_str = "2025-03-02T00:00:00Z"
-    interval_length = 10  # in minutes
-    stop_time_str = "2025-03-11T00:00:00Z"
+    start_time_str = "2025-03-16T00:00:00Z"
+    interval_length = 1  # in minutes
+    stop_time_str = "2025-03-17T00:00:00Z"
     data_folder_location = "/mnt/cephadrius/bu_research/lexi_data/L1b/sci/cdf/"
 
     # Run the main function

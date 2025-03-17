@@ -12,15 +12,17 @@ from tqdm import tqdm
 importlib.reload(glf)
 
 start = time.time()
-file_data_folder = "/home/cephadrius/Desktop/git/Lexi-BU/lexi_data_pipeline/data/level_0"
+file_data_folder = (
+    "/home/cephadrius/Desktop/git/Lexi-BU/lexi_data_pipeline/data/level_0/2025-03-16/"
+)
 
 # Get the list of files in the folder and subfolders
-file_val_list = sorted(glob.glob(str(file_data_folder) + "/**/*.dat", recursive=True))
+file_val_list = sorted(glob.glob(str(file_data_folder) + "/*.dat", recursive=True))
 
 # Randomly select 100 files for testing
 # define a random seed
 # np.random.seed(42)
-selected_file_val_list = np.random.choice(file_val_list, size=100, replace=False)
+# selected_file_val_list = np.random.choice(file_val_list, size=100, replace=False)
 
 # Determine number of CPU cores and allocate 90%
 total_cores = multiprocessing.cpu_count()
