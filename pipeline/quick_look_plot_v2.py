@@ -12,7 +12,7 @@ from dateutil import parser
 from spacepy.pycdf import CDF as cdf
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+# logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
 
 def get_file_list(data_folder_location, start_time, end_time):
@@ -59,7 +59,7 @@ def read_all_data_files(file_list, start_time, end_time, return_data_type="dataf
                     all_data_dict[var] = []
                 all_data_dict[var].append(dat[var][:])
         except Exception as e:
-            logging.error(f"Error reading file {file}: {e}")
+            # logging.error(f"Error reading file {file}: {e}")
             continue
 
     for key in all_data_dict.keys():
@@ -93,7 +93,7 @@ def make_2d_histogram(df, key1, key2, bins=100, norm_style="log", save_fig=False
     fig, ax = plt.subplots(figsize=(8, 6))
     mincnt = 1
     if norm_style == "log":
-        norm = mpl.colors.LogNorm(vmin=mincnt, vmax=350)
+        norm = mpl.colors.LogNorm(vmin=mincnt, vmax=1000)
     else:
         norm = mpl.colors.Normalize(vmin=0, vmax=350)
     # Create a hexbin plot
@@ -128,10 +128,10 @@ def make_2d_histogram(df, key1, key2, bins=100, norm_style="log", save_fig=False
     cb.ax.xaxis.set_ticks_position("top")
     ax.grid(True, color="c", alpha=0.2)
     ax.tick_params(labelsize=12)
-    ax.set_xlim(df[key1].min(), df[key1].max())
-    ax.set_ylim(df[key2].min(), df[key2].max())
-    ax.set_xlim(-1, 1)
-    ax.set_ylim(-1, 1)
+    # ax.set_xlim(df[key1].min(), df[key1].max())
+    # ax.set_ylim(df[key2].min(), df[key2].max())
+    ax.set_xlim(-2, 2)
+    ax.set_ylim(-2, 2)
     plt.title(f"{key1} vs {key2} 2D Histogram")
     plt.tight_layout()
     if save_fig:
@@ -163,17 +163,17 @@ def calculate_intervals(start_time, interval_length, stop_time):
 def process_interval(interval_index, start_time, end_time, data_folder_location):
     """Process a single interval."""
     try:
-        logging.info(f"Processing interval {interval_index}: {start_time} to {end_time}")
+        # logging.info(f"Processing interval {interval_index}: {start_time} to {end_time}")
 
         # Get the list of files
         file_list = get_file_list(data_folder_location, start_time, end_time)
-        logging.info(f"Found {len(file_list)} files to process.")
+        # logging.info(f"Found {len(file_list)} files to process.")
 
         # Read all the data files
         df = read_all_data_files(
             file_list, start_time=start_time, end_time=end_time, return_data_type="dataframe"
         )
-        logging.info(f"Data read successfully for interval {interval_index}.")
+        # logging.info(f"Data read successfully for interval {interval_index}.")
 
         # Make a 2D histogram of x_cm vs y_cm
         fig, ax = make_2d_histogram(
@@ -181,13 +181,14 @@ def process_interval(interval_index, start_time, end_time, data_folder_location)
             key1="x_cm",
             key2="y_cm",
             bins=200,
-            norm_style="linear",
+            norm_style="log",
             save_fig=True,
         )
         plt.close("all")
         logging.info(f"Figure plotted for interval {interval_index}: {start_time} to {end_time}")
     except Exception as e:
-        logging.error(f"Error processing interval {interval_index}: {e}")
+        # logging.error(f"Error processing interval {interval_index}: {e}")
+        pass
 
 
 def main(start_time_str, interval_length, stop_time_str, data_folder_location):
@@ -206,7 +207,7 @@ def main(start_time_str, interval_length, stop_time_str, data_folder_location):
 
 if __name__ == "__main__":
     # Example inputs
-    start_time_str = "2025-03-03T00:00:00Z"
+    start_time_str = "2025-03-02T00:00:00Z"
     interval_length = 10  # in minutes
     stop_time_str = "2025-03-11T00:00:00Z"
     data_folder_location = "/mnt/cephadrius/bu_research/lexi_data/L1b/sci/cdf/"

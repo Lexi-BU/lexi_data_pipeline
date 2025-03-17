@@ -191,5 +191,3 @@ while interval_index < number_of_intervals:
         interval_index += 1
     except Exception:
         interval_index += 1
-    
-
