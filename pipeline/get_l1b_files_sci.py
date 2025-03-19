@@ -71,7 +71,7 @@ sci_folder = "/mnt/cephadrius/bu_research/lexi_data/L1a/sci/csv/2025-03-16/"
 file_val_list = sorted(glob.glob(str(sci_folder) + "*.csv", recursive=True))
 
 # Randomly select 100 files for testing
-np.random.seed(43)
+# np.random.seed(43)
 # selected_file_val_list = np.random.choice(file_val_list, size=1000, replace=False)
 
 # Define reference start time

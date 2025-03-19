@@ -34,5 +34,5 @@ def compress_subfolders(folder_name):
 
 
 # Example usage
-folder_name = "/mnt/cephadrius/bu_research/lexi_data/L1a/sci/csv/"
+folder_name = "/mnt/cephadrius/bu_research/lexi_data/L1a/hk/csv/"
 compress_subfolders(folder_name)

@@ -20,11 +20,51 @@ warnings.filterwarnings("ignore", category=UserWarning)
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 
 
-def level1b_data_processing(df=None):
-    channel_1_lower_threshold = min(2, df["Channel1"].min())
-    channel_2_lower_threshold = min(2, df["Channel2"].min())
-    channel_3_lower_threshold = min(2, df["Channel3"].min())
-    channel_4_lower_threshold = min(2, df["Channel4"].min())
+def lin_correction(
+    x,
+    y,
+    M_inv=np.array([[0.98678, 0.16204], [0.11385, 0.993497]]),
+    b=np.array([0.5529, 0.5596]),
+):
+    """
+    Function to apply linearity correction to MCP position x/y data
+    """
+    x_lin = (x * M_inv[0, 0] + y * M_inv[0, 1]) - b[0]
+    y_lin = x * M_inv[1, 0] + y * M_inv[1, 1] - b[1]
+
+    return x_lin, y_lin
+
+
+def volt_to_mcp(x, y):
+    """
+    Function to convert voltage coordinates to MCP coordinates
+    """
+    # Conversion factor from voltage to MCP coordinates. This is basically the effective diameter
+    # over which the MCP is active.
+
+    conversion_factor = 60  # in mm
+    x_mcp = x * conversion_factor
+    y_mcp = y * conversion_factor
+
+    return x_mcp, y_mcp
+
+
+def level1b_data_processing(df=None, lower_threshold=None):
+    # channel_1_lower_threshold = min(2, df["Channel1"].min())
+    # channel_2_lower_threshold = min(2, df["Channel2"].min())
+    # channel_3_lower_threshold = min(2, df["Channel3"].min())
+    # channel_4_lower_threshold = min(2, df["Channel4"].min())
+
+    if lower_threshold is None:
+        channel_1_lower_threshold = 1
+        channel_2_lower_threshold = 1
+        channel_3_lower_threshold = 1
+        channel_4_lower_threshold = 1
+    else:
+        channel_1_lower_threshold = lower_threshold
+        channel_2_lower_threshold = lower_threshold
+        channel_3_lower_threshold = lower_threshold
+        channel_4_lower_threshold = lower_threshold
 
     # Compute the shifted values for each channel (only if IsCommanded is False), otherwise set to
     # NaN
@@ -57,11 +97,11 @@ def level1b_data_processing(df=None):
     df["x_volt"] = df["Channel3_shifted"] / (df["Channel3_shifted"] + df["Channel1_shifted"])
     df["y_volt"] = df["Channel2_shifted"] / (df["Channel2_shifted"] + df["Channel4_shifted"])
 
-    detector_size = 6  # The size of MCP detector in cm
+    # Apply the linear correction
+    df["x_volt_lin"], df["y_volt_lin"] = lin_correction(df["x_volt"], df["y_volt"])
 
-    # Compute the position in cm
-    df["x_cm"] = (df["x_volt"] - 0.5) * detector_size
-    df["y_cm"] = (df["y_volt"] - 0.5) * detector_size
+    # Apply the voltage to MCP conversion
+    df["x_mcp"], df["y_mcp"] = volt_to_mcp(df["x_volt_lin"], df["y_volt_lin"])
 
     return df
 
@@ -139,10 +179,10 @@ def process_file_group(hour_bin, files, start_time, output_sci_folder):
 
 def main(start_time=None, end_time=None):
     # Get the list of files in the folder and subfolders
-    sci_folder = "/mnt/cephadrius/bu_research/lexi_data/L1a/sci/csv/2025-03-16/"
+    sci_folder = "/mnt/cephadrius/bu_research/lexi_data/L1a/sci/csv/"
 
     # Get all files in the folder and subfolders
-    file_val_list = sorted(glob.glob(str(sci_folder) + "/*.csv", recursive=True))
+    file_val_list = sorted(glob.glob(str(sci_folder) + "/**/*.csv", recursive=True))
 
     # Filter files based on the start and end time
     if start_time is not None and end_time is not None:
@@ -211,8 +251,8 @@ def main(start_time=None, end_time=None):
 
 if __name__ == "__main__":
     for month in range(3, 4):
-        for day in range(8, 9):
-            for hour in range(23, 24):
+        for day in range(16, 17):
+            for hour in range(0, 24):
                 start_time = f"2025-{month:02d}-{day:02d}T{hour:02d}:00:00Z"
                 end_time = f"2025-{month:02d}-{day:02d}T{hour:02d}:59:59Z"
                 print(f"Processing from {start_time} to {end_time}")

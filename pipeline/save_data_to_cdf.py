@@ -1,3 +1,4 @@
+import datetime
 import re
 import warnings
 from pathlib import Path
@@ -73,7 +74,7 @@ def save_data_to_cdf(df=None, file_name=None, file_version="0.0"):
     cdf_file = str(cdf_file)
     cdf_data = cdf(cdf_file, "")
     cdf_data.attrs["title"] = cdf_file.split("/")[-1].split(".")[0]
-    cdf_data.attrs["created"] = str(pd.Timestamp.now())
+    cdf_data.attrs["created"] = str(datetime.datetime.now(datetime.timezone.utc))
     cdf_data.attrs["TimeZone"] = "UTC"
     cdf_data.attrs["creator"] = "Ramiz A. Qudsi"
     cdf_data.attrs["source"] = cdf_file.split("/")[-1]
@@ -101,6 +102,47 @@ def save_data_to_cdf(df=None, file_name=None, file_version="0.0"):
             cdf_data[col] = df[col]
         else:
             cdf_data[col] = df[col]
+
+    cdf_data["TimeStamp"].attrs[
+        "UNITS"
+    ] = "seconds since LEXI was powered on or a reset command was issued"
+    cdf_data["TimeStamp"].attrs["FORMAT"] = "T"
+
+    cdf_data["Channel1"].attrs["UNITS"] = "Volts"
+    cdf_data["Channel2"].attrs["UNITS"] = "Volts"
+    cdf_data["Channel3"].attrs["UNITS"] = "Volts"
+    cdf_data["Channel4"].attrs["UNITS"] = "Volts"
+
+    cdf_data["x_volt"].attrs[
+        "Description"
+    ] = "The value of the x-axis in volts. This is a dimensionless quantity computed by dividing the value of shifted channel3 voltage by the sum of shifted channel3 and channel1 voltages."
+    cdf_data["x_volt"].attrs["units"] = "Dimensionless"
+
+    cdf_data["y_volt"].attrs[
+        "Description"
+    ] = "The value of the y-axis in volts. This is a dimensionless quantity computed by dividing the value of shifted channel2 voltage by the sum of shifted channel2 and channel4 voltages."
+    cdf_data["y_volt"].attrs["units"] = "Dimensionless"
+
+    cdf_data["x_volt_lin"].attrs[
+        "Description"
+    ] = "The value of the x-axis in volts after linear correction has been applied. This is a dimensionless quantity computed by applying the linear correction to the x_volt value."
+    cdf_data["x_volt_lin"].attrs["units"] = "Dimensionless"
+
+    cdf_data["y_volt_lin"].attrs[
+        "Description"
+    ] = "The value of the y-axis in volts after linear correction has been applied. This is a dimensionless quantity computed by applying the linear correction to the y_volt value."
+    cdf_data["y_volt_lin"].attrs["units"] = "Dimensionless"
+
+    cdf_data["x_mcp"].attrs[
+        "Description"
+    ] = "The value of the x-axis in mcp coordinates. This is computed using the x_volt_lin by scaling it to the range of the mcp coordinates."
+    cdf_data["x_mcp"].attrs["units"] = "centimeters"
+
+    cdf_data["y_mcp"].attrs[
+        "Description"
+    ] = "The value of the y-axis in mcp coordinates. This is computed using the y_volt_lin by scaling it to the range of the mcp coordinates."
+    cdf_data["y_mcp"].attrs["units"] = "centimeters"
+
     cdf_data.close()
     # print(
     #     f"\n  CDF file created: \033[1;94m {Path(cdf_file).parent}/\033[1;92m{Path(cdf_file).name} \033[0m"
