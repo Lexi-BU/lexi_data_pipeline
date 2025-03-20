@@ -42,7 +42,7 @@ def volt_to_mcp(x, y):
     # Conversion factor from voltage to MCP coordinates. This is basically the effective diameter
     # over which the MCP is active.
 
-    conversion_factor = 60  # in mm
+    conversion_factor = 90  # in mm
     x_mcp = x * conversion_factor
     y_mcp = y * conversion_factor
 
@@ -128,7 +128,7 @@ def process_file_group(hour_bin, files, start_time, output_sci_folder):
     output_sci_file_name = (
         output_sci_folder
         / bin_start_time_str
-        / f"payload_lexi_{bin_start_time.strftime('%Y-%m-%d_%H-%M-%S')}_to_{bin_end_time.strftime('%Y-%m-%d_%H-%M-%S')}_sci_output_L1b_v0.0.csv"
+        / f"payload_lexi_{bin_start_time.strftime('%Y-%m-%d_%H-%M-%S')}_to_{bin_end_time.strftime('%Y-%m-%d_%H-%M-%S')}_sci_output_L1b_v0.0.cdf"
     )
 
     # Check if the file by that version number already exists, if it does, then increase the version
@@ -140,7 +140,7 @@ def process_file_group(hour_bin, files, start_time, output_sci_folder):
         output_sci_file_name = (
             output_sci_folder
             / bin_start_time_str
-            / f"payload_lexi_{bin_start_time.strftime('%Y-%m-%d_%H-%M-%S')}_to_{bin_end_time.strftime('%Y-%m-%d_%H-%M-%S')}_sci_output_L1b_v{primary_version}.{secondary_version}.csv"
+            / f"payload_lexi_{bin_start_time.strftime('%Y-%m-%d_%H-%M-%S')}_to_{bin_end_time.strftime('%Y-%m-%d_%H-%M-%S')}_sci_output_L1b_v{primary_version}.{secondary_version}.cdf"
         )
 
         if not output_sci_file_name.exists():  # Check if file exists
@@ -225,7 +225,7 @@ def main(start_time=None, end_time=None):
     # Convert groups to a sorted list
     sorted_groups = {k: sorted(v, key=lambda x: x[1]) for k, v in sorted(grouped_files.items())}
     # Output folder for merged files
-    output_sci_folder = Path("/mnt/cephadrius/bu_research/lexi_data/L1b/sci/csv/")
+    output_sci_folder = Path("/mnt/cephadrius/bu_research/lexi_data/L1b/sci/cdf/")
     output_sci_folder.mkdir(parents=True, exist_ok=True)
 
     # Use ProcessPoolExecutor to parallelize the processing of file groups
@@ -249,11 +249,15 @@ def main(start_time=None, end_time=None):
                 print(f"Error processing hour bin {hour_bin}: {e}")
 
 
+start_date = 8
+start_hour = 18
+end_hour = 24
 if __name__ == "__main__":
     for month in range(3, 4):
-        for day in range(16, 17):
-            for hour in range(0, 24):
+        for day in range(start_date, start_date + 1):
+            for hour in range(start_hour, end_hour):
                 start_time = f"2025-{month:02d}-{day:02d}T{hour:02d}:00:00Z"
                 end_time = f"2025-{month:02d}-{day:02d}T{hour:02d}:59:59Z"
                 print(f"Processing from {start_time} to {end_time}")
                 main(start_time=start_time, end_time=end_time)
+    print(f"\n\nProcessing completed for {start_date} from {start_hour} to {end_hour}")

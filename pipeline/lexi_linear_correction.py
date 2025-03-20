@@ -12,7 +12,7 @@ from dateutil import parser
 importlib.reload(gl1b)
 
 # define the main folder
-for ii in range(1, 2):
+for ii in range(2, 3):
     read_new_file = False
     if read_new_file:
         folder = Path(
@@ -92,7 +92,10 @@ for ii in range(1, 2):
     xy_holes = np.array([x_holes, y_holes])
 
     # Define a new coordinate system where the previous coordinate system is rotated by 45 degrees
-    theta = np.radians(-90)
+    if "1900" in file_list[file_number_to_read]:
+        theta = np.radians(-44.5)
+    elif "2100" in file_list[file_number_to_read]:
+        theta = np.radians(-90)
     theta_deg = np.degrees(theta)
     c, s = np.cos(theta), np.sin(theta)
     R = np.array(((c, -s), (s, c)))
@@ -100,11 +103,11 @@ for ii in range(1, 2):
 
     x_key_list = [
         "x_mcp",
-        "x_mcp_nln",
+        # "x_mcp_nln",
     ]  # "x_mcp", "x_mcp_nln"]  # , "x_volt_lin", "x_cm"]
     y_key_list = [
         "y_mcp",
-        "y_mcp_nln",
+        # "y_mcp_nln",
     ]  # "y_mcp", "y_mcp_nln"]  # , "y_volt_lin", "y_cm"]
     # Make histogram
     for histogram_x_key, histogram_y_key in zip(x_key_list, y_key_list):
@@ -113,11 +116,11 @@ for ii in range(1, 2):
             "lower_threshold": 1,
             "upper_threshold": 4.51,
             "sum_lower_threshold": 8,
-            "sum_upper_threshold": 10,
+            "sum_upper_threshold": 12,
             "histogram_x_key": histogram_x_key,
             "histogram_y_key": histogram_y_key,
-            "bins": 2000,
-            "min_count": 2,
+            "bins": 300,
+            "min_count": 5,
             "holes_data": xy_new_holes,
             "save_fig": True,
             "file_name": file_list[file_number_to_read],

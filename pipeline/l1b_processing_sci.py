@@ -25,9 +25,10 @@ def volt_to_mcp(x, y):
     """
     Function to convert voltage coordinates to MCP coordinates
     """
-    conversion_factor = 90
-    x_mcp = x * conversion_factor
-    y_mcp = y * conversion_factor
+    conversion_factor_x = 90
+    conversion_factor_y = 90
+    x_mcp = x * conversion_factor_x
+    y_mcp = y * conversion_factor_y
 
     return x_mcp, y_mcp
 
@@ -173,7 +174,7 @@ def make_thresholded_histogram(
 
     # Create a 2d histogram using numpy
     hist, xedges, yedges = np.histogram2d(
-        df[histogram_x_key], df[histogram_y_key], bins=bins, range=[[-0.5, 0.5], [-0.5, 0.5]]
+        df[histogram_x_key], df[histogram_y_key], bins=bins, range=[[-4.5, 4.5], [-4.5, 4.5]]
     )
     # Save the histogram data to a pickle file
     histogram_data = {
@@ -187,17 +188,36 @@ def make_thresholded_histogram(
     with open(histogram_file_path / histogram_file_name, "wb") as f:
         pickle.dump(histogram_data, f)
     f.close()
+
     # Create a hexbin 2d histogram plot
     fig, ax = plt.subplots(figsize=(8, 6))
-    hb = ax.hexbin(
-        df[histogram_x_key],
-        df[histogram_y_key],
-        gridsize=bins,
-        cmap="bone_r",
-        mincnt=min_count,
+    im = ax.imshow(
+        hist.T,
+        origin="lower",
+        extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]],
+        aspect="auto",
+        interpolation="nearest",
+        cmap="Blues",
+        # vmin=min_count,
+        # vmax=min_count + 2,
+        alpha=1,
+        # zorder=10,
         norm=mpl.colors.LogNorm(vmin=min_count, vmax=min_count + 2),
-        edgecolors="none",
     )
+    # Add the colorbar
+    cb = plt.colorbar(im, ax=ax)
+    cb.set_label("Counts")
+
+    # hb = ax.hexbin(
+    #     df[histogram_x_key],
+    #     df[histogram_y_key],
+    #     gridsize=bins,
+    #     extent=[-4.5, 4.5, -4.5, 4.5],
+    #     cmap="bone_r",
+    #     mincnt=min_count,
+    #     norm=mpl.colors.Normalize(vmin=min_count, vmax=min_count + 2),
+    #     edgecolors="none",
+    # )
 
     ax.set_xlabel(histogram_x_key)
     ax.set_ylabel(histogram_y_key)
@@ -226,8 +246,8 @@ def make_thresholded_histogram(
     # Add grid lines
     ax.grid(True, linestyle="--", alpha=0.5, color="gray")
     # Add a colorbar
-    cb = plt.colorbar(hb)
-    cb.set_label("Counts")
+    # cb = plt.colorbar(hb)
+    # cb.set_label("Counts")
 
     # Plot a vertical line at x = 0 and y = 0
     # ax.axvline(x=0, color="b", lw=1)
@@ -255,7 +275,9 @@ def make_thresholded_histogram(
     # If holes data is provided, plot the holes
     if holes_data is not None:
         ax.scatter(holes_data[0], holes_data[1], label="Holes", color="red", s=10, alpha=0.5)
-        plt.legend()
+        # Add a circle of radius 4 cm
+        circle = plt.Circle((0, 0), 4, color="red", fill=False, lw=1)
+        ax.add_artist(circle)
 
     if save_fig:
         if fig_name is None:
