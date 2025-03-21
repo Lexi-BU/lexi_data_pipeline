@@ -249,11 +249,11 @@ def main(start_time=None, end_time=None):
                 print(f"Error processing hour bin {hour_bin}: {e}")
 
 
-start_date = 8
-start_hour = 18
-end_hour = 24
+start_date = 12
+start_hour = 15
+end_hour = 16
 if __name__ == "__main__":
-    for month in range(3, 4):
+    for month in range(2, 3):
         for day in range(start_date, start_date + 1):
             for hour in range(start_hour, end_hour):
                 start_time = f"2025-{month:02d}-{day:02d}T{hour:02d}:00:00Z"
