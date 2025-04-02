@@ -13,7 +13,7 @@ importlib.reload(gl1b)
 
 # define the main folder
 for ii in range(2, 3):
-    read_new_file = False
+    read_new_file = True
     if read_new_file:
         folder = Path(
             "/home/cephadrius/Desktop/git/Lexi-BU/lexi_data_pipeline/data/pin_hole_testing_data_L1a/sci"
