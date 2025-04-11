@@ -249,15 +249,15 @@ def main(start_time=None, end_time=None):
                 print(f"Error processing hour bin {hour_bin}: {e}")
 
 
-start_date = 6
-start_hour = 15
-end_hour = 17
+start_date = 23
+start_hour = 0
+end_hour = 24
 if __name__ == "__main__":
-    for month in range(3, 4):
-        for day in range(start_date, start_date + 1):
+    for month in range(5, 6):
+        for day in range(start_date, start_date + 7):
             for hour in range(start_hour, end_hour):
-                start_time = f"2025-{month:02d}-{day:02d}T{hour:02d}:00:00Z"
-                end_time = f"2025-{month:02d}-{day:02d}T{hour:02d}:59:59Z"
+                start_time = f"2024-{month:02d}-{day:02d}T{hour:02d}:00:00Z"
+                end_time = f"2024-{month:02d}-{day:02d}T{hour:02d}:59:59Z"
                 print(f"Processing from {start_time} to {end_time}")
                 main(start_time=start_time, end_time=end_time)
     print(f"\n\nProcessing completed for {start_date} from {start_hour} to {end_hour}")

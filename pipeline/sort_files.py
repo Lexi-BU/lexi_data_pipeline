@@ -10,7 +10,10 @@ import pandas as pd
 # Get the user login name
 user_name = os.getlogin()
 
-spcacecraft_data_folder = f"/home/{user_name}/Desktop/git/Lexi-BU/lxi_gui/data/from_LEXI/surface/"
+# spcacecraft_data_folder = f"/home/{user_name}/Desktop/git/Lexi-BU/lxi_gui/data/from_LEXI/surface/"
+spcacecraft_data_folder = (
+    "/home/cephadrius/Desktop/git/Lexi-BU/lexi_data_pipeline/data/hv_weeklong_test/"
+)
 spcacecraft_data_folder = Path(spcacecraft_data_folder).expanduser().resolve()
 level_zero_folder = f"/home/{user_name}/Desktop/git/Lexi-BU/lexi_data_pipeline/data/level_0/"
 level_zero_folder = Path(level_zero_folder).expanduser().resolve()

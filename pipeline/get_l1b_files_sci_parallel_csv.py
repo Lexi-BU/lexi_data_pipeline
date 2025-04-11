@@ -234,7 +234,7 @@ def main(start_time=None, end_time=None):
                 print(f"Error processing hour bin {minute_bin}: {e}")
 
 
-start_date = 10
+start_date = 9
 start_hour = 0
 end_hour = 24
 start_minute = 0

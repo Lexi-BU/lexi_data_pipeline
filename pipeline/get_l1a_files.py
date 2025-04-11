@@ -17,6 +17,7 @@ lmsc = importlib.reload(lmsc)
 user_name = os.getlogin()
 
 level_zero_folder = f"/home/{user_name}/Desktop/git/Lexi-BU/lexi_data_pipeline/data/level_0/"
+
 level_zero_folder = Path(level_zero_folder).expanduser().resolve()
 
 # Tha packet format of the science and housekeeping packets
@@ -26,7 +27,6 @@ packet_format_hk = ">II4H"
 
 # double precision format for time stamp from pit
 packet_format_pit = ">d"
-
 
 sync_lxi = b"\xfe\x6b\x28\x40"
 
@@ -335,7 +335,6 @@ def read_binary_data_sci(
     except Exception:
         # Use dateutil
         df["Date"] = pd.to_datetime(df["Date"], format=None, errors="coerce")
-        
 
     # Set index to the date
     df.set_index("Date", inplace=False)
