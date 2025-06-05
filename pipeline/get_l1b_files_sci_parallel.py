@@ -249,7 +249,7 @@ def main(start_time=None, end_time=None):
                 print(f"Error processing hour bin {hour_bin}: {e}")
 
 
-start_date = 23
+start_date = 30
 start_hour = 0
 end_hour = 24
 if __name__ == "__main__":
