@@ -11,7 +11,7 @@
      "Logical_file_id"             { "payload_lexi_20250316_190000" -
                                      "_to_20250316_220000_sci_output_L1b_v1.0" }.
      "PI_name"                     { "B. Walsh" }.
-     "PI_affiliation"              { "BU" }.
+     "PI_affiliation"              { "Boston U." }.
      "TEXT"                        { "reference to journal article, URL address" }.
      "Instrument_type"             { "Imagers (space)" }.
      "Mission_group"               { "CLPS>Commercial Lunar Payload Services" }.
