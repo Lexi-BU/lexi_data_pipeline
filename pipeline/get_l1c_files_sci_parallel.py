@@ -9,7 +9,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-import save_data_to_cdf as sdtc
+import save_data_to_cdf_l1c as sdtc
 from dateutil import parser
 from spacepy.pycdf import CDF as cdf
 from tqdm import tqdm  # Import tqdm for the progress bar
@@ -21,209 +21,69 @@ warnings.filterwarnings("ignore", category=UserWarning)
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 
 
-def transform_mcp_to_lander(x_mcp, y_mcp, z_mcp):
-    """
-    Function to transform MCP coordinates to Lander coordinates
-
-    Parameters
-    ----------
-    x_mcp : float
-        X coordinate of the MCP in cm.
-    y_mcp : float
-        Y coordinate of the MCP in cm.
-    z_mcp : float
-        Z coordinate of the MCP in cm.
-
-    Returns
-    -------
-    x_lander : float
-        X coordinate of the Lander in cm.
-    y_lander : float
-        Y coordinate of the Lander in cm.
-    z_lander : float
-        Z coordinate of the Lander in cm.
-    """
-
-    DX_to_BX = np.cos((180 - 55.36) * np.pi / 180)
-    DX_to_BY = np.cos((38.17) * np.pi / 180)
-    DX_to_BZ = np.cos((75.96) * np.pi / 180)
-
-    DY_to_BX = np.cos((180 - 76.31) * np.pi / 180)
-    DY_to_BY = np.cos((116.02) * np.pi / 180)
-    DY_to_BZ = np.cos((29.89) * np.pi / 180)
-
-    DZ_to_BX = np.cos((180 - 142.0) * np.pi / 180)
-    DZ_to_BY = np.cos((64.19) * np.pi / 180)
-    DZ_to_BZ = np.cos((64.19) * np.pi / 180)
-
-    # Rdb rotates vectors from Fb to Fd
-    Rdb = np.zeros((3, 3))
-    Rdb[0, 0] = DX_to_BX
-    Rdb[0, 1] = DX_to_BY
-    Rdb[0, 2] = DX_to_BZ
-    Rdb[1, 0] = DY_to_BX
-    Rdb[1, 1] = DY_to_BY
-    Rdb[1, 2] = DY_to_BZ
-    Rdb[2, 0] = DZ_to_BX
-    Rdb[2, 1] = DZ_to_BY
-    Rdb[2, 2] = DZ_to_BZ
-
-    Rbd = Rdb.transpose()
-
-    # Transform the coordinates
-    X_mcp = np.array([x_mcp, y_mcp, z_mcp])
-    X_lander = Rbd @ X_mcp
-
-    return X_lander[0], X_lander[1], X_lander[2]
+# Precompute transformation matrices
+deg2rad = np.pi / 180
 
 
-def transform_lander_to_lunar(x_lander, y_lander, z_lander):
-    """
-    Function to transform Lander coordinates to Lunar coordinates
+def get_rotation_matrix():
+    Rdb = np.array(
+        [
+            [np.cos((180 - 55.36) * deg2rad), np.cos(38.17 * deg2rad), np.cos(75.96 * deg2rad)],
+            [np.cos((180 - 76.31) * deg2rad), np.cos(116.02 * deg2rad), np.cos(29.89 * deg2rad)],
+            [np.cos((180 - 142.0) * deg2rad), np.cos(64.19 * deg2rad), np.cos(64.19 * deg2rad)],
+        ]
+    )
+    Rbd = Rdb.T
 
-    Parameters
-    ----------
-    x_lander : float
-        X coordinate of the Lander in cm.
-    y_lander : float
-        Y coordinate of the Lander in cm
-    z_lander : float
-        Z coordinate of the Lander in cm.
+    Rlb = np.array(
+        [
+            [np.cos((180 - 55.36) * deg2rad), np.cos(38.17 * deg2rad), np.cos(75.96 * deg2rad)],
+            [np.cos((180 - 76.31) * deg2rad), np.cos(116.02 * deg2rad), np.cos(29.89 * deg2rad)],
+            [np.cos((180 - 142.0) * deg2rad), np.cos(64.19 * deg2rad), np.cos(64.19 * deg2rad)],
+        ]
+    )
+    Rbl = Rlb.T
 
-    Returns
-    -------
-    x_lunar : float
-        X coordinate of the Lunar in cm.
-    y_lunar : float
-        Y coordinate of the Lunar in cm.
-    z_lunar : float
-        Z coordinate of the Lunar in cm.
-    """
-
-    # NOTE: The transformation matrix below is just a place holder. The actual transformation will be
-    # updated once we have the actual data.
-
-    # Transformation matrix from Lander to Lunar coordinates
-    BX_to_LX = np.cos((180 - 55.36) * np.pi / 180)
-    BX_to_BY = np.cos((38.17) * np.pi / 180)
-    BX_to_BZ = np.cos((75.96) * np.pi / 180)
-
-    BY_to_LX = np.cos((180 - 76.31) * np.pi / 180)
-    BY_to_LY = np.cos((116.02) * np.pi / 180)
-    BY_to_LZ = np.cos((29.89) * np.pi / 180)
-
-    BZ_to_LX = np.cos((180 - 142.0) * np.pi / 180)
-    BZ_to_LY = np.cos((64.19) * np.pi / 180)
-    BZ_to_LZ = np.cos((64.19) * np.pi / 180)
-
-    # Rlb rotates vectors from Fl to Fb
-    Rlb = np.zeros((3, 3))
-    Rlb[0, 0] = BX_to_LX
-    Rlb[0, 1] = BX_to_BY
-    Rlb[0, 2] = BX_to_BZ
-    Rlb[1, 0] = BY_to_LX
-    Rlb[1, 1] = BY_to_LY
-    Rlb[1, 2] = BY_to_LZ
-    Rlb[2, 0] = BZ_to_LX
-    Rlb[2, 1] = BZ_to_LY
-    Rlb[2, 2] = BZ_to_LZ
-
-    Rbl = Rlb.transpose()
-
-    # Transform the coordinates
-    X_lander = np.array([x_lander, y_lander, z_lander])
-    X_lunar = Rbl @ X_lander
-
-    return X_lunar[0], X_lunar[1], X_lunar[2]
+    return Rbd, Rbl
 
 
-def transform_lander_to_j2000(x_lander, y_lander, z_lander):
-    """
-    Function to transform Lander coordinates to J2000 coordinates
+Rbd, Rbl = get_rotation_matrix()
 
-    Parameters
-    ----------
-    x_lander : float
-        X coordinate of the Lander in cm.
-    y_lander : float
-        Y coordinate of the Lander in cm
-    z_lander : float
-        Z coordinate of the Lander in cm.
 
-    Returns
-    -------
-    RA : float
-        Right Ascension in degrees.
-    Dec : float
-        Declination in degrees.
-    """
+def transform_points(X, R):
+    return X @ R.T  # X: (N, 3), R.T: (3, 3)
 
-    # NOTE: This is just a placeholder transformation. The actual transformation will depend on the
-    # specific orientation of the Lander with respect to the J2000 coordinate system and the time of
-    # the observation.
 
-    # Convert Lander coordinates to spherical coordinates
-    r = np.sqrt(x_lander**2 + y_lander**2 + z_lander**2)
-    RA = np.arctan2(y_lander, x_lander) * 180 / np.pi
-    Dec = np.arcsin(z_lander / r) * 180 / np.pi
-
+def compute_ra_dec(X):
+    r = np.linalg.norm(X, axis=1)
+    RA = np.degrees(np.arctan2(X[:, 1], X[:, 0]))
+    Dec = np.degrees(np.arcsin(X[:, 2] / r))
     return RA, Dec
 
 
 def level1c_data_processing(df):
-    """
-    Function to process Level 1C data
+    X_mcp = df[["photon_x_mcp", "photon_y_mcp", "photon_z_mcp"]].to_numpy()
+    X_lander = transform_points(X_mcp, Rbd)
+    X_lunar = transform_points(X_lander, Rbl)
+    RA, Dec = compute_ra_dec(X_lander)
 
-    Parameters
-    ----------
-    df : pandas.DataFrame
-        Input DataFrame containing Level 1C data.
+    df["photon_x_lander"], df["photon_y_lander"], df["photon_z_lander"] = X_lander.T
+    df["photon_x_lunar"], df["photon_y_lunar"], df["photon_z_lunar"] = X_lunar.T
+    df["photon_RA"] = RA
+    df["photon_Dec"] = Dec
 
-    Returns
-    -------
-    pandas.DataFrame
-        Processed DataFrame with Level 1C data.
-    """
-
-    # Transform from MCP to Lander coordinates
-    df[["photon_x_lander", "photon_y_lander", "photon_z_lander"]] = df.apply(
-        lambda row: transform_mcp_to_lander(
-            row["photon_x_mcp"], row["photon_y_mcp"], row["photon_z_mcp"]
-        ),
-        axis=1,
-        result_type="expand",
-    )
-
-    # Transform the coordinates from Lander to Lunar
-    df[["photon_x_lunar", "photon_y_lunar", "photon_z_lunar"]] = df.apply(
-        lambda row: transform_lander_to_lunar(
-            row["photon_x_lander"], row["photon_y_lander"], row["photon_z_lander"]
-        ),
-        axis=1,
-        result_type="expand",
-    )
-
-    # Transform the coordinates from Lander to J2000
-    df[["photon_RA", "photon_Dec"]] = df.apply(
-        lambda row: transform_lander_to_j2000(
-            row["photon_x_lander"], row["photon_y_lander"], row["photon_z_lander"]
-        ),
-        axis=1,
-        result_type="expand",
-    )
-
-    # Keys to return
-    key_list = [
-        "Epoch",
-        "photon_x_mcp",
-        "photon_y_mcp",
-        "photon_x_lunar",
-        "photon_y_lunar",
-        "photon_z_lunar",
-        "photon_RA",
-        "photon_Dec",
+    return df[
+        [
+            "Epoch",
+            "photon_x_mcp",
+            "photon_y_mcp",
+            "photon_x_lunar",
+            "photon_y_lunar",
+            "photon_z_lunar",
+            "photon_RA",
+            "photon_Dec",
+        ]
     ]
-    return df[key_list]
 
 
 def process_file_group(hour_bin, files, start_time, output_sci_folder):
@@ -301,6 +161,14 @@ def process_file_group(hour_bin, files, start_time, output_sci_folder):
     # Based on the secondary version, create the folder if it doesn't exist
     output_sci_file_name.parent.mkdir(parents=True, exist_ok=True)
 
+    # Set the index to the "Epoch" column
+    processed_df.set_index("Epoch", inplace=True)
+    # Convert the index to datetime
+    processed_df.index = pd.to_datetime(processed_df.index, unit="s", utc=True)
+    # Convert the index to a timezone-aware datetime
+    processed_df.index = processed_df.index.tz_convert("UTC")
+
+    print(processed_df.keys())
     # Save the processed DataFrame to the output file
     sdtc.save_data_to_cdf(
         df=processed_df,
@@ -311,7 +179,7 @@ def process_file_group(hour_bin, files, start_time, output_sci_folder):
 
 def main(start_time=None, end_time=None):
     # Get the list of files in the folder and subfolders
-    sci_folder = "/home/cephadrius/Downloads/"
+    sci_folder = "/mnt/cephadrius/bu_research/lexi_data/L1b/sci/cdf/"
 
     # Get all files in the folder and subfolders
     file_val_list = sorted(glob.glob(str(sci_folder) + "/**/*.cdf", recursive=True))
@@ -385,8 +253,10 @@ def main(start_time=None, end_time=None):
 
 
 start_date = 16
-start_hour = 19
+start_hour = 18
 end_hour = 22
+
+time_of_code = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 if __name__ == "__main__":
     for month in range(3, 4):
         for day in range(start_date, start_date + 2):
@@ -396,3 +266,6 @@ if __name__ == "__main__":
                 # print(f"Processing from {start_time} to {end_time}")
                 main(start_time=start_time, end_time=end_time)
     # print(f"\n\nProcessing completed for {start_date} from {start_hour} to {end_hour}")
+
+time_end_of_code = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+print(f"Time taken to run the code: {time_end_of_code} - {time_of_code}")
