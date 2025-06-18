@@ -101,7 +101,7 @@ def level1b_data_processing(df=None, lower_threshold=None):
     df["x_volt_lin"], df["y_volt_lin"] = lin_correction(df["x_volt"], df["y_volt"])
 
     # Apply the voltage to MCP conversion
-    df["x_mcp"], df["y_mcp"] = volt_to_mcp(df["x_volt_lin"], df["y_volt_lin"])
+    df["photon_x_mcp"], df["photon_y_mcp"] = volt_to_mcp(df["x_volt_lin"], df["y_volt_lin"])
 
     return df
 
