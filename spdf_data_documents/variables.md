@@ -237,4 +237,3 @@
         "DISPLAY_TYPE"
                     CDF_CHAR     { "time_series" }
         "VAR_NOTES"   CDF_CHAR     { " " } .
-    
