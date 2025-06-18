@@ -263,9 +263,6 @@ if __name__ == "__main__":
             for hour in range(start_hour, end_hour):
                 start_time = f"2025-{month:02d}-{day:02d}T{hour:02d}:00:00Z"
                 end_time = f"2025-{month:02d}-{day:02d}T{hour:02d}:59:59Z"
-                # print(f"Processing from {start_time} to {end_time}")
+                print(f"Processing from {start_time} to {end_time}")
                 main(start_time=start_time, end_time=end_time)
-    # print(f"\n\nProcessing completed for {start_date} from {start_hour} to {end_hour}")
-
-time_end_of_code = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-print(f"Time taken to run the code: {time_end_of_code} - {time_of_code}")
+    print(f"\n\nProcessing completed for {start_date} from {start_hour} to {end_hour}")
