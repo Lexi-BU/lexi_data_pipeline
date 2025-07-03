@@ -330,7 +330,11 @@ def compute_ra_dec_and_lunar(X_detector=np.array([0, 0, 1]), epoch_value=None):
     el = np.arcsin(X_lunar_x / np.linalg.norm(X_lunar)) / deg2rad
 
     # print(f"az: {az}, el: {el}")
-    return RA, Dec, X_lunar_x, X_lunar_y, X_lunar_z, az, el
+    return RA, Dec, az, el
+
+
+def _wrapper_compute_ra_dec_and_lunar(args):
+    return compute_ra_dec_and_lunar(*args)
 
 
 def level1c_data_processing_parallel(df, n_processes=None):
@@ -338,12 +342,59 @@ def level1c_data_processing_parallel(df, n_processes=None):
     Parallelized version of level1c_data_processing that computes RA/Dec and lunar coordinates
     for all photons in the dataframe.
 
-    Args:
-        df: Input pandas DataFrame containing photon data
-        n_processes: Number of processes to use (default: all available CPUs)
+    Parameters
+    ----------
+    df : pd.DataFrame
+        DataFrame containing photon data with columns "photon_x_mcp", "photon_y_mcp", and "Epoch".
+    n_processes : int, optional
+        Number of processes to use for parallel computation. If None, defaults to the number of CPUs
+        minus one.
+    n_processes = cpu_count() - 1
 
-    Returns:
-        Processed DataFrame with additional columns
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame with additional columns for RA, Dec, azimuth, and elevation of the photons
+    -----------
+    Raises
+    ------
+    ValueError
+        If the input DataFrame does not contain the required columns or if the "Epoch" column
+        cannot be converted to datetime.
+    -----------
+    Notes
+    -----
+    This function assumes that the input DataFrame has columns "photon_x_mcp", "photon_y_mcp",
+    and "Epoch". The "Epoch" column should be in a format that can be parsed by pandas to_datetime.
+    The function computes the RA, Dec, azimuth, and elevation for each photon based on its
+    MCP coordinates and the epoch time. The results are added as new columns in the DataFrame.
+    The function uses multiprocessing to speed up the computation by distributing the workload
+    across multiple processes.
+    -----------
+    This function is designed to be used in a parallelized context, where multiple processes can
+    compute the RA and Dec for different subsets of the data simultaneously. It uses the `Pool`
+    class from the `multiprocessing` module to create a pool of worker processes that can
+    execute the `compute_ra_dec_and_lunar` function in parallel. The results are collected
+    and added to the original DataFrame as new columns for RA, Dec, azimuth, and elevation.
+    -----------
+    Example
+    -------
+    >>> import pandas as pd
+    >>> from pathlib import Path
+    >>> from multiprocessing import cpu_count
+    >>> from level1c_data_processing import level1c_data_processing_parallel
+    >>> df = pd.DataFrame({
+    ...     "photon_x_mcp": [0.1, 0.2, 0.3],
+    ...     "photon_y_mcp": [0.1, 0.2, 0.3],
+    ...     "Epoch": ["2025-03-16 19:00:00", "2025-03-16 19:01:00", "2025-03-16 19:02:00"]
+    ... })
+    >>> df["Epoch"] = pd.to_datetime(df["Epoch"], utc=True)
+    >>> output_df = level1c_data_processing_parallel(df, n_processes=cpu_count() - 1)
+    >>> print(output_df.head())
+    Epoch photon_x_mcp photon_y_mcp photon_RA photon_Dec photon_az photon_el
+    0 2025-03-16 19:00:00+0000 0.1 0.1 123.456 45.678 90.123 30.456
+    1 2025-03-16 19:01:00+0000 0.2 0.2 124.567 46.789 91.234 31.567
+    2 2025-03-16 19:02:00+0000 0.3 0.3 125.678 47.890 92.345 32.678
     """
     if n_processes is None:
         n_processes = cpu_count() - 1  # Leave one CPU free for the main process
@@ -359,17 +410,17 @@ def level1c_data_processing_parallel(df, n_processes=None):
 
     # Compute RA and Dec in parallel
     print("Computing RA and Dec for all photons...")
-    with Pool(n_processes) as pool:
-        ra_dec_results = pool.starmap(compute_ra_dec_and_lunar, data)
+    # with Pool(n_processes) as pool:
+    #     ra_dec_results = pool.starmap(compute_ra_dec_and_lunar, data)
 
-    ra_values, dec_values, lunar_coords_x, lunar_coords_y, lunar_coords_z, az_values, el_values = (
-        zip(*ra_dec_results)
-    )
+    with Pool(n_processes) as pool:
+        ra_dec_results = list(
+            tqdm(pool.imap(_wrapper_compute_ra_dec_and_lunar, data), total=len(data))
+        )
+
+    ra_values, dec_values, az_values, el_values = zip(*ra_dec_results)
     df["photon_RA"] = ra_values
     df["photon_Dec"] = dec_values
-    df["photon_x_lunar"] = lunar_coords_x
-    df["photon_y_lunar"] = lunar_coords_y
-    df["photon_z_lunar"] = lunar_coords_z
     df["photon_az"] = az_values
     df["photon_el"] = el_values
 
@@ -378,9 +429,6 @@ def level1c_data_processing_parallel(df, n_processes=None):
             "Epoch",
             "photon_x_mcp",
             "photon_y_mcp",
-            "photon_x_lunar",
-            "photon_y_lunar",
-            "photon_z_lunar",
             "photon_RA",
             "photon_Dec",
             "photon_az",
@@ -424,6 +472,20 @@ def process_file_group(hour_bin, files, start_time, output_sci_folder):
     combined_df.rename(columns={"x_mcp": "photon_x_mcp", "y_mcp": "photon_y_mcp"}, inplace=True)
     # Add a column for the z_mcp coordinate, which is set to 0
     combined_df["photon_z_mcp"] = 37.5  # This is the focal length of LEXI optics in cm
+
+    # Select only the rows where the photon_x_mcp and photon_y_mcp are not NaN
+    combined_df.dropna(subset=["photon_x_mcp", "photon_y_mcp"], inplace=True)
+    # Exclude all the rows where the absolute value of photon_x_mcp or photon_y_mcp is greater than 4.5
+    combined_df = combined_df[
+        (combined_df["photon_x_mcp"].abs() <= 4.5) & (combined_df["photon_y_mcp"].abs() <= 4.5)
+    ]
+
+    # Select only first 1000 rows for testing purposes
+    # NOTE: This is just for testing purposes, remove this line in production
+    # if len(combined_df) > 1000:
+    #     print(f"Truncating data to 1000 rows for hour bin {hour_bin}")
+    #     # Truncate the DataFrame to the first 1000 rows
+    #     combined_df = combined_df.head(1000)
 
     # print(combined_df.head())
     # Apply the Level 1C data processing
@@ -470,6 +532,15 @@ def process_file_group(hour_bin, files, start_time, output_sci_folder):
     processed_df.index = pd.to_datetime(processed_df.index, unit="s", utc=True)
     # Convert the index to a timezone-aware datetime
     processed_df.index = processed_df.index.tz_convert("UTC")
+
+    # Find the median value of photon_RA and photon_Dec
+    # median_RA = processed_df["photon_RA"].median()
+    # median_Dec = processed_df["photon_Dec"].median()
+    # Remove the rows where the photon_RA and photon_Dec are not within 4.6 degrees of the median
+    # processed_df = processed_df[
+    #     (processed_df["photon_RA"].abs() - abs(median_RA) <= 4.6)
+    #     & (processed_df["photon_Dec"].abs() - abs(median_Dec) <= 4.6)
+    # ]
 
     # Save the processed DataFrame to the output file
     sdtc.save_data_to_cdf(
@@ -555,8 +626,8 @@ def main(start_time=None, end_time=None):
 
 
 start_date = 16
-start_hour = 19
-end_hour = 20
+start_hour = 21
+end_hour = 22
 
 time_of_code = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 if __name__ == "__main__":

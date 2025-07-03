@@ -120,18 +120,10 @@ def save_data_to_cdf(df=None, file_name=None, file_version="0.0"):
     cdf_data["photon_RA"].attrs["units"] = "Degrees"
     cdf_data["photon_Dec"].attrs["Description"] = "The declination of the photon in degrees."
     cdf_data["photon_Dec"].attrs["units"] = "Degrees"
-    cdf_data["photon_x_lunar"].attrs[
-        "Description"
-    ] = "The value of the x-axis in lunar coordinates."
-    cdf_data["photon_x_lunar"].attrs["units"] = "Centimeters"
-    cdf_data["photon_y_lunar"].attrs[
-        "Description"
-    ] = "The value of the y-axis in lunar coordinates."
-    cdf_data["photon_y_lunar"].attrs["units"] = "Centimeters"
-    cdf_data["photon_z_lunar"].attrs[
-        "Description"
-    ] = "The value of the z-axis in lunar coordinates."
-    cdf_data["photon_z_lunar"].attrs["units"] = "Centimeters"
+    cdf_data["photon_az"].attrs["Description"] = "The azimuthal angle of the photon in degrees in the local topocentric frame. The angle is measured from the north direction."
+    cdf_data["photon_az"].attrs["units"] = "Degrees"
+    cdf_data["photon_el"].attrs["Description"] = "The elevation angle of the photon in degrees in the local topocentric frame. The angle is measured from the horizontal plane."
+    cdf_data["photon_el"].attrs["units"] = "Degrees"
 
     cdf_data.close()
     # print(
