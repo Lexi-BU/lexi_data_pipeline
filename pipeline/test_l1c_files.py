@@ -17,16 +17,34 @@ folder_name = "/mnt/cephadrius/bu_research/lexi_data/L1c/sci/cdf/2025-03-16/"
 file_val_list = sorted(glob.glob(str(folder_name) + "/**/*.cdf", recursive=True))
 
 read_files = True
+df_list = []
 if read_files:
-    print(f"Reading files from {folder_name}")
-    dat = cdf(file_val_list[0])
 
-    selected_columns = ["Epoch", "photon_x_mcp", "photon_y_mcp", "photon_RA", "photon_Dec", "photon_az", "photon_el"]
-
-    df = pd.DataFrame({key: dat[key][:] for key in selected_columns})
+    selected_columns = [
+        "Epoch",
+        "photon_x_mcp",
+        "photon_y_mcp",
+        "photon_RA",
+        "photon_Dec",
+        "photon_az",
+        "photon_el",
+    ]
+    for file_val in file_val_list:
+        print(f"Reading file: {file_val} of {len(file_val_list)}")
+        dat = cdf(file_val)
+        dft = pd.DataFrame({key: dat[key][:] for key in selected_columns})
+        # Convert the CDF data to a DataFrame
+        df_list.append(dft)
+    # Concatenate all DataFrames into a single DataFrame
+    df = pd.concat(df_list, ignore_index=True)
+    # Convert the Epoch column to datetime
+    df["Epoch"] = pd.to_datetime(df["Epoch"], unit="s", utc=True)
+    # Set the Epoch column as the index
+    df.set_index("Epoch", inplace=True)
 
     # Drop all the rows where the photon_x_mcp or photon_y_mcp is NaN
     # df.dropna(subset=["photon_x_mcp", "photon_y_mcp"], inplace=True)
+
 
 fig, axs = plt.subplots(3, 1, figsize=(12, 10))
 axs[0].set_aspect("equal")  # Set equal aspect ratio for MCP coordinates plot

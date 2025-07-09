@@ -17,14 +17,48 @@ folder_name = "/mnt/cephadrius/bu_research/lexi_data/L1b/sci/cdf/2025-03-16/"
 
 file_val_list = sorted(glob.glob(str(folder_name) + "/**/*.cdf", recursive=True))
 
-read_files = False
-process_files = False
+read_files = True
+process_files = True
 if read_files:
-    dat = cdf(file_val_list[2])
+    dat = cdf(file_val_list[-1])
 
     selected_columns = ["Epoch", "x_mcp", "y_mcp"]
+    all_columns = [
+        "Epoch",
+        "Epoch_unix",
+        "TimeStamp",
+        "IsCommanded",
+        "Channel1",
+        "Channel2",
+        "Channel3",
+        "Channel4",
+        "Channel1_shifted",
+        "Channel2_shifted",
+        "Channel3_shifted",
+        "Channel4_shifted",
+        "x_volt",
+        "y_volt",
+        "x_volt_lin",
+        "y_volt_lin",
+        "x_mcp",
+        "y_mcp",
+    ]
 
-    df = pd.DataFrame({key: dat[key][:] for key in selected_columns})
+    df = pd.DataFrame({key: dat[key][:] for key in all_columns})
+    lower_threshold = 2
+    upper_threshold = 3.3
+    df = df[df["IsCommanded"] == False]
+    df = df[
+        (df["Channel1"] >= lower_threshold)
+        & (df["Channel1"] <= upper_threshold)
+        & (df["Channel2"] >= lower_threshold)
+        & (df["Channel2"] <= upper_threshold)
+        & (df["Channel3"] >= lower_threshold)
+        & (df["Channel3"] <= upper_threshold)
+        & (df["Channel4"] >= lower_threshold)
+        & (df["Channel4"] <= upper_threshold)
+    ]
+    df = df[selected_columns]
 
     df.rename(columns={"x_mcp": "photon_x_mcp", "y_mcp": "photon_y_mcp"}, inplace=True)
 
@@ -42,7 +76,7 @@ if read_files:
 
 if process_files:
     # Get the every 10th row of the DataFrame
-    df_2 = df.iloc[::100, :].reset_index(drop=True)
+    df_2 = df.iloc[::1000, :].reset_index(drop=True)
     # Sort the DataFrame by the Epoch column
     df_2["Epoch"] = pd.to_datetime(df_2["Epoch"], format="mixed", utc=True)
     df_2.sort_values(by="Epoch", inplace=True)
@@ -51,7 +85,7 @@ if process_files:
     # Set the index of the DataFrame to the Epoch column
     # df_2["Epoch"] = pd.to_datetime(df_2["Epoch"], format="mixed", utc=True)
     # df_2.set_index("Epoch", inplace=True)
-    n_points = 10000  # len(df)
+    n_points = 100  # len(df)
     processed_df = gl1c.level1c_data_processing_parallel(df_2.head(n_points))
 
     #

@@ -26,48 +26,6 @@ warnings.filterwarnings("ignore", category=RuntimeWarning)
 # Precompute transformation matrices
 deg2rad = np.pi / 180
 
-# NOTE: The RA and Dec and other rotation matrices are hardcoded for computing the values of RA and
-# Deec of each photon for 2025-03-16. This was done since the error between the hardcoded values and
-# the actuual values are less than 1%. For the full mission, the RA and Dec values will need to be
-# updated appropriately. Basically, will need to uncomment the lines below and remove the hardcoded
-# values and uncommment the lines inside the relevant functions!
-
-"""
-RA_initial = 16.692509 * deg2rad
-Dec_initial = 14.585121 * deg2rad
-
-# print(
-#     f"RA: {RA}, Dec: {Dec}"
-# )
-
-# Get the V_J2000 vector
-V_J2000 = np.array(
-    [
-        np.cos(RA_initial) * np.cos(Dec_initial),
-        np.sin(Dec_initial),
-        np.sin(RA_initial) * np.cos(Dec_initial),
-    ]
-)
-
-R_b_nominal_J2000 = np.array(
-    [
-        [0.05506239, 0.75971134, 0.64792501],
-        [-0.01694673, -0.64810492, 0.76136247],
-        [0.99833909, -0.05290264, -0.02281159],
-    ]
-)
-
-R_J2000_d = np.array(
-    [
-        [0.32024807, 0.19525818, 0.92699238],
-        [-0.91718811, 0.30879307, 0.25181798],
-        [-0.23707937, -0.93087086, 0.27797894],
-    ]
-)
-
-R_b_nominal_detector = R_b_nominal_J2000 @ R_J2000_d
-"""
-
 
 def compute_R_db(theta1, theta2, theta3):
     c1, c2, c3 = np.cos([theta1, theta2, theta3])
@@ -88,65 +46,67 @@ def get_body_detector_rotation_matrix(epoch_value=None):
     """
     Get the rotation matrices for transforming coordinates from MCP to Lander and Lunar frames.
     """
-    # pointing_folder = "../data/pointing/"
-    # pointing_file = (
-    #     pointing_folder
-    #     + "lexi_look_direction_data_uninterpolated_2025-03-02_00-00-00_to_2025-03-16_23-59-59_v0.0.csv"
-    # )
+    pointing_folder = "../data/pointing/"
+    pointing_file = (
+        pointing_folder
+        + "lexi_look_direction_data_uninterpolated_2025-03-02_00-00-00_to_2025-03-16_23-59-59_v0.0.csv"
+    )
 
-    # df_pointing = pd.read_csv(pointing_file, index_col=None)
-    # # Convert Epoch to datetime and set as index
-    # df_pointing["Epoch"] = pd.to_datetime(df_pointing["Epoch"], format="mixed", utc=True)
-    # df_pointing.set_index("Epoch", inplace=True)
-    # df_pointing.sort_index(inplace=True)
+    df_pointing = pd.read_csv(pointing_file, index_col=None)
+    # Convert Epoch to datetime and set as index
+    df_pointing["Epoch"] = pd.to_datetime(df_pointing["Epoch"], format="mixed", utc=True)
+    df_pointing.set_index("Epoch", inplace=True)
+    df_pointing.sort_index(inplace=True)
 
-    # if epoch_value is not None:
-    #     # Set the timezone of the epoch_value to UTC
-    #     if isinstance(epoch_value, str):
-    #         epoch_value = parser.parse(epoch_value)
-    #     elif isinstance(epoch_value, datetime.datetime):
-    #         # If epoch_value is already a datetime object, ensure it is timezone-aware
-    #         if epoch_value.tzinfo is None:
-    #             epoch_value = epoch_value.replace(tzinfo=pytz.UTC)
+    if epoch_value is not None:
+        # Set the timezone of the epoch_value to UTC
+        if isinstance(epoch_value, str):
+            epoch_value = parser.parse(epoch_value)
+        elif isinstance(epoch_value, datetime.datetime):
+            # If epoch_value is already a datetime object, ensure it is timezone-aware
+            if epoch_value.tzinfo is None:
+                epoch_value = epoch_value.replace(tzinfo=pytz.UTC)
 
-    #     # Convert from numpy.datetime64 to pandas datetime
-    #     if isinstance(epoch_value, np.datetime64):
-    #         epoch_value = pd.to_datetime(epoch_value).tz_localize("UTC")
-    #     elif isinstance(epoch_value, pd.Timestamp):
-    #         # If epoch_value is already a pandas Timestamp, ensure it is timezone-aware
-    #         if epoch_value.tzinfo is None:
-    #             epoch_value = epoch_value.tz_localize("UTC")
-    #     elif isinstance(epoch_value, pd.DatetimeIndex):
-    #         # If epoch_value is a DatetimeIndex, convert it to a single timestamp
-    #         epoch_value = epoch_value[0].tz_localize("UTC")
+        # Convert from numpy.datetime64 to pandas datetime
+        if isinstance(epoch_value, np.datetime64):
+            epoch_value = pd.to_datetime(epoch_value).tz_localize("UTC")
+        elif isinstance(epoch_value, pd.Timestamp):
+            # If epoch_value is already a pandas Timestamp, ensure it is timezone-aware
+            if epoch_value.tzinfo is None:
+                epoch_value = epoch_value.tz_localize("UTC")
+        elif isinstance(epoch_value, pd.DatetimeIndex):
+            # If epoch_value is a DatetimeIndex, convert it to a single timestamp
+            epoch_value = epoch_value[0].tz_localize("UTC")
 
-    #     closest_index = df_pointing.index.get_indexer([epoch_value], method="nearest")[0]
-    #     pointing_data = df_pointing.iloc[closest_index : closest_index + 1]
-    #     # Get the epoch value corresponding to the closest index
-    #     closest_epoch_value = df_pointing.index[closest_index]
-    #     if pointing_data.empty:
-    #         print(f"No pointing data found for the provided epoch value: {epoch_value}")
+        closest_index = df_pointing.index.get_indexer([epoch_value], method="nearest")[0]
+        pointing_data = df_pointing.iloc[closest_index : closest_index + 1]
+        # Get the epoch value corresponding to the closest index
+        closest_epoch_value = df_pointing.index[closest_index]
+        if pointing_data.empty:
+            print(f"No pointing data found for the provided epoch value: {epoch_value}")
     # else:
     #     # Set the pointing data to the first row if no epoch_value is provided
     #     pointing_data = df_pointing.iloc[0:1]
 
-    # RA, Dec = pointing_data[["ra_lexi", "dec_lexi"]].values[0]
-
+    RA, Dec = pointing_data[["ra_lexi", "dec_lexi"]].values[0]
+    # RA = 16.692509
+    # Dec = 14.585121
+    # print(f"RA: {RA}, Dec: {Dec}\n")
     # print(
-    #     f"RA: {RA}, Dec: {Dec}"
+    #     f"RA: {RA}, Dec: {Dec}, Closest Epoch: {closest_epoch_value}, Actual epoch: {epoch_value}"
     # )
 
     # Get the V_J2000 vector
-    # V_J2000 = np.array(
-    #     [
-    #         np.cos(RA * deg2rad) * np.cos(Dec * deg2rad),
-    #         np.sin(Dec * deg2rad),
-    #         np.sin(RA * deg2rad) * np.cos(Dec * deg2rad),
-    #     ]
-    # )
+    V_J2000 = np.array(
+        [
+            np.cos(RA * deg2rad) * np.cos(Dec * deg2rad),
+            np.sin(Dec * deg2rad),
+            np.sin(RA * deg2rad) * np.cos(Dec * deg2rad),
+        ]
+    )
 
     R_b_J2000 = convert_quaternions_to_rotation_matrix(
-        quaternion_type="actual", epoch_value=epoch_value
+        quaternion_type="actual", epoch_value=closest_epoch_value
     )
     V_body_actual = R_b_J2000 @ V_J2000.T
 
@@ -159,7 +119,6 @@ def get_body_detector_rotation_matrix(epoch_value=None):
     # theta_test = np.arctan2(-R_db_matrix[1, 0], R_db_matrix[0, 0]) / deg2rad
     # print(f"Theta_test: {theta_test}, Expected Theta_3: {theta_3}")
     # print(f"Theta1 : {theta_1}, Theta2: {theta_2}, Theta3: {theta_test}")
-    # print(R_db_matrix)
     return R_db_matrix
 
 
@@ -270,7 +229,6 @@ def convert_quaternions_to_rotation_matrix(quaternion_type="actual", epoch_value
             [epoch_value], method="nearest", tolerance=pd.Timedelta("5min")
         )[0]
         quaternion_value = df_quaternions.iloc[closest_index]
-
         if quaternion_value.empty:
             # raise ValueError(
             #     f"No quaternion data found for the provided epoch value: {epoch_value}"
@@ -335,13 +293,30 @@ def compute_ra_dec_and_lunar(X_detector=np.array([0, 0, 1]), epoch_value=None):
     # if epoch_value is not None:
     #     epoch_value = epoch_value.replace(tzinfo=pytz.UTC)
     # Get the rotation matrix from the detector frame to the J2000 frame
-    R_J2000_d = get_rotation_matrix_detector_to_J2000(epoch_value=epoch_value)
-
+    # R_J2000_d = get_rotation_matrix_detector_to_J2000(
+    #     epoch_value="2025-03-16 21:45:37+00:00"
+    # )  # Use a fixed epoch value for testing
+    # print(f"R_J2000_d: {R_J2000_d}\n")
+    # Set a fixed value of R_J2000_d for ground data
+    R_J2000_d = np.array(
+        [
+            [0.32027295, 0.19521739, 0.92699238],
+            [-0.91714876, 0.3089099, 0.25181798],
+            [-0.23719794, -0.93084065, 0.27797894],
+        ]
+    )  # This is a fixed value for testing purposes
     # Get the rotation matrix from the body nominal frame to the J2000 frame
-    R_b_nominal_J2000 = convert_quaternions_to_rotation_matrix(
-        quaternion_type="nominal", epoch_value=epoch_value
-    )
-
+    # R_b_nominal_J2000 = convert_quaternions_to_rotation_matrix(
+    #     quaternion_type="nominal", epoch_value="2025-03-16 21:45:37+00:00"
+    # )
+    # Set a fixed value of R_b_nominal_J2000 for ground data
+    # R_b_nominal_J2000 = np.array(
+    #     [
+    #         [0.04886337, 0.76002177, 0.64805809],
+    #         [-0.01486669, -0.64820783, 0.76131832],
+    #         [0.99869482, -0.04683506, -0.02037461],
+    #     ]
+    # )
     # Transform to J2000 frame
     X_J2000 = R_J2000_d @ X_detector.T
 
@@ -351,7 +326,16 @@ def compute_ra_dec_and_lunar(X_detector=np.array([0, 0, 1]), epoch_value=None):
 
     # Get the rotation matrix from the detector frame to body nominal frame (also referred to as
     # topocentric frame)
-    R_b_nominal_detector = R_b_nominal_J2000 @ R_J2000_d
+    # R_b_nominal_detector = R_b_nominal_J2000 @ R_J2000_d
+    # Set a fixed value of R_b_nominal_detector for ground data
+    R_b_nominal_detector = np.array(
+        [
+            [-0.83512145, -0.35892159, 0.41682962],
+            [0.40915847, -0.91180609, 0.03461876],
+            [0.36764247, 0.1994603, 0.90832487],
+        ]
+    )
+    # print(f"R_b_nominal_detector: {R_b_nominal_detector}\n")
 
     # Transform MCP coordinates to lunar coordinates
     X_lunar = R_b_nominal_detector @ X_detector.T
@@ -698,17 +682,17 @@ def main(start_time=None, end_time=None):
                 print(f"Error processing hour bin {hour_bin}: {e}")
 
 
-start_date = 16
-start_hour = 19
-end_hour = 22
+start_date = 23
+start_hour = 0
+end_hour = 24
 
 time_of_code = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 if __name__ == "__main__":
-    for month in range(3, 4):
-        for day in range(start_date, start_date + 1):
+    for month in range(5, 6):
+        for day in range(start_date, start_date + 8):
             for hour in range(start_hour, end_hour):
-                start_time = f"2025-{month:02d}-{day:02d}T{hour:02d}:00:00Z"
-                end_time = f"2025-{month:02d}-{day:02d}T{hour:02d}:59:59Z"
+                start_time = f"2024-{month:02d}-{day:02d}T{hour:02d}:00:00Z"
+                end_time = f"2024-{month:02d}-{day:02d}T{hour:02d}:59:59Z"
                 print(f"Processing from {start_time} to {end_time}")
                 main(start_time=start_time, end_time=end_time)
     print(f"\n\nProcessing completed for {start_date} from {start_hour} to {end_hour}")
