@@ -88,62 +88,64 @@ def get_body_detector_rotation_matrix(epoch_value=None):
     """
     Get the rotation matrices for transforming coordinates from MCP to Lander and Lunar frames.
     """
-    # pointing_folder = "../data/pointing/"
-    # pointing_file = (
-    #     pointing_folder
-    #     + "lexi_look_direction_data_uninterpolated_2025-03-02_00-00-00_to_2025-03-16_23-59-59_v0.0.csv"
-    # )
+    pointing_folder = "../data/pointing/"
+    pointing_file = (
+        pointing_folder
+        +
+        #     "lexi_look_direction_data_uninterpolated_2025-03-02_00-00-00_to_2025-03-16_23-59-59_v0.0.csv"
+        "lexi_look_direction_data_resampled_interpolated_2025-03-02_00-00-00_to_2025-03-16_23-59-59_v0.0.csv"
+    )
 
-    # df_pointing = pd.read_csv(pointing_file, index_col=None)
-    # # Convert Epoch to datetime and set as index
-    # df_pointing["Epoch"] = pd.to_datetime(df_pointing["Epoch"], format="mixed", utc=True)
-    # df_pointing.set_index("Epoch", inplace=True)
-    # df_pointing.sort_index(inplace=True)
+    df_pointing = pd.read_csv(pointing_file, index_col=None)
+    # Convert Epoch to datetime and set as index
+    df_pointing["Epoch"] = pd.to_datetime(df_pointing["Epoch"], format="mixed", utc=True)
+    df_pointing.set_index("Epoch", inplace=True)
+    df_pointing.sort_index(inplace=True)
 
-    # if epoch_value is not None:
-    #     # Set the timezone of the epoch_value to UTC
-    #     if isinstance(epoch_value, str):
-    #         epoch_value = parser.parse(epoch_value)
-    #     elif isinstance(epoch_value, datetime.datetime):
-    #         # If epoch_value is already a datetime object, ensure it is timezone-aware
-    #         if epoch_value.tzinfo is None:
-    #             epoch_value = epoch_value.replace(tzinfo=pytz.UTC)
+    if epoch_value is not None:
+        # Set the timezone of the epoch_value to UTC
+        if isinstance(epoch_value, str):
+            epoch_value = parser.parse(epoch_value)
+        elif isinstance(epoch_value, datetime.datetime):
+            # If epoch_value is already a datetime object, ensure it is timezone-aware
+            if epoch_value.tzinfo is None:
+                epoch_value = epoch_value.replace(tzinfo=pytz.UTC)
 
-    #     # Convert from numpy.datetime64 to pandas datetime
-    #     if isinstance(epoch_value, np.datetime64):
-    #         epoch_value = pd.to_datetime(epoch_value).tz_localize("UTC")
-    #     elif isinstance(epoch_value, pd.Timestamp):
-    #         # If epoch_value is already a pandas Timestamp, ensure it is timezone-aware
-    #         if epoch_value.tzinfo is None:
-    #             epoch_value = epoch_value.tz_localize("UTC")
-    #     elif isinstance(epoch_value, pd.DatetimeIndex):
-    #         # If epoch_value is a DatetimeIndex, convert it to a single timestamp
-    #         epoch_value = epoch_value[0].tz_localize("UTC")
+        # Convert from numpy.datetime64 to pandas datetime
+        if isinstance(epoch_value, np.datetime64):
+            epoch_value = pd.to_datetime(epoch_value).tz_localize("UTC")
+        elif isinstance(epoch_value, pd.Timestamp):
+            # If epoch_value is already a pandas Timestamp, ensure it is timezone-aware
+            if epoch_value.tzinfo is None:
+                epoch_value = epoch_value.tz_localize("UTC")
+        elif isinstance(epoch_value, pd.DatetimeIndex):
+            # If epoch_value is a DatetimeIndex, convert it to a single timestamp
+            epoch_value = epoch_value[0].tz_localize("UTC")
 
-    #     closest_index = df_pointing.index.get_indexer([epoch_value], method="nearest")[0]
-    #     pointing_data = df_pointing.iloc[closest_index : closest_index + 1]
-    #     # Get the epoch value corresponding to the closest index
-    #     closest_epoch_value = df_pointing.index[closest_index]
-    #     if pointing_data.empty:
-    #         print(f"No pointing data found for the provided epoch value: {epoch_value}")
-    # else:
-    #     # Set the pointing data to the first row if no epoch_value is provided
-    #     pointing_data = df_pointing.iloc[0:1]
+        closest_index = df_pointing.index.get_indexer([epoch_value], method="nearest")[0]
+        pointing_data = df_pointing.iloc[closest_index : closest_index + 1]
+        # Get the epoch value corresponding to the closest index
+        closest_epoch_value = df_pointing.index[closest_index]
+        if pointing_data.empty:
+            print(f"No pointing data found for the provided epoch value: {epoch_value}")
+    else:
+        # Set the pointing data to the first row if no epoch_value is provided
+        pointing_data = df_pointing.iloc[0:1]
 
-    # RA, Dec = pointing_data[["ra_lexi", "dec_lexi"]].values[0]
+    RA, Dec = pointing_data[["ra_lexi", "dec_lexi"]].values[0]
 
     # print(
     #     f"RA: {RA}, Dec: {Dec}"
     # )
 
     # Get the V_J2000 vector
-    # V_J2000 = np.array(
-    #     [
-    #         np.cos(RA * deg2rad) * np.cos(Dec * deg2rad),
-    #         np.sin(Dec * deg2rad),
-    #         np.sin(RA * deg2rad) * np.cos(Dec * deg2rad),
-    #     ]
-    # )
+    V_J2000 = np.array(
+        [
+            np.cos(RA * deg2rad) * np.cos(Dec * deg2rad),
+            np.sin(Dec * deg2rad),
+            np.sin(RA * deg2rad) * np.cos(Dec * deg2rad),
+        ]
+    )
 
     R_b_J2000 = convert_quaternions_to_rotation_matrix(
         quaternion_type="actual", epoch_value=epoch_value
@@ -158,7 +160,7 @@ def get_body_detector_rotation_matrix(epoch_value=None):
 
     # theta_test = np.arctan2(-R_db_matrix[1, 0], R_db_matrix[0, 0]) / deg2rad
     # print(f"Theta_test: {theta_test}, Expected Theta_3: {theta_3}")
-    # print(f"Theta1 : {theta_1}, Theta2: {theta_2}, Theta3: {theta_test}")
+    # print(f"Theta1 : {theta_1}, Theta2: {theta_2}")
     # print(R_db_matrix)
     return R_db_matrix
 
@@ -567,34 +569,23 @@ def process_file_group(hour_bin, files, start_time, output_sci_folder):
     # Get the date and time for the filename
     bin_start_time_str = bin_start_time.strftime("%Y-%m-%d")
 
+    base_file_name = f"payload_lexi_{bin_start_time.strftime('%Y-%m-%d_%H-%M-%S')}_to_{bin_end_time.strftime('%Y-%m-%d_%H-%M-%S')}_sci_output_L1c"
     # Correct file path
-    output_sci_file_name = (
-        output_sci_folder
-        / bin_start_time_str
-        / f"payload_lexi_{bin_start_time.strftime('%Y-%m-%d_%H-%M-%S')}_to_{bin_end_time.strftime('%Y-%m-%d_%H-%M-%S')}_sci_output_L1c_v0.0.cdf"
-    )
-
-    print(f"saved file: {output_sci_file_name}")
+    output_sci_file_name = output_sci_folder / bin_start_time_str / f"{base_file_name}_v0.0.cdf"
 
     # Check if the file by that version number already exists, if it does, then increase the version
     # number by 1 and save the file with that version number
     primary_version = 0
     secondary_version = 0
-    while True:
-        # Check if the file exists
-        if output_sci_file_name.exists():
-            # If it exists, increase the version number
-            secondary_version += 1
-            output_sci_file_name = (
-                output_sci_file_name.parent
-                / f"{output_sci_file_name.stem}_v{primary_version}.{secondary_version}.cdf"
-            )
-        else:
-            break
-        # Increment secondary version; if it exceeds 9, increment primary version and reset secondary
+    # output_sci_file_name = base_file_path
+
+    while output_sci_file_name.exists():
+        secondary_version += 1
         if secondary_version > 9:
             primary_version += 1
             secondary_version = 0
+        version_str = f"_v{primary_version}.{secondary_version}"
+        output_sci_file_name = output_sci_file_name.parent / f"{base_file_name}{version_str}.cdf"
 
     # Based on the secondary version, create the folder if it doesn't exist
     output_sci_file_name.parent.mkdir(parents=True, exist_ok=True)
@@ -699,7 +690,7 @@ def main(start_time=None, end_time=None):
 
 
 start_date = 16
-start_hour = 19
+start_hour = 18
 end_hour = 22
 
 time_of_code = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")

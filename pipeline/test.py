@@ -85,7 +85,7 @@ if process_files:
     # Set the index of the DataFrame to the Epoch column
     # df_2["Epoch"] = pd.to_datetime(df_2["Epoch"], format="mixed", utc=True)
     # df_2.set_index("Epoch", inplace=True)
-    n_points = 100  # len(df)
+    n_points = 1000  # len(df)
     processed_df = gl1c.level1c_data_processing_parallel(df_2.head(n_points))
 
     #
