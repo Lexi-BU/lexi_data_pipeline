@@ -4,6 +4,7 @@ import warnings
 from pathlib import Path
 from typing import Optional, Union
 
+import numpy as np
 import pandas as pd
 from spacepy.pycdf import CDF as cdf
 
@@ -60,7 +61,7 @@ def save_data_to_cdf(
     logical_source: str = "clps_bgm1_mn_lexi",
 ):
     """
-    Save a DataFrame to a CDF file in an ISTP-compliant format with auto-generated filename.
+    Save a DataFrame to a CDF file using a skeleton ISTP-compliant CDF file.
 
     Parameters
     ----------
@@ -100,148 +101,92 @@ def save_data_to_cdf(
         output_dir=output_dir,
     )
 
+    # Path to the read-only skeleton
+    skeleton_path = Path(
+        "/home/cephadrius/Desktop/git/Lexi-BU/lexi_data_pipeline/spdf_data_documents/l1c/clps_bgm1_lexi_l1c_000000000000_v0.1.cdf"
+    )
+
+    # Load the skeleton in read-only mode
+    skeleton_cdf = cdf(str(skeleton_path))
+
+    # Create new writable CDF file (overwrite if exists)
     if cdf_file.exists():
         cdf_file.unlink()
-
-    print(f"Saving data to CDF file: {cdf_file.name}")
-    print(f"Output directory: {output_dir}")
-
     cdf_data = cdf(str(cdf_file), "")
 
-    # ========== Global Attributes ==========
+    # Copy global attributes from skeleton
+    for key in skeleton_cdf.attrs:
+        cdf_data.attrs[key] = skeleton_cdf.attrs[key][...]
+
+    # Update dynamic global attributes
     cdf_data.attrs.update(
         {
-            "TITLE": cdf_file.stem,
-            "created": str(datetime.datetime.now(datetime.timezone.utc)),
-            "TimeZone": "UTC",
-            "creator": "Ramiz A. Qudsi",
-            "source": cdf_file.name,
-            "source_type": "csv",
-            "source_format": "lxi",
-            "source_version": version,
-            "source_description": "X-ray data from the LEXI spacecraft",
-            "source_description_url": "https://lexi-bu.github.io/",
-            "source_description_email": "leximoon@bu.edu",
-            "source_description_institution": "Boston_University",
-            # ISTP-required attributes
+            "Generation_date": str(datetime.datetime.now(datetime.timezone.utc)),
             "Logical_file_id": cdf_file.stem,
-            "Project": "LEXI",
-            "Source_name": "LEXI",
-            "Descriptor": descriptor,
-            "Data_type": descriptor,
-            "Discipline": "Space Physics>Heliophysics",
-            "PI_name": "Brian Walsh",
-            "PI_affiliation": "Boston University",
-            "TEXT": "LEXI photon hit event data",
-            "Mission_group": "NASA",
-            "Instrument_type": "Imagers (space)",
-            "Logical_source": logical_source,
-            "Logical_source_description": "LEXI Level-1c data from MCP events",
+            "source": cdf_file.name,
         }
     )
-
     # ========== Variables ==========
     cdf_data["Epoch"] = df.index
-    cdf_data["Epoch"].attrs.update(
-        {
-            "TIME_BASE": "J2000",
-            "FORMAT": "yyyy-mm-ddThh:mm:ss.sssZ",
-            "Description": "The epoch time in UTC.",
-            "UNITS": "Seconds since 1970-01-01T00:00:00Z",
-            "VAR_TYPE": "support_data",
-            "FIELDNAM": "Epoch",
-            "CATDESC": "Timestamp of each event in UTC",
-            "FILLVAL": "NaT",
-            "VALIDMIN": df.index.min().to_pydatetime(),
-            "VALIDMAX": df.index.max().to_pydatetime(),
-            "LABLAXIS": "Time",
-        }
-    )
 
-    cdf_data["Epoch_unix"] = df.index.astype(int) // 10**9
+    # Convert index to signed 32-bit integers (seconds since Unix epoch)
+    epoch_unix_vals = (df.index.astype(int) // 10**9).astype(np.int32)
+
+    # Explicitly create variable as CDF_INT4 (code 32)
+    cdf_data.new("Epoch_unix", data=epoch_unix_vals)
+    # Set internal fill value
+    # cdf_data["Epoch_unix"].pad = np.int32(-2147483648)
     cdf_data["Epoch_unix"].attrs.update(
         {
-            "FORMAT": "T",
-            "Description": "The epoch time in Unix format.",
-            "UNITS": "Seconds since 1970-01-01T00:00:00Z",
+            "FIELDNAM": "Time in Unix Epoch",
+            "VALIDMIN": np.int32(epoch_unix_vals.min()),
+            "VALIDMAX": np.int32(epoch_unix_vals.max()),
+            "SCALEMIN": np.int32(epoch_unix_vals.min()),
+            "SCALEMAX": np.int32(epoch_unix_vals.max()),
+            "LABLAXIS": "Epoch Unix",
+            "UNITS": "s",
+            "MONOTON": "INCREASE",
             "VAR_TYPE": "support_data",
+            "FORMAT": "I10",
+            "FILLVAL": np.int32(-2147483648),  # standard ISTP fill value for INT4
             "DEPEND_0": "Epoch",
-            "FIELDNAM": "Epoch_unix",
-            "CATDESC": "Unix timestamp (seconds since 1970-01-01)",
-            "FILLVAL": -1,
-            "VALIDMIN": int(df.index.min().timestamp()),
-            "VALIDMAX": int(df.index.max().timestamp()),
-            "LABLAXIS": "UnixTime",
+            "DICT_KEY": "time>Epoch_unix",
+            "CATDESC": "Time, centered, in Unix Epoch seconds",
+            "AVG_TYPE": " ",
+            "DISPLAY_TYPE": " ",
+            "VAR_NOTES": " ",
         }
     )
-
-    for col in [
+    photon_vars = [
         "photon_x_mcp",
         "photon_y_mcp",
         "photon_RA",
         "photon_Dec",
         "photon_az",
         "photon_el",
-    ]:
-        if col in df.columns:
-            description = {
-                "photon_x_mcp": "The value of the x-axis in mcp coordinates.",
-                "photon_y_mcp": "The value of the y-axis in mcp coordinates.",
-                "photon_RA": "The right ascension of the photon in degrees.",
-                "photon_Dec": "The declination of the photon in degrees.",
-                "photon_az": "The azimuthal angle of the photon in degrees in the local topocentric frame. The angle is measured from the north direction.",
-                "photon_el": "The elevation angle of the photon in degrees in the local topocentric frame. The angle is measured from the horizontal plane.",
-            }[col]
+    ]
 
-            units = {
-                "photon_x_mcp": "Centimeters",
-                "photon_y_mcp": "Centimeters",
-                "photon_RA": "Degrees",
-                "photon_Dec": "Degrees",
-                "photon_az": "Degrees",
-                "photon_el": "Degrees",
-            }[col]
+    for var in photon_vars:
+        if var in df.columns:
+            # Let data type match the skeleton — no need to force type
+            cdf_data[var] = df[var].values
 
-            cdf_data[col] = df[col].values
-            cdf_data[col].attrs.update(
-                {
-                    "Description": description,
-                    "UNITS": units,
-                    "VAR_TYPE": "data",
-                }
-            )
+    for varname in skeleton_cdf:
+        if varname in cdf_data:
+            for attr in skeleton_cdf[varname].attrs:
+                try:
+                    cdf_data[varname].attrs[attr] = skeleton_cdf[varname].attrs[attr][...]
+                except Exception:
+                    cdf_data[varname].attrs[attr] = skeleton_cdf[varname].attrs[attr]
 
-    # Data variables
-    for var in [
-        "photon_x_mcp",
-        "photon_y_mcp",
-        "photon_RA",
-        "photon_Dec",
-        "photon_az",
-        "photon_el",
-    ]:
-        cdf_data[var].attrs.update(
-            {
-                "VAR_TYPE": "data",
-                "DISPLAY_TYPE": "time_series",
-                "DEPEND_0": "Epoch",
-                "FIELDNAM": var,
-                "CATDESC": var.replace("_", " ").title(),
-                "LABLAXIS": var.split("_")[1].upper(),
-                "FORMAT": "F10.3",
-                "FILLVAL": -1.0e31,
-                "VALIDMIN": df[var].min(),
-                "VALIDMAX": df[var].max(),
-            }
-        )
+    skeleton_cdf.close()
     cdf_data.close()
 
-    # Using pathlib, copy the cdf file to this directory:
-    # /home/cephadrius/Desktop/git/Lexi-BU/lexi_data_pipeline/spdf_data_documents/l1c/
+    # Copy the output CDF to the SPDF directory
     spdf_data_dir = Path(
         "/home/cephadrius/Desktop/git/Lexi-BU/lexi_data_pipeline/spdf_data_documents/l1c/"
     )
     spdf_data_dir.mkdir(parents=True, exist_ok=True)
-    # copy the cdf file to the spdf_data_dir using shutil
     shutil.copy(cdf_file, spdf_data_dir / cdf_file.name)
+
     return str(cdf_file)

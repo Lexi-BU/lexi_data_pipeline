@@ -557,10 +557,10 @@ def process_file_group(hour_bin, files, start_time, output_sci_folder):
 
     # Select only first 1000 rows for testing purposes
     # NOTE: This is just for testing purposes, remove this line in production
-    # if len(combined_df) > 1000:
-    #     print(f"Truncating data to 1000 rows for hour bin {hour_bin}")
-    #     # Truncate the DataFrame to the first 1000 rows
-    #     combined_df = combined_df.head(1000)
+    if len(combined_df) > 1000:
+        print(f"Truncating data to 1000 rows for hour bin {hour_bin}")
+        # Truncate the DataFrame to the first 1000 rows
+        combined_df = combined_df.head(10)
 
     # print(combined_df.head())
     # Apply the Level 1C data processing
@@ -605,7 +605,6 @@ def process_file_group(hour_bin, files, start_time, output_sci_folder):
     #     (processed_df["photon_RA"].abs() - abs(median_RA) <= 4.6)
     #     & (processed_df["photon_Dec"].abs() - abs(median_Dec) <= 4.6)
     # ]
-    print(processed_df.keys())
     # Save the processed DataFrame to the output file
     sdtc.save_data_to_cdf(
         df=processed_df,
@@ -692,8 +691,8 @@ def main(start_time=None, end_time=None):
 
 
 start_date = 16
-start_hour = 18
-end_hour = 19
+start_hour = 21
+end_hour = 22
 
 time_of_code = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 if __name__ == "__main__":
