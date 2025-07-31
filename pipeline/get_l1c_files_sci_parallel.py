@@ -11,7 +11,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import pytz
-import save_data_to_cdf_l1c as sdtc
+import save_data_to_cdf_l1c_istp as sdtc
 from dateutil import parser
 from spacepy.pycdf import CDF as cdf
 from tqdm import tqdm  # Import tqdm for the progress bar
@@ -605,12 +605,14 @@ def process_file_group(hour_bin, files, start_time, output_sci_folder):
     #     (processed_df["photon_RA"].abs() - abs(median_RA) <= 4.6)
     #     & (processed_df["photon_Dec"].abs() - abs(median_Dec) <= 4.6)
     # ]
-
+    print(processed_df.keys())
     # Save the processed DataFrame to the output file
     sdtc.save_data_to_cdf(
         df=processed_df,
-        file_name=output_sci_file_name,
-        file_version=f"{primary_version}.{secondary_version}",
+        # file_name=output_sci_file_name,
+        # file_version=f"{primary_version}.{secondary_version}",
+        output_dir=output_sci_file_name.parent,
+        version=f"{primary_version}.{secondary_version}",
     )
 
 
@@ -691,7 +693,7 @@ def main(start_time=None, end_time=None):
 
 start_date = 16
 start_hour = 18
-end_hour = 22
+end_hour = 19
 
 time_of_code = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 if __name__ == "__main__":

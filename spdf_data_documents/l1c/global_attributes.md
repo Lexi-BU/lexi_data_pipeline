@@ -8,8 +8,7 @@
      "Data_type"                   { "Mn>Modified Data n" }.
      "Descriptor"                  { "LEXI>Lunar Environment Heliospheric X-ray Imager" }.
      "Data_version"                { "0.0" }.
-     "Logical_file_id"             { "clps_bgm1_lexi_20250316_210000" -
-                                     "_to_20250316_220000_L1c_v0.0" }.
+     "Logical_file_id"             { "clps_bgm1_lexi_l1c_000000000000_v0.1" }.
      "PI_name"                     { "B. Walsh" }.
      "PI_affiliation"              { "Boston U." }.
      "TEXT"                        { "reference to journal article, URL address" }.

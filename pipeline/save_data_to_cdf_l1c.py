@@ -1,7 +1,7 @@
 import datetime
-import re
 import warnings
 from pathlib import Path
+from typing import Optional, Union
 
 import pandas as pd
 from spacepy.pycdf import CDF as cdf
@@ -9,8 +9,13 @@ from spacepy.pycdf import CDF as cdf
 # Suppress warnings
 warnings.filterwarnings("ignore")
 
+StrPath = Union[str, Path]
 
-def save_data_to_cdf(df=None, file_name=None, file_version="0.0"):
+
+def save_data_to_cdf(
+    df: Optional[pd.DataFrame] = None,
+    file_name: Optional[StrPath] = None,
+):
     """
     Convert a CSV file to a CDF file.
 
@@ -26,6 +31,10 @@ def save_data_to_cdf(df=None, file_name=None, file_version="0.0"):
         Path to the CDF file.
     """
 
+    if df is None:
+        raise ValueError("`df` must be a valid pandas DataFrame.")
+    if file_name is None:
+        raise ValueError("`file_name` must be a non-empty string or Path.")
     # Get the folder name and the file name from the file_name using Path
     folder_name = Path(file_name).parent
     file_name = Path(file_name).name
@@ -47,26 +56,6 @@ def save_data_to_cdf(df=None, file_name=None, file_version="0.0"):
 
     # Get the full path of the cdf file
     cdf_file = folder_name / cdf_file.name
-    # print(
-    #     f"Creating CDF file: \033[1;94m {Path(cdf_file).parent}/\033[1;92m{Path(cdf_file).name} \033[0m"
-    # )
-
-    # If the cdf file already exists, overwrite it
-    if Path(cdf_file).exists():
-        # Raise a warning saying the file already exists and ask the user if they want to
-        # overwrite it
-        # print(
-        #     f"\n \033[1;91m WARNING: \033[91m The CDF file already exists and will be overwritten:\n"
-        #     f"\033[1;94m {Path(cdf_file).parent}/\033[1;92m{Path(cdf_file).name} \033[0m"
-        # )
-        Path(cdf_file).unlink()
-    # else:
-    # print(
-    #     f"Creating CDF file: \033[1;94m {Path(cdf_file).parent}/\033[1;92m{Path(cdf_file).name} \033[0m"
-    # )
-
-    time_stamp = df.index.astype(int) // 10**9
-    time_stamp = time_stamp[0]
 
     cdf_file = str(cdf_file)
 
@@ -75,7 +64,7 @@ def save_data_to_cdf(df=None, file_name=None, file_version="0.0"):
 
     cdf_file = str(cdf_file)
     cdf_data = cdf(cdf_file, "")
-    cdf_data.attrs["title"] = cdf_file.split("/")[-1].split(".")[0]
+    cdf_data.attrs["TITLE"] = cdf_file.split("/")[-1].split(".")[0]
     cdf_data.attrs["created"] = str(datetime.datetime.now(datetime.timezone.utc))
     cdf_data.attrs["TimeZone"] = "UTC"
     cdf_data.attrs["creator"] = "Ramiz A. Qudsi"
@@ -96,38 +85,25 @@ def save_data_to_cdf(df=None, file_name=None, file_version="0.0"):
     # Add the Epoch_unix time attribute
     cdf_data["Epoch_unix"].attrs["FORMAT"] = "T"
 
-    for col in df.columns:
-        # If the column is either "utc_time" or "local_time", convert it to a datetime object and
-        # then to a CDF variable
-        if col == "utc_time" or col == "local_time":
-            df[col] = pd.to_datetime(df[col], utc=True)
-            cdf_data[col] = df[col]
-        else:
-            cdf_data[col] = df[col]
-
     cdf_data["Epoch"].attrs["Description"] = "The epoch time in UTC."
-    cdf_data["Epoch"].attrs["units"] = "Seconds since 1970-01-01T00:00:00Z"
+    cdf_data["Epoch"].attrs["UNITS"] = "Seconds since 1970-01-01T00:00:00Z"
     cdf_data["Epoch_unix"].attrs["Description"] = "The epoch time in Unix format."
-    cdf_data["Epoch_unix"].attrs["units"] = "Seconds since 1970-01-01T00:00:00Z"
+    cdf_data["Epoch_unix"].attrs["UNITS"] = "Seconds since 1970-01-01T00:00:00Z"
 
     cdf_data["photon_x_mcp"].attrs["Description"] = "The value of the x-axis in mcp coordinates."
-    cdf_data["photon_x_mcp"].attrs["units"] = "Centimeters"
+    cdf_data["photon_x_mcp"].attrs["UNITS"] = "Centimeters"
 
     cdf_data["photon_y_mcp"].attrs["Description"] = "The value of the y-axis in mcp coordinates."
-    cdf_data["photon_y_mcp"].attrs["units"] = "Centimeters"
+    cdf_data["photon_y_mcp"].attrs["UNITS"] = "Centimeters"
 
     cdf_data["photon_RA"].attrs["Description"] = "The right ascension of the photon in degrees."
-    cdf_data["photon_RA"].attrs["units"] = "Degrees"
+    cdf_data["photon_RA"].attrs["UNITS"] = "Degrees"
     cdf_data["photon_Dec"].attrs["Description"] = "The declination of the photon in degrees."
-    cdf_data["photon_Dec"].attrs["units"] = "Degrees"
+    cdf_data["photon_Dec"].attrs["UNITS"] = "Degrees"
     cdf_data["photon_az"].attrs["Description"] = "The azimuthal angle of the photon in degrees in the local topocentric frame. The angle is measured from the north direction."
-    cdf_data["photon_az"].attrs["units"] = "Degrees"
+    cdf_data["photon_az"].attrs["UNITS"] = "Degrees"
     cdf_data["photon_el"].attrs["Description"] = "The elevation angle of the photon in degrees in the local topocentric frame. The angle is measured from the horizontal plane."
-    cdf_data["photon_el"].attrs["units"] = "Degrees"
+    cdf_data["photon_el"].attrs["UNITS"] = "Degrees"
 
     cdf_data.close()
-    # print(
-    #     f"\n  CDF file created: \033[1;94m {Path(cdf_file).parent}/\033[1;92m{Path(cdf_file).name} \033[0m"
-    # )
-
     return cdf_file
