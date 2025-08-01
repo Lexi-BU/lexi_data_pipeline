@@ -16,9 +16,7 @@ StrPath = Union[str, Path]
 
 def generate_lexi_cdf_filename(
     start_time: datetime.datetime,
-    end_time: datetime.datetime,
-    descriptor: str = "l1c",
-    logical_source: str = "clps_bgm1_mn_lexi",
+    logical_source: str = "lexi_l1c",
     version: str = "0.1.0",
     output_dir: Path = Path("."),
 ) -> Path:
@@ -29,14 +27,10 @@ def generate_lexi_cdf_filename(
     ----------
     start_time : datetime
         Start time of the data (in UTC).
-    end_time : datetime
-        End time of the data (in UTC).
-    descriptor : str
-        Data product descriptor, e.g., 'l1c'.
     logical_source : str
-        Logical source name, e.g., 'clps_bgm1_mn_lexi'.
+        Logical source name, e.g., 'lexi_l1c'.
     version : str
-        Version string in the form '0.1.0'.
+        Version string in the form '0.1'.
     output_dir : Path
         Directory where the file will be saved.
 
@@ -45,10 +39,9 @@ def generate_lexi_cdf_filename(
     Path
         Full path to the generated filename.
     """
-    start_str = start_time.strftime("%Y%m%d%H%M")
-    # end_str = end_time.strftime("%Y%m%d_%H%M%S")
+    start_str = start_time.strftime("%Y%m%d%H")
     version_str = f"V{version}"
-    filename = f"{logical_source}_{descriptor}_{start_str}_{version_str}.cdf"
+    filename = f"{logical_source}_{start_str}_{version_str}.cdf"
     print(f"Generated CDF filename: {filename} in {output_dir}")
     return output_dir / filename
 
@@ -56,9 +49,8 @@ def generate_lexi_cdf_filename(
 def save_data_to_cdf(
     df: Optional[pd.DataFrame] = None,
     output_dir: Optional[StrPath] = None,
-    version: str = "0.1.0",
-    descriptor: str = "l1c",
-    logical_source: str = "clps_bgm1_mn_lexi",
+    version: str = "0.1",
+    logical_source: str = "lexi_l1c",
 ):
     """
     Save a DataFrame to a CDF file using a skeleton ISTP-compliant CDF file.
@@ -70,11 +62,9 @@ def save_data_to_cdf(
     output_dir : str or Path
         Folder where the CDF file will be saved.
     version : str
-        Semantic version number, e.g., "0.1.0".
-    descriptor : str
-        Data product descriptor (default: "l1c").
+        Semantic version number, e.g., "0.1".
     logical_source : str
-        Logical source name (default: "clps_bgm1_mn_lexi").
+        Logical source name (default: "lexi_l1c").
 
     Returns
     -------
@@ -90,12 +80,9 @@ def save_data_to_cdf(
     output_dir.mkdir(parents=True, exist_ok=True)
 
     start_time = df.index[0].to_pydatetime()
-    end_time = df.index[-1].to_pydatetime()
 
     cdf_file = generate_lexi_cdf_filename(
         start_time=start_time,
-        end_time=end_time,
-        descriptor=descriptor,
         logical_source=logical_source,
         version=version,
         output_dir=output_dir,
@@ -103,7 +90,7 @@ def save_data_to_cdf(
 
     # Path to the read-only skeleton
     skeleton_path = Path(
-        "/home/cephadrius/Desktop/git/Lexi-BU/lexi_data_pipeline/spdf_data_documents/l1c/clps_bgm1_lexi_l1c_000000000000_v0.1.cdf"
+        "/home/cephadrius/Desktop/git/Lexi-BU/lexi_data_pipeline/spdf_data_documents/l1c/lexi_l1c_0000000000_v0.1.cdf"
     )
 
     # Load the skeleton in read-only mode
