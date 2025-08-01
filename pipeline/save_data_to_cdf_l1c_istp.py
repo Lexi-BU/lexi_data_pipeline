@@ -17,7 +17,7 @@ StrPath = Union[str, Path]
 def generate_lexi_cdf_filename(
     start_time: datetime.datetime,
     logical_source: str = "lexi_l1c",
-    version: str = "0.1.0",
+    version: str = "0.1",
     output_dir: Path = Path("."),
 ) -> Path:
     """
@@ -40,8 +40,24 @@ def generate_lexi_cdf_filename(
         Full path to the generated filename.
     """
     start_str = start_time.strftime("%Y%m%d%H")
-    version_str = f"V{version}"
-    filename = f"{logical_source}_{start_str}_{version_str}.cdf"
+    # Extract initial version parts
+    primary_version = int(version.split(".")[0])
+    secondary_version = int(version.split(".")[1])
+
+    while True:
+        version_str = f"V{primary_version}.{secondary_version}"
+        filename = f"{logical_source}_{start_str}_{version_str}.cdf"
+        file_path = output_dir / filename
+
+        if not file_path.exists():
+            break
+
+        # Update version: bump secondary version (or whatever logic you prefer)
+        secondary_version += 1
+        if secondary_version > 9:
+            secondary_version = 0
+            primary_version += 1
+
     print(f"Generated CDF filename: {filename} in {output_dir}")
     return output_dir / filename
 
@@ -49,7 +65,7 @@ def generate_lexi_cdf_filename(
 def save_data_to_cdf(
     df: Optional[pd.DataFrame] = None,
     output_dir: Optional[StrPath] = None,
-    version: str = "0.1",
+    version: str = "0.0",
     logical_source: str = "lexi_l1c",
 ):
     """
@@ -97,8 +113,8 @@ def save_data_to_cdf(
     skeleton_cdf = cdf(str(skeleton_path))
 
     # Create new writable CDF file (overwrite if exists)
-    if cdf_file.exists():
-        cdf_file.unlink()
+    # if cdf_file.exists():
+    #     cdf_file.unlink()
     cdf_data = cdf(str(cdf_file), "")
 
     # Copy global attributes from skeleton
@@ -170,10 +186,10 @@ def save_data_to_cdf(
     cdf_data.close()
 
     # Copy the output CDF to the SPDF directory
-    spdf_data_dir = Path(
-        "/home/cephadrius/Desktop/git/Lexi-BU/lexi_data_pipeline/spdf_data_documents/l1c/"
-    )
-    spdf_data_dir.mkdir(parents=True, exist_ok=True)
-    shutil.copy(cdf_file, spdf_data_dir / cdf_file.name)
+    # spdf_data_dir = Path(
+    #     "/home/cephadrius/Desktop/git/Lexi-BU/lexi_data_pipeline/spdf_data_documents/l1c/"
+    # )
+    # spdf_data_dir.mkdir(parents=True, exist_ok=True)
+    # shutil.copy(cdf_file, spdf_data_dir / cdf_file.name)
 
     return str(cdf_file)

@@ -557,10 +557,10 @@ def process_file_group(hour_bin, files, start_time, output_sci_folder):
 
     # Select only first 1000 rows for testing purposes
     # NOTE: This is just for testing purposes, remove this line in production
-    if len(combined_df) > 1000:
-        print(f"Truncating data to 1000 rows for hour bin {hour_bin}")
-        # Truncate the DataFrame to the first 1000 rows
-        combined_df = combined_df.head(10)
+    # if len(combined_df) > 1000:
+    #     print(f"Truncating data to 1000 rows for hour bin {hour_bin}")
+    #     # Truncate the DataFrame to the first 1000 rows
+    #     combined_df = combined_df.head(2000)
 
     # print(combined_df.head())
     # Apply the Level 1C data processing
@@ -569,26 +569,12 @@ def process_file_group(hour_bin, files, start_time, output_sci_folder):
     # Get the date and time for the filename
     bin_start_time_str = bin_start_time.strftime("%Y-%m-%d")
 
-    base_file_name = f"payload_lexi_{bin_start_time.strftime('%Y-%m-%d_%H-%M-%S')}_to_{bin_end_time.strftime('%Y-%m-%d_%H-%M-%S')}_sci_output_L1c"
+    # base_file_name = f"payload_lexi_{bin_start_time.strftime('%Y-%m-%d_%H-%M-%S')}_to_{bin_end_time.strftime('%Y-%m-%d_%H-%M-%S')}_sci_output_L1c"
     # Correct file path
-    output_sci_file_name = output_sci_folder / bin_start_time_str / f"{base_file_name}_v0.0.cdf"
-
-    # Check if the file by that version number already exists, if it does, then increase the version
-    # number by 1 and save the file with that version number
-    primary_version = 0
-    secondary_version = 0
-    # output_sci_file_name = base_file_path
-
-    while output_sci_file_name.exists():
-        secondary_version += 1
-        if secondary_version > 9:
-            primary_version += 1
-            secondary_version = 0
-        version_str = f"_v{primary_version}.{secondary_version}"
-        output_sci_file_name = output_sci_file_name.parent / f"{base_file_name}{version_str}.cdf"
+    output_sci_file_folder = output_sci_folder / bin_start_time_str
 
     # Based on the secondary version, create the folder if it doesn't exist
-    output_sci_file_name.parent.mkdir(parents=True, exist_ok=True)
+    output_sci_file_folder.mkdir(parents=True, exist_ok=True)
 
     # Set the index to the "Epoch" column
     processed_df.set_index("Epoch", inplace=True)
@@ -610,8 +596,7 @@ def process_file_group(hour_bin, files, start_time, output_sci_folder):
         df=processed_df,
         # file_name=output_sci_file_name,
         # file_version=f"{primary_version}.{secondary_version}",
-        output_dir=output_sci_file_name.parent,
-        version=f"{primary_version}.{secondary_version}",
+        output_dir=output_sci_file_folder,
     )
 
 

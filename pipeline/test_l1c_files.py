@@ -6,12 +6,11 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from spacepy.pycdf import CDF as cdf
 
-
 # Define the folder containing the CDF files
 folder_name = "/mnt/cephadrius/bu_research/lexi_data/L1c/sci/cdf/2025-03-16/"
 
 # Get the list of CDF files in the folder and subfolders
-file_val_list = sorted(glob.glob(str(folder_name) + "/**/*v0.0.cdf", recursive=True))
+file_val_list = sorted(glob.glob(str(folder_name) + "/**/*V0.3.cdf", recursive=True))
 
 read_files = True
 df_list = []
@@ -132,4 +131,3 @@ plt.savefig(
     pad_inches=0.1,
 )
 code_end_time = time.time()
-print(f"Code execution time: {code_end_time - code_start_time:.3f} seconds")
