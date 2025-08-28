@@ -19,6 +19,7 @@ moviepy = "^2.1.2"
 opencv-python = "^4.11.0.86"
 plotly = "^6.2.0"
 dash = "^3.2.0"
+astropy = "<7"
 
 
 [build-system]

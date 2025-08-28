@@ -125,7 +125,7 @@ def get_body_detector_rotation_matrix(epoch_value=None):
         closest_index = df_pointing.index.get_indexer([epoch_value], method="nearest")[0]
         pointing_data = df_pointing.iloc[closest_index : closest_index + 1]
         # Get the epoch value corresponding to the closest index
-        closest_epoch_value = df_pointing.index[closest_index]
+        # closest_epoch_value = df_pointing.index[closest_index]
         if pointing_data.empty:
             print(f"No pointing data found for the provided epoch value: {epoch_value}")
     else:
@@ -158,8 +158,8 @@ def get_body_detector_rotation_matrix(epoch_value=None):
 
     R_db_matrix = compute_R_db(theta_1 * deg2rad, theta_2 * deg2rad, theta_3 * deg2rad)
 
-    # theta_test = np.arctan2(-R_db_matrix[1, 0], R_db_matrix[0, 0]) / deg2rad
-    # print(f"Theta_test: {theta_test}, Expected Theta_3: {theta_3}")
+    theta_test = np.arctan2(-R_db_matrix[1, 0], R_db_matrix[0, 0]) / deg2rad
+    print(f"Theta_test: {theta_test}, Expected Theta_3: {theta_3}")
     # print(f"Theta1 : {theta_1}, Theta2: {theta_2}")
     # print(R_db_matrix)
     return R_db_matrix
@@ -492,7 +492,7 @@ def process_file_group(hour_bin, files, start_time, output_sci_folder):
     """
 
     bin_start_time = start_time + datetime.timedelta(hours=hour_bin)
-    bin_end_time = bin_start_time + datetime.timedelta(hours=1)
+    # bin_end_time = bin_start_time + datetime.timedelta(hours=1)
 
     selected_columns = ["Epoch", "x_mcp", "y_mcp"]
     all_columns = [
@@ -651,7 +651,7 @@ def main(start_time=None, end_time=None):
     # Convert groups to a sorted list
     sorted_groups = {k: sorted(v, key=lambda x: x[1]) for k, v in sorted(grouped_files.items())}
     # Output folder for merged files
-    output_sci_folder = Path("/mnt/cephadrius/bu_research/lexi_data/L1c/sci/cdf/")
+    output_sci_folder = Path("/mnt/cephadrius/bu_research/lexi_data/L1c/sci/cdf/istp/")
     output_sci_folder.mkdir(parents=True, exist_ok=True)
 
     # Use ProcessPoolExecutor to parallelize the processing of file groups
@@ -675,9 +675,9 @@ def main(start_time=None, end_time=None):
                 print(f"Error processing hour bin {hour_bin}: {e}")
 
 
-start_date = 16
-start_hour = 21
-end_hour = 22
+start_date = 3
+start_hour = 0
+end_hour = 24
 
 time_of_code = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 if __name__ == "__main__":

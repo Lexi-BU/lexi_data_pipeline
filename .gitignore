@@ -166,5 +166,6 @@ cython_debug/
 data/*
 figures/*
 movies/*
+cfitsio-4.6.2/
 
 pipeline/ramiz/calib/cxrb_fak1.fits
