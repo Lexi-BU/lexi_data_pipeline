@@ -9,10 +9,10 @@ from astropy.wcs import WCS
 fits_folder = "../data/background_files/fits_files/1min/"
 fits_files = sorted(glob.glob(fits_folder + "*.fits.gz"))
 
-out_dir = Path("../data/background_files/pickle_files/")
+out_dir = Path("../data/background_files/pickle_files/1min/")
 out_dir.mkdir(parents=True, exist_ok=True)
 
-for fits_file in fits_files[:1]:
+for fits_file in fits_files[:]:
     with fits.open(fits_file) as hdul:
         hdu = hdul[0]
         data = np.asarray(hdu.data, dtype=float)
@@ -36,7 +36,8 @@ for fits_file in fits_files[:1]:
         "wcs_header_dict": wcs_header_dict,
     }
 
-    out_pkl = out_dir / (Path(fits_file).stem + ".pkl")
+    output_file_name = (Path(Path(fits_file).stem).stem + ".pkl")
+    out_pkl = out_dir / output_file_name
     with open(out_pkl, "wb") as f:
         pickle.dump(payload, f, protocol=pickle.HIGHEST_PROTOCOL)
 
