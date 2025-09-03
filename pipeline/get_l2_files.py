@@ -5,15 +5,20 @@ import math
 import pickle
 from pathlib import Path
 
+import get_flat_field_data as gffd
 import get_lexi_l1c_data as gl1c
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import save_data_to_cdf_l2_istp as sdtc
 from astropy.io import fits
 from astropy.wcs import WCS
+from spacepy.pycdf import CDF as cdf
 
 importlib.reload(gl1c)
+importlib.reload(gffd)
+importlib.reload(sdtc)
 
 
 # Define a list of global variables
@@ -97,18 +102,14 @@ def vignette_uv(u, v):
 def calc_exposure_maps(
     time_range: list = None,
     time_zone: str = "UTC",
-    interp_method: str = "linear",
     time_step: float = 1,
     ra_range: list = [0, 360],
     dec_range: list = [-90, 90],
     ra_res: float = 0.5,
     dec_res: float = 0.5,
     time_integrate: float = None,
-    save_exposure_map_file: bool = False,
-    save_exposure_map_image: bool = False,
     verbose: bool = True,
     force_compute: bool = False,
-    array_to_image_kwargs: dict = {},
 ):
 
     spc_df = pd.read_csv(
@@ -141,179 +142,91 @@ def calc_exposure_maps(
     ra_grid = np.tile(ra_arr, (len(dec_arr), 1)).transpose()
     dec_grid = np.tile(dec_arr, (len(ra_arr), 1))
 
-    try:
-        # If force_compute is set to True, then go to the except block
-        if force_compute:
-            raise FileNotFoundError
-        # Read the exposure map from a pickle file, if it exists
-        # Define the folder where the exposure maps are saved
-        save_folder = Path.cwd() / "data/exposure_maps"
-        t_start = time_range[0].strftime("%Y%m%d_%H%M%S")
-        t_stop = time_range[1].strftime("%Y%m%d_%H%M%S")
-        ra_start = ra_range[0]
-        ra_stop = ra_range[1]
-        dec_start = dec_range[0]
-        dec_stop = dec_range[1]
-        ra_res = ra_res
-        dec_res = dec_res
-        time_integrate = int(time_integrate)
-        exposure_maps_file_name = (
-            f"{save_folder}/lexi_exposure_map_Tstart_{t_start}_Tstop_{t_stop}_RAstart_{ra_start}"
-            f"_RAstop_{ra_stop}_RAres_{ra_res}_DECstart_{dec_start}_DECstop_{dec_stop}_DECres_"
-            f"{dec_res}_Tint_{time_integrate}.npy"
-        )
-        # Read the exposure map from the pickle file
-        exposure_maps_dict = pickle.load(open(exposure_maps_file_name, "rb"))
-        if verbose:
-            exposure_maps_file_dir = Path(exposure_maps_file_name).parent
-            exposure_maps_file_name = Path(exposure_maps_file_name).name
-            print(
-                f"Exposure map loaded from file \033[1;94m {exposure_maps_file_dir}/\033[1;92m{exposure_maps_file_name} \033[0m\n"
-            )
-    except FileNotFoundError:
-        print("Exposure map not found, computing now. This may take a while \n")
+    print("Exposure map not found, computing now. This may take a while \n")
 
-        # Slice to relevant time range; make groups of rows spanning time_integratetion
-        spc_df_selected = spc_df.loc[time_range[0] : time_range[1]]
+    # Slice to relevant time range; make groups of rows spanning time_integratetion
+    spc_df_selected = spc_df.loc[time_range[0] : time_range[1]]
 
-        resampled_groups = spc_df_selected.resample(
-            pd.Timedelta(time_integrate, unit="s"), origin="start"
-        )
-        # Filter out groups that fall outside the time_range
-        integ_groups = [
-            group
-            for _, group in resampled_groups
-            if not group.empty
-            and group.index.min() >= time_range[0]
-            and group.index.max() <= time_range[1]
-        ]
-        # Filter out the groups if their minimum and maximum times are same
-        integ_groups = [group for group in integ_groups if group.index.min() != group.index.max()]
-        # Get the min and max times of each group
-        start_time_arr = []
-        stop_time_arr = []
-        for group in integ_groups:
-            start_time_arr.append(group.index.min())
-            stop_time_arr.append(group.index.max())
+    resampled_groups = spc_df_selected.resample(
+        pd.Timedelta(time_integrate, unit="s"), origin="start"
+    )
+    # Filter out groups that fall outside the time_range
+    integ_groups = [
+        group
+        for _, group in resampled_groups
+        if not group.empty
+        and group.index.min() >= time_range[0]
+        and group.index.max() <= time_range[1]
+    ]
+    # Filter out the groups if their minimum and maximum times are same
+    integ_groups = [group for group in integ_groups if group.index.min() != group.index.max()]
+    # Get the min and max times of each group
+    start_time_arr = []
+    stop_time_arr = []
+    for group in integ_groups:
+        start_time_arr.append(group.index.min())
+        stop_time_arr.append(group.index.max())
 
-        # Make as many empty exposure maps as there are integration groups
-        exposure_maps = np.zeros((len(integ_groups), len(ra_arr), len(dec_arr)))
+    # Make as many empty exposure maps as there are integration groups
+    exposure_maps = np.zeros((len(integ_groups), len(ra_arr), len(dec_arr)))
 
-        # Loop through each pointing step and add the exposure to the map
-        for map_idx, (group) in enumerate(integ_groups):
-            for row in group.itertuples():
-                # Pointing (boresight) in degrees
-                ra0 = float(row.RA)  # ensure plain float
-                dec0 = float(row.DEC)
+    # Loop through each pointing step and add the exposure to the map
+    for map_idx, (group) in enumerate(integ_groups):
+        for row in group.itertuples():
+            # Pointing (boresight) in degrees
+            ra0 = float(row.RA)  # ensure plain float
+            dec0 = float(row.DEC)
 
-                # Small-angle offsets (degrees) on the tangent plane
-                dx, dy = small_angle_offsets_deg(ra_grid, dec_grid, ra0, dec0)  # x=East, y=North
+            # Small-angle offsets (degrees) on the tangent plane
+            dx, dy = small_angle_offsets_deg(ra_grid, dec_grid, ra0, dec0)  # x=East, y=North
 
-                # Rotate into instrument frame (u,v) using roll angle
-                u, v = rotate_sky_to_instr(dx, dy, theta)
+            # Rotate into instrument frame (u,v) using roll angle
+            u, v = rotate_sky_to_instr(dx, dy, theta)
 
-                # Build exposure delta with circular FOV + vignette
-                exposure_delt = vignette_uv(u, v) * time_step
+            # Build exposure delta with circular FOV + vignette
+            exposure_delt = vignette_uv(u, v) * time_step
 
-                # Accumulate
-                exposure_maps[map_idx] += exposure_delt
+            # Accumulate
+            exposure_maps[map_idx] += exposure_delt
 
-                if verbose:
-                    print(
-                        f"Computing exposure map ==> \x1b[1;32;255m {np.round(map_idx/len(integ_groups)*100, 6)}\x1b[0m % complete",
-                        end="\r",
-                    )
-
-        t_start = time_range[0].strftime("%Y%m%d_%H%M%S")
-        t_stop = time_range[1].strftime("%Y%m%d_%H%M%S")
-        ra_start = ra_range[0]
-        ra_stop = ra_range[1]
-        dec_start = dec_range[0]
-        dec_stop = dec_range[1]
-        ra_res = ra_res
-        dec_res = dec_res
-        time_integrate = int(time_integrate)
-
-        # Define a dictionary to store the exposure maps, ra_arr, and dec_arr, time_range, and time_integrate,
-        # ra_range, and dec_range, ra_res, and dec_res
-        exposure_maps_dict = {
-            "exposure_maps": exposure_maps,
-            "ra_arr": ra_arr,
-            "dec_arr": dec_arr,
-            "time_range": time_range,
-            "time_integrate": time_integrate,
-            "ra_range": ra_range,
-            "dec_range": dec_range,
-            "ra_res": ra_res,
-            "dec_res": dec_res,
-            "start_time_arr": start_time_arr,
-            "stop_time_arr": stop_time_arr,
-        }
-        if save_exposure_map_file:
-            # Define the folder to save the exposure maps to
-            save_folder = Path.cwd() / "data/exposure_maps"
-            Path(save_folder).mkdir(parents=True, exist_ok=True)
-
-            exposure_maps_file_name = (
-                f"{save_folder}/lexi_exposure_map_Tstart_{t_start}_Tstop_{t_stop}_RAstart_{ra_start}"
-                f"_RAstop_{ra_stop}_RAres_{ra_res}_DECstart_{dec_start}_DECstop_{dec_stop}_DECres_"
-                f"{dec_res}_Tint_{time_integrate}.npy"
-            )
-
-            # Save the exposure map array to a pickle file
-            with open(exposure_maps_file_name, "wb") as f:
-                pickle.dump(exposure_maps_dict, f)
             if verbose:
-                exposure_maps_file_dir = Path(exposure_maps_file_name).parent
-                exposure_maps_file_name = Path(exposure_maps_file_name).name
                 print(
-                    f"Exposure map saved to file \033[1;94m {exposure_maps_file_dir}/\033[1;92m{exposure_maps_file_name} \033[0m\n"
+                    f"Computing exposure map ==> \x1b[1;32;255m {np.round(map_idx/len(integ_groups)*100, 6)}\x1b[0m % complete",
+                    end="\r",
                 )
 
-    # If requested, save the exposure maps as images
-    if save_exposure_map_image:
-        if verbose:
-            print("Saving exposure maps as images")
-        # Check if the following keys are present in the array_to_image_kwargs dictionary, if not
-        # then add them:
-        # - x_range
-        # - y_range
-        # - save
-        if "x_range" not in array_to_image_kwargs:
-            array_to_image_kwargs["x_range"] = ra_range
-        elif "x_range" in array_to_image_kwargs:
-            # Check to ensure that the x_range is the same as the ra_range
-            if array_to_image_kwargs["x_range"] != ra_range:
-                array_to_image_kwargs["x_range"] = ra_range
-                if verbose:
-                    print(
-                        f"\033[1;91m x_range \033[1;92m (x_range) \033[1;91m in array_to_image_kwargs is not the same as the RA range. Setting x_range to the RA range: \033[1;92m {ra_range} \033[0m\n"
-                    )
-        if "y_range" not in array_to_image_kwargs:
-            array_to_image_kwargs["y_range"] = dec_range
-        elif "y_range" in array_to_image_kwargs:
-            # Check to ensure that the y_range is the same as the dec_range
-            if array_to_image_kwargs["y_range"] != dec_range:
-                array_to_image_kwargs["y_range"] = dec_range
-                if verbose:
-                    print(
-                        f"\033[1;91m y_range \033[1;92m (y_range) \033[1;91m in array_to_image_kwargs is not the same as the DEC range. Setting y_range to the DEC range: \033[1;92m {dec_range} \033[0m\n"
-                    )
-        if "save" not in array_to_image_kwargs:
-            array_to_image_kwargs["save"] = save_exposure_map_image
-        for i, exposure in enumerate(exposure_maps_dict["exposure_maps"]):
-            print(exposure)
-            array_to_image(
-                input_array=exposure,
-                key="exposure_maps",
-                start_time=exposure_maps_dict["start_time_arr"][i],
-                stop_time=exposure_maps_dict["stop_time_arr"][i],
-                ra_res=ra_res,
-                dec_res=dec_res,
-                time_integrate=exposure_maps_dict["time_integrate"],
-                # figure_title="Exposure Map",
-                **(array_to_image_kwargs if array_to_image_kwargs else {}),
-            )
+    # Find the time resolution of the spacecraft ephemeris data
+    time_deltas = spc_df_selected.index.to_series().diff().dropna()
+    time_res = time_deltas.mode()[0].total_seconds()
+
+    # Multiply the exposure maps by the time resolution of the spacecraft ephemeris data
+    exposure_maps *= time_res
+
+    t_start = time_range[0].strftime("%Y%m%d_%H%M%S")
+    t_stop = time_range[1].strftime("%Y%m%d_%H%M%S")
+    ra_start = ra_range[0]
+    ra_stop = ra_range[1]
+    dec_start = dec_range[0]
+    dec_stop = dec_range[1]
+    ra_res = ra_res
+    dec_res = dec_res
+    time_integrate = int(time_integrate)
+
+    # Define a dictionary to store the exposure maps, ra_arr, and dec_arr, time_range, and time_integrate,
+    # ra_range, and dec_range, ra_res, and dec_res
+    exposure_maps_dict = {
+        "exposure_maps": exposure_maps,
+        "ra_arr": ra_arr,
+        "dec_arr": dec_arr,
+        "time_range": time_range,
+        "time_integrate": time_integrate,
+        "ra_range": ra_range,
+        "dec_range": dec_range,
+        "ra_res": ra_res,
+        "dec_res": dec_res,
+        "start_time_arr": start_time_arr,
+        "stop_time_arr": stop_time_arr,
+    }
 
     return exposure_maps_dict
 
@@ -600,37 +513,27 @@ def make_background_file(
 def calc_sky_backgrounds(
     time_range: list = None,
     time_zone: str = "UTC",
-    interp_method: str = "linear",
     time_step: float = 1,
     time_integrate: float = None,
     ra_range: list = [0, 360],
     dec_range: list = [-90, 90],
     ra_res: float = 0.5,
     dec_res: float = 0.5,
-    save_exposure_map_file: bool = False,
-    save_exposure_map_image: bool = False,
-    save_sky_backgrounds_file: bool = False,
-    save_sky_backgrounds_image: bool = False,
     verbose: bool = True,
     force_compute: bool = False,
-    array_to_image_kwargs: dict = {},
 ):
     """ """
 
     exposure_map_dict = calc_exposure_maps(
         time_range=time_range,
         time_zone=time_zone,
-        interp_method=interp_method,
         time_step=time_step,
         ra_range=ra_range,
         dec_range=dec_range,
         ra_res=ra_res,
         dec_res=dec_res,
         time_integrate=time_integrate,
-        save_exposure_map_file=save_exposure_map_file,
-        save_exposure_map_image=save_exposure_map_image,
         verbose=verbose,
-        array_to_image_kwargs=array_to_image_kwargs,
     )
 
     # Calculate sky backgrounds
@@ -742,33 +645,15 @@ def _centers_to_edges(centers_1d: np.ndarray) -> np.ndarray:
     last_edge = c[-1] + 0.5 * (c[-1] - c[-2])
     edges = np.concatenate([[first_edge], mids, [last_edge]])
 
-    # Return in ascending order (already ensured). Caller can flip hist if needed.
+    # Return in ascending order
     return edges
 
 
 def implement_background_correction(
     counts_dict: dict,
-):
+    lexi_df: pd.DataFrame,
+) -> dict:
     """ """
-    start = counts_dict["time_range"][0]
-    end = counts_dict["time_range"][1]
-    # Remove the timezone info for querying the L2 files
-    # if start.tzinfo is not None:
-    #     start = start.tz_convert("UTC").replace(tzinfo=None)
-    # if end.tzinfo is not None:
-    #     end = end.tz_convert("UTC").replace(tzinfo=None)
-    lexi_df = gl1c.read_all_data_files(
-        file_list=None,
-        start_time=start,
-        end_time=end,
-        return_data_type="dataframe",
-        kwargs={
-            "data_folder_location": "/media/cephadrius/lexi_data/lexi_data/L1c/sci/cdf",
-            "version": "latest",
-            "start_time": start,
-            "end_time": end,
-        },
-    )
 
     ra_map = np.asarray(counts_dict["ra_center_map"], dtype=float)
     dec_map = np.asarray(counts_dict["dec_center_map"], dtype=float)
@@ -810,396 +695,224 @@ def implement_background_correction(
     lexi_bgnd_corrected = np.clip(lexi_bgnd_corrected, 0.0, None)
 
     # Add results to output dict
-    counts_dict["lexi_hist_raw"] = lexi_hist
-    counts_dict["expected_bg_counts"] = expected_bg
-    counts_dict["lexi_hist_bgnd_corrected"] = lexi_bgnd_corrected
-    counts_dict["ra_edges"] = ra_edges
-    counts_dict["dec_edges"] = dec_edges
+    results = counts_dict.copy()
+    results.update(
+        {
+            "lexi_hist_raw": lexi_hist,
+            "expected_bg_counts": expected_bg,
+            "lexi_hist_bgnd_corrected": lexi_bgnd_corrected,
+            "ra_edges": ra_edges,
+            "dec_edges": dec_edges,
+        }
+    )
 
-    return counts_dict
+    return results
 
 
-def array_to_image(
-    input_array: np.ndarray = None,
-    key: str = None,
-    x_range: list = None,
-    y_range: list = None,
-    x_lim: list = None,
-    y_lim: list = None,
-    start_time: pd.Timestamp = None,
-    stop_time: pd.Timestamp = None,
-    ra_res: float = None,
-    dec_res: float = None,
-    time_integrate: float = None,
-    cmap: str = None,
-    cmin: float = None,
-    v_min: float = None,
-    v_max: float = None,
-    norm: mpl.colors.LogNorm = mpl.colors.LogNorm(),
-    norm_type: str = "log",
-    aspect: str = "equal",
-    figure_title: str = None,
-    show_colorbar: bool = True,
-    cbar_label: str = None,
-    cbar_orientation: str = "vertical",
-    show_axes: bool = True,
-    display: bool = False,
-    figure_size: tuple = None,
-    figure_format: str = "png",
-    figure_font_size: float = 12,
-    save: bool = False,
-    save_path: str = None,
-    save_name: str = None,
-    dpi: int = 300,
-    dark_mode: bool = False,
-    verbose: bool = False,
-    display_time: bool = False,
-):
+def implement_flat_field_correction(
+    counts_dict: dict,
+    *,
+    min_ff_norm: float = 0.05,  # floor to avoid huge division (set to 0 to disable)
+    epsilon: float = 1e-12,  # numerical safety
+) -> dict:
     """
-    Convert a 2D array to an image.
+    Build a flat-field map on the same RA/Dec grid as `lexi_result['lexi_hist']`,
+    normalize it to max=1, and divide the LEXI histogram by it.
 
     Parameters
     ----------
-    ra_res : float, optional
-        Right ascension resolution in degrees. Default is None.
-
-    dec_res : float, optional
-        Declination resolution in degrees. Default is None.
-
-    time_integrate : int or float, optional
-        Integration time in seconds. Default is None.
-
-    input_array : np.ndarray
-        2D array to convert to an image.
-
-    x_range : list, optional
-        Range of the x-axis.  Default is None.
-
-    y_range : list, optional
-        Range of the y-axis.  Default is None.
-
-    x_lim : list, optional
-        Limits of the x-axis.  Default is None.
-
-    y_lim : list, optional
-        Limits of the y-axis.  Default is None.
-
-    v_min : float, optional
-        Minimum value of the colorbar.  If None, then the minimum value of the input array is used.
-        Default is None.
-
-    v_max : float, optional
-        Maximum value of the colorbar.  If None, then the maximum value of the input array is used.
-        Default is None.
-
-    cmap : str, optional
-        Colormap to use. By default, based on the `key` being plotted it is set to the following:
-        - exposure_maps: 'cividis'
-        - sky_backgrounds: 'inferno'
-        - lexi_images: 'plasma'
-        - something else: 'viridis'
-        Default is 'viridis'. Other options include 'plasma', 'inferno', 'magma', 'cividis'. See https://matplotlib.org/stable/tutorials/colors/colormaps.html for more options.
-
-    norm : mpl.colors.Normalize, optional
-        Normalization to use for the colorbar colors.  Default is None.
-
-    norm_type : str, optional
-        Normalization type to use.  Options are 'linear' or 'log'.  Default is 'linear'.
-
-    aspect : str, optional
-        Aspect ratio to use.  Default is 'equal'.
-
-    figure_title : str, optional
-        Title of the figure.  Default is None.
-
-    show_colorbar : bool, optional
-        If True, then show the colorbar.  Default is True.
-
-    cbar_label : str, optional
-        Label of the colorbar.  Default is None.
-
-    cbar_orientation : str, optional
-        Orientation of the colorbar.  Options are 'vertical' or 'horizontal'.  Default is 'vertical'.
-
-    show_axes : bool, optional
-        If True, then show the axes.  Default is True.
-
-    display : bool, optional
-        If True, then display the figure.  Default is False.
-
-    figure_size : tuple, optional
-        Size of the figure.  Default is None.
-
-    figure_format : str, optional
-        Format of the figure.  Default is 'png'.
-
-    figure_font_size : float, optional
-        Font size of the figure.  Default is 12.
-
-    save : bool, optional
-        If True, then save the figure.  Default is False.
-
-    save_path : str, optional
-        Path to save the figure to.  Default is None.
-
-    save_name : str, optional
-        Name of the figure to save.  Default is None.
-
-    display_time : bool, optional
-        Display the start and end time of the image.  Default is False.
+    counts_dict : dict
+        Must contain 'ra_center_map' and 'dec_center_map' (HxW).
+    lexi_result : dict
+        Output of compute_lexi_histograms(...), must include:
+          'lexi_hist', 'ra_edges', 'dec_edges'
+    flat_field_file : str
+        Path to CDF containing variables 'photon_RA' and 'photon_Dec' (degrees).
+    min_ff_norm : float
+        Floor for the normalized flat-field map (after normalization to max=1).
+        This prevents division blow-ups in underexposed bins.
+    epsilon : float
+        Small number to keep denominators non-zero.
 
     Returns
     -------
-    fig : matplotlib.figure.Figure
-        Figure object.
-    ax : matplotlib.axes._subplots.AxesSubplot
-        Axes object.
-
+    out : dict with keys
     """
-    # Try to use latex rendering
-    # plt.rc("text", usetex=False)
-    # try:
-    #     plt.rc("text", usetex=True)
-    #     plt.rc("font", family="serif")
-    #     plt.rc("font", size=figure_font_size)
-    # except Exception:
-    #     pass
+    # --- grid from counts_dict / lexi_result
+    ra_map = np.asarray(counts_dict["ra_center_map"], dtype=float)
+    # dec_map = np.asarray(counts_dict["dec_center_map"], dtype=float)
+    H, W = ra_map.shape
 
-    # Check whether input_array is a 2D array
-    if len(input_array.shape) != 2:
-        raise ValueError("input_array must be a 2D array")
+    ra_edges = counts_dict.get("ra_edges")
+    dec_edges = counts_dict.get("dec_edges")
 
-    # Mask the input array if cmin is specified
-    if cmin is not None:
-        input_array = np.ma.masked_less(input_array, cmin)
+    # --- read flat-field events
+    # Works with either SpacePy (pycdf) or cdflib; adapt import as you use.
 
-    # Check whether x_range is a list
-    if x_range is not None:
-        if not isinstance(x_range, (list, tuple, np.ndarray)):
-            raise ValueError("x_range must be a list, tuple, or numpy array")
-        if len(x_range) != 2:
-            raise ValueError("x_range must be a list of length 2")
+    # Get the mid point of the time_range
+    start = counts_dict["time_range"][0]
+    end = counts_dict["time_range"][1]
+    central_epoch = start + (end - start) / 2
+    ra_ff, dec_ff = gffd.fast_transform_fixed_epoch(central_epoch=central_epoch)
+    ra_ff = np.asarray(ra_ff, dtype=float) + 2
+    dec_ff = np.asarray(dec_ff, dtype=float)
+    # Clean NaNs
+    m = np.isfinite(ra_ff) & np.isfinite(dec_ff)
+    ra_ff, dec_ff = ra_ff[m], dec_ff[m]
+
+    # --- 2D histogram in (RA, Dec) using the SAME edges as LEXI
+    if ra_ff.size == 0:
+        flat_field_hist = np.zeros((H, W), dtype=float)
     else:
-        x_range = x_range
+        Hff, _, _ = np.histogram2d(ra_ff, dec_ff, bins=[ra_edges, dec_edges])
+        flat_field_hist = Hff.astype(float)  # shape (H, W)
 
-    # Check whether y_range is a list
-    if y_range is not None:
-        if not isinstance(y_range, (list, tuple, np.ndarray)):
-            raise ValueError("y_range must be a list, tuple, or numpy array")
-        if len(y_range) != 2:
-            raise ValueError("y_range must be a list of length 2")
+    # --- normalize to max=1
+    max_ff = flat_field_hist.max() if flat_field_hist.size else 0.0
+    if max_ff > 0:
+        flat_field_hist_norm = flat_field_hist / max_ff
     else:
-        y_range = y_range
+        flat_field_hist_norm = np.zeros_like(flat_field_hist, dtype=float)
 
-    if dark_mode:
-        plt.style.use("dark_background")
-        facecolor = "k"
-        edgecolor = "w"
-        textcolor = "w"
-    else:
-        plt.style.use("default")
-        facecolor = "w"
-        edgecolor = "k"
-        textcolor = "k"
+    # Optional floor to avoid exploding corrections where the FF is ~0
+    # if min_ff_norm is not None and min_ff_norm > 0:
+    #     flat_field_hist_norm = np.maximum(flat_field_hist_norm, float(min_ff_norm))
 
-    if v_min is None and v_max is None:
-        array_min = np.nanmin(input_array)
-        array_max = np.nanmax(input_array)
+    # --- LEXI histogram (already on this grid)
+    lexi_hist = np.asarray(counts_dict["lexi_hist_raw"], dtype=float)
 
-        if np.isnan(array_min) and np.isnan(array_max):
-            array_min = 0.1
-            array_max = 1.0
-            if verbose:
-                print(
-                    f"\n\033[91m Warning: Encountered map where array min \033[00m = \033[92m{array_min}\033[00m \033[91m and array max \033[00m = \033[92m{array_max}\033[00m \033[91m are both NaN. Plotting a range of 0.1 to 1.\033[00m \n"
-                )
-        if array_min == array_max:
-            # In theory, could be a real instance of a perfectly flat map;
-            # probably, just an integration window with no photons.
-            if verbose:
-                print(
-                    f"\n\033[91m Warning: Encountered map where array min \033[00m = \033[92m{array_min}\033[00m \033[91m and array max \033[00m = \033[92m{array_max}\033[00m \033[91m are both same. Plotting a range of \u00b1 1. \n"
-                )
-            array_min -= 1
-            array_max += 1
+    # --- flat-field corrected: divide counts by normalized FF
+    lexi_flat_corrected_hist = lexi_hist / (flat_field_hist_norm + epsilon)
 
-        if norm_type == "linear":
-            v_min = 0.9 * array_min
-            v_max = 1.1 * array_max
-            norm = mpl.colors.Normalize(vmin=v_min, vmax=v_max)
-        elif norm_type == "log":
-            if array_min <= 0:
-                v_min = 1e-5
-            else:
-                v_min = array_min
-            if array_max <= 0:
-                v_max = 1e-1
-            else:
-                v_max = array_max
-            norm = mpl.colors.LogNorm(vmin=v_min, vmax=v_max)
-    elif v_min is not None and v_max is not None:
-        if norm_type == "linear":
-            norm = mpl.colors.Normalize(vmin=v_min, vmax=v_max)
-        elif norm_type == "log":
-            if v_min <= 0:
-                v_min = 1e-5
-            if v_max <= 0:
-                v_max = 1e-1
-            norm = mpl.colors.LogNorm(vmin=v_min, vmax=v_max)
-    else:
-        raise ValueError(
-            "Either both v_min and v_max must be specified or neither can be specified"
-        )
-
-    # Assign "cmap" based on the input "key"
-    if cmap is None:
-        if "sky_backgrounds" in key:
-            cmap = "inferno"
-        elif "exposure_maps" in key:
-            cmap = "cividis"
-        elif "lexi_images" in key:
-            cmap = "plasma"
-        else:
-            cmap = "viridis"
-    # Create the figure
-    if figure_size is None:
-        fig, ax = plt.subplots(dpi=dpi, facecolor=facecolor, edgecolor=edgecolor)
-    else:
-        fig, ax = plt.subplots(
-            figsize=figure_size, dpi=dpi, facecolor=facecolor, edgecolor=edgecolor
-        )
-
-    # Plot the image
-    im = ax.imshow(
-        np.transpose(input_array),
-        cmap=cmap,
-        norm=norm,
-        extent=[
-            x_range[0],
-            x_range[1],
-            y_range[0],
-            y_range[1],
-        ],
-        origin="lower",
-        aspect=aspect,
-        interpolation=None,
+    results = counts_dict.copy()
+    results.update(
+        {
+            "flat_field_hist": flat_field_hist,
+            "flat_field_hist_norm": flat_field_hist_norm,
+            "lexi_hist": lexi_hist,
+            "lexi_flat_corrected_hist": lexi_flat_corrected_hist,
+        }
     )
 
-    # Set the x and y limits
-    if x_lim is None:
-        # Set the x limits to the x_range
-        ax.set_xlim(x_range)
-    if y_lim is None:
-        # Set the y limits to the y_range
-        ax.set_ylim(y_range)
+    return results
 
-    # Turn on the grid
-    ax.grid(True, color="k", alpha=0.5, linestyle="-")
-    # Turn on minor grid
-    ax.minorticks_on()
-    # Set the tick label size
-    ax.tick_params(labelsize=0.8 * figure_font_size)
 
-    # Add start and stop time as text to the plot
-    if display_time:
-        ax.text(
-            0.05,
-            0.93,
-            f"Start Time: {start_time.strftime('%Y-%m-%d %H:%M:%S')}",
-            horizontalalignment="left",
-            verticalalignment="bottom",
-            transform=ax.transAxes,
-            fontsize=0.8 * figure_font_size,
-            color=textcolor,
+def save_lexi_results(data: dict, output_dir: str = "/mnt/cephadrius/bu_research/lexi_data/l2"):
+
+    selected_data = {}
+
+    selected_data["exposure_map"] = data["exposure_at_centers_sec"]
+    selected_data["flat_field_map"] = data["flat_field_hist_norm"]
+    selected_data["background_map"] = data["counts_map"]
+    selected_data["lexi_hist"] = data["lexi_hist_raw"] / data["exposure_at_centers_sec"][:, :]
+    selected_data["lexi_histogram_bgnd_corrected"] = (
+        data["lexi_hist_bgnd_corrected"] / data["exposure_at_centers_sec"][:, :]
+    )
+    selected_data["lexi_histogram_bgnd_flat_corrected"] = (
+        data["lexi_flat_corrected_hist"] / data["exposure_at_centers_sec"][:, :]
+    )
+
+    # Selected keys
+    selected_keys = [
+        "exposure_map",
+        "flat_field_map",
+        "background_map",
+        "lexi_hist",
+        "lexi_histogram_bgnd_corrected",
+        "lexi_histogram_bgnd_flat_corrected",
+    ]
+
+    # Create a mask of bins where exposure is greater than zero, and only select those bins
+    exposure_mask = selected_data["exposure_map"] <= 0
+    for k in selected_keys:
+        selected_data[k] = np.where(exposure_mask, 0, selected_data[k])
+
+    selected_data["epoch_start"] = data["time_range"][0].to_pydatetime()
+    selected_data["epoch_end"] = data["time_range"][1].to_pydatetime()
+    selected_data["ra_bin"] = 0.5 * (data["ra_edges"][:-1] + data["ra_edges"][1:])
+    selected_data["dec_bin"] = 0.5 * (data["dec_edges"][:-1] + data["dec_edges"][1:])
+    selected_data["ra_bin_map"] = data["ra_center_map"]
+    selected_data["dec_bin_map"] = data["dec_center_map"]
+
+    cdf_file = sdtc.save_data_to_cdf(
+        data=selected_data,
+        output_dir=output_dir,
+    )
+    return cdf_file
+
+
+delta_v = 5  # degree
+start_time = "2025-03-16 19:00:00"
+end_time = "2025-03-16 21:15:00"
+read_all_lexi = False
+if read_all_lexi:
+    # Read all L1c data files in the time range
+    all_lexi_df = gl1c.read_all_data_files(
+        file_list=None,
+        start_time=start_time,
+        end_time=end_time,
+        return_data_type="dataframe",
+        kwargs={
+            "data_folder_location": "/media/cephadrius/lexi_data/lexi_data/L1c/sci/cdf",
+            "version": "latest",
+            "start_time": start_time,
+            "end_time": end_time,
+        },
+    )
+
+delta_time_minutes = 5
+time_ranges = pd.date_range(start=start_time, end=end_time, freq=f"{delta_time_minutes}min")
+time_ranges = [(str(t), str(t + pd.Timedelta(delta_time_minutes, unit="m"))) for t in time_ranges][
+    :-1
+]
+spc_df = pd.read_csv(
+    "../data/pointing/lexi_look_direction_data_resampled_interpolated_2025-03-02_00-00-00_to_2025-03-16_23-59-59_v0.0.csv"
+)
+spc_df["RA"] = spc_df["ra_lexi"]
+spc_df["DEC"] = spc_df["dec_lexi"]
+
+# Set Epoch as index and convert to datetime
+spc_df["Epoch"] = pd.to_datetime(spc_df["Epoch"], utc=True)
+spc_df.set_index("Epoch", inplace=True)
+
+recompute = True
+for start, end in time_ranges[:]:
+    if recompute:
+        # Select the dataframe within the time range
+        time_range = pd.to_datetime([start, end], utc=True)
+        selected_spc_df = spc_df.loc[time_range[0] : time_range[1]]
+        ra_center = selected_spc_df["RA"].median()
+        dec_center = selected_spc_df["DEC"].median()
+
+        input_params = {
+            "time_range": [start, end],
+            # "time_integrate": 600,  # 2 hours
+            "ra_res": 0.1,
+            "dec_res": 0.1,
+            "ra_range": [ra_center - delta_v, ra_center + delta_v],
+            "dec_range": [dec_center - delta_v, dec_center + delta_v],
+            "verbose": True,
+            "force_compute": True,
+        }
+
+        exposure_maps_dict, sky_bgnds_dict = calc_sky_backgrounds(
+            **input_params,
+            # reducer=np.mean,
+            # strict_consecutive=False,
         )
-        ax.text(
-            0.05,
-            0.92,
-            f"Stop Time: {stop_time.strftime('%Y-%m-%d %H:%M:%S')}",
-            horizontalalignment="left",
-            verticalalignment="top",
-            transform=ax.transAxes,
-            fontsize=0.8 * figure_font_size,
-            color=textcolor,
+
+        org_counts_dict = background_counts_from_exposure(exposure_maps_dict, sky_bgnds_dict)
+        # counts_dict = org_counts_dict.copy()
+        lexi_df = all_lexi_df.loc[
+            (all_lexi_df.index >= pd.to_datetime(start, utc=True))
+            & (all_lexi_df.index < pd.to_datetime(end, utc=True))
+        ]
+        bgnd_counts_dict = implement_background_correction(
+            counts_dict=org_counts_dict, lexi_df=lexi_df
         )
-    if show_colorbar:
-        if cbar_label is None:
-            cbar_label = "Counts/sec"
-        if cbar_orientation == "vertical":
-            cax = fig.add_axes(
-                [
-                    ax.get_position().x1 + 0.01,
-                    ax.get_position().y0,
-                    0.02,
-                    ax.get_position().height,
-                ]
-            )
-        elif cbar_orientation == "horizontal":
-            cax = fig.add_axes(
-                [
-                    ax.get_position().x0,
-                    ax.get_position().y1 + 0.01,
-                    ax.get_position().width,
-                    0.02,
-                ]
-            )
-        ax.figure.colorbar(
-            im,
-            cax=cax,
-            orientation=cbar_orientation,
-            label=cbar_label,
-            pad=0.01,
+
+        counts_dict = implement_flat_field_correction(counts_dict=bgnd_counts_dict)
+
+        cdf_file = save_lexi_results(
+            data=counts_dict,
         )
-        # Set the colorbar tick label size
-        cax.tick_params(labelsize=0.6 * figure_font_size)
-        # Set the colorbar label size
-        cax.yaxis.label.set_size(0.9 * figure_font_size)
-
-        # If the colorbar is horizontal, then set the location of the colorbar label and the tick
-        # labels to be above the colorbar
-        if cbar_orientation == "horizontal":
-            cax.xaxis.set_ticks_position("top")
-            cax.xaxis.set_label_position("top")
-            cax.xaxis.tick_top()
-        if cbar_orientation == "vertical":
-            cax.yaxis.set_ticks_position("right")
-            cax.yaxis.set_label_position("right")
-            cax.yaxis.tick_right()
-    if not show_axes:
-        ax.axis("off")
-    else:
-        ax.set_xlabel("RA [$^\\circ$]", labelpad=0, fontsize=figure_font_size)
-        ax.set_ylabel("DEC [$^\\circ$]", labelpad=0, fontsize=figure_font_size)
-        ax.set_title(figure_title, fontsize=1.2 * figure_font_size)
-
-    if save:
-        if save_path is None:
-            save_path = Path.cwd() / f"figures/{key}"
-            if verbose:
-                print("save_path not provided. Saving figure to default location \n")
-        Path(save_path).mkdir(parents=True, exist_ok=True)
-        if save_name is None or save_name == "default":
-            start_time_str = start_time.strftime("%Y%m%d_%H%M%S")
-            stop_time_str = stop_time.strftime("%Y%m%d_%H%M%S")
-            save_name = (
-                f"{key.split('/')[0]}_Tstart_{start_time_str}_Tstop_{stop_time_str}_RAstart_{x_range[0]}"
-                f"_RAstop_{x_range[1]}_RAres_{ra_res}_DECstart_{y_range[0]}_DECstop_{y_range[1]}_DECres_"
-                f"{dec_res}_Tint_{time_integrate}"
-            )
-
-        save_name = save_name + "." + figure_format
-        plt.savefig(
-            f"{save_path}/{save_name}",
-            format=figure_format,
-            dpi=dpi,
-            bbox_inches="tight",
-        )
-        if verbose:
-            print(f"Saved figure to ==> \033[1;94m {save_path}/\033[1;92m{save_name} \033[0m \n")
-
-    if display:
-        plt.show()
-    else:
-        plt.close(fig)
-
-    return fig, ax

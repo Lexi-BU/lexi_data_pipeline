@@ -1,0 +1,612 @@
+! Skeleton table for the "lexi_l2_0000000000_v0.1.cdf" CDF.
+! Generated: Wednesday, 03-Sep-2025 13:00:00
+! CDF created/modified by CDF V3.9.1
+! Skeleton table created by CDF V3.9.1_0
+
+#header
+
+                       CDF NAME: lexi_l2_0000000000_v0.1.cdf
+                  DATA ENCODING: NETWORK
+                       MAJORITY: COLUMN
+                         FORMAT: SINGLE
+
+! Variables  G.Attributes  V.Attributes  Records  Dims  Sizes
+! ---------  ------------  ------------  -------  ----  -----
+     0/13         28            23         0/z      2   91 91
+! CDF_COMPRESSION: None
+! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+! CDF_CHECKSUM: None
+! (Valid checksum: None, MD5)
+! CDF_LEAPSECONDLASTUPDATED: 20170101
+
+
+#GLOBALattributes
+
+! Attribute         Entry       Data
+! Name              Number      Type       Value
+! ---------         ------      ----       -----
+
+  "TITLE"               1:    CDF_CHAR     { "LEXI> Lunar Environment " -
+                                             "Heliospheric X-ray Imager" } .
+
+  "Project"             1:    CDF_CHAR     { "CLPS>Commercial Lunar " -
+                                             "Payload Services" } .
+
+  "Discipline"          1:    CDF_CHAR     { "Space " -
+                                             "Physics>Magnetospheric " -
+                                             "Science" } .
+
+  "Source_name"         1:    CDF_CHAR     { "LEXI>Lunar Environment " -
+                                             "Heliospheric X-ray Imager" } .
+
+  "Descriptor"          1:    CDF_CHAR     { "LEXI>Lunar Environment " -
+                                             "Heliospheric X-ray Imager" } .
+
+  "Data_type"           1:    CDF_CHAR     { "L2>RADEC_IMAGE" } .
+
+  "Data_version"        1:    CDF_CHAR     { "0.1" } .
+
+  "TEXT"                1:    CDF_CHAR     { "The lunar environment " -
+                                             "heliophysics X-ray imager " -
+                                             "(LEXI) mission." }
+                        2:    CDF_CHAR     { "BM Walsh, et al., Space " -
+                                             "Sci. Rev., 2024" } .
+
+  "MODS"                1:    CDF_CHAR     { "TBD" } .
+
+  "Logical_file_id"     1:    CDF_CHAR     { "lexi_l2_0000000000_v0.1" } .
+
+  "Logical_source"      1:    CDF_CHAR     { "lexi_l2" } .
+
+  "Logical_source_description"
+                        1:    CDF_CHAR     { "Lunar Environment " -
+                                             "Heliospheric X-ray Imager " -
+                                             "(LEXI)" } .
+
+  "PI_name"             1:    CDF_CHAR     { "B. Walsh" } .
+
+  "PI_affiliation"      1:    CDF_CHAR     { "Boston U." } .
+
+  "Mission_group"       1:    CDF_CHAR     { "LEXI>Lunar Environment " -
+                                             "Heliospheric X-ray Imager" } .
+
+  "Instrument_type"     1:    CDF_CHAR     { "Imaging and Remote Sensing " -
+                                             "(Magnetosphere/Earth)" } .
+
+  "TEXT_supplement_1"
+                        1:    CDF_CHAR     { " " } .
+
+  "File_naming_convention"
+                        1:    CDF_CHAR     { "source_datatype_descriptor" -
+                                             "_yyyyMMddHH" } .
+
+  "Acknowledgement" .
+
+  "LINK_TITLE"          1:    CDF_CHAR     { "LEXI Mission" } .
+
+  "spase_DatasetResourceID" .
+
+  "Generated_by"        1:    CDF_CHAR     { "Ramiz A. Qudsi" } .
+
+  "Rules_of_use" .
+
+  "Generation_date" .
+
+  "HTTP_LINK"           1:    CDF_CHAR     { "https://sites.bu.edu/lexi/" } .
+
+  "DOI"                 1:    CDF_CHAR     { "https://doi.org/10.1007/" -
+                                             "s11214-024-01063-4" } .
+
+  "LINK_TEXT" .
+
+  "Time_resolution"     1:    CDF_CHAR     { "Variable, see integration_duration" } .
+
+
+#VARIABLEattributes
+
+  "FIELDNAM"
+  "VALIDMIN"
+  "VALIDMAX"
+  "SCALEMIN"
+  "SCALEMAX"
+  "LABLAXIS"
+  "UNITS"
+  "MONOTON"
+  "VAR_TYPE"
+  "FORMAT"
+  "FILLVAL"
+  "DEPEND_0"
+  "DEPEND_1"
+  "DEPEND_2"
+  "DICT_KEY"
+  "CATDESC"
+  "AVG_TYPE"
+  "DISPLAY_TYPE"
+  "VAR_NOTES"
+  "TIME_BASE"
+  "FORM_PTR"
+  "UNIT_PTR"
+  "SCAL_PTR"
+  "SCALETYP"
+
+
+#variables
+
+! No rVariables.
+
+
+#zVariables
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "epoch_start"   CDF_EPOCH      1       0              T
+
+  ! VAR_COMPRESSION: None
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: 01-Jan-0000 00:00:00.000
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "Time" }
+    "VALIDMIN"    CDF_EPOCH    { 02-Mar-2025 08:00:00.000 }
+    "VALIDMAX"    CDF_EPOCH    { 16-Mar-2025 21:45:59.000 }
+    "SCALEMIN"    CDF_EPOCH    { 02-Mar-2025 00:00:00.000 }
+    "SCALEMAX"    CDF_EPOCH    { 16-Mar-2025 23:59:59.000 }
+    "LABLAXIS"    CDF_CHAR     { "Time" }
+    "UNITS"       CDF_CHAR     { "ms" }
+    "MONOTON"     CDF_CHAR     { "INCREASE" }
+    "VAR_TYPE"    CDF_CHAR     { "support_data" }
+    "FILLVAL"     CDF_EPOCH    { 31-Dec-9999 23:59:59.999 }
+    "DICT_KEY"    CDF_CHAR     { "time>epoch_start" }
+    "CATDESC"     CDF_CHAR     { "Start time (UTC) of the image " -
+                                 "integration interval." }
+    "AVG_TYPE"    CDF_CHAR     { " " }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { " " }
+    "VAR_NOTES"   CDF_CHAR     { " " }
+    "TIME_BASE"   CDF_CHAR     { "0 AD" } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "epoch_end"     CDF_EPOCH      1       0              T
+
+  ! VAR_COMPRESSION: None
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: 01-Jan-0000 00:00:00.000
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "Time" }
+    "VALIDMIN"    CDF_EPOCH    { 02-Mar-2025 08:00:00.000 }
+    "VALIDMAX"    CDF_EPOCH    { 16-Mar-2025 21:45:59.000 }
+    "SCALEMIN"    CDF_EPOCH    { 02-Mar-2025 00:00:00.000 }
+    "SCALEMAX"    CDF_EPOCH    { 16-Mar-2025 23:59:59.000 }
+    "LABLAXIS"    CDF_CHAR     { "Time" }
+    "UNITS"       CDF_CHAR     { "ms" }
+    "MONOTON"     CDF_CHAR     { "INCREASE" }
+    "VAR_TYPE"    CDF_CHAR     { "support_data" }
+    "FILLVAL"     CDF_EPOCH    { 31-Dec-9999 23:59:59.999 }
+    "DICT_KEY"    CDF_CHAR     { "time>epoch_end" }
+    "CATDESC"     CDF_CHAR     { "End time (UTC) of the image " -
+                                 "integration interval." }
+    "AVG_TYPE"    CDF_CHAR     { " " }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { " " }
+    "VAR_NOTES"   CDF_CHAR     { " " }
+    "TIME_BASE"   CDF_CHAR     { "0 AD" } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ra_bin"
+                  CDF_REAL4      1       1     91         T     T
+
+  ! VAR_COMPRESSION: None
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -1.0e+30
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "Right Ascension bin centers" }
+    "VALIDMIN"    CDF_REAL4    { 0.0 }
+    "VALIDMAX"    CDF_REAL4    { 360.0 }
+    "SCALEMIN"    CDF_REAL4    { 0.0 }
+    "SCALEMAX"    CDF_REAL4    { 360.0 }
+    "LABLAXIS"    CDF_CHAR     { "RA" }
+    "UNITS"       CDF_CHAR     { "deg" }
+    "VAR_TYPE"    CDF_CHAR     { "support_data" }
+    "FORMAT"      CDF_CHAR     { "f7.1" }
+    "FILLVAL"     CDF_REAL4    { -1.0e+31 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_start" }
+    "DICT_KEY"    CDF_CHAR     { "position>ra_bin" }
+    "CATDESC"     CDF_CHAR     { "Center of RA bins used for 2-D images." }
+    "AVG_TYPE"    CDF_CHAR     { " " }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { " " }
+    "VAR_NOTES"   CDF_CHAR     { " Length equal to RA dimension of the image." } .
+
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "dec_bin"
+                  CDF_REAL4      1       1     91         T     T
+
+  ! VAR_COMPRESSION: None
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -1.0e+30
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "Declination bin centers" }
+    "VALIDMIN"    CDF_REAL4    { -90.0 }
+    "VALIDMAX"    CDF_REAL4    { 90.0 }
+    "SCALEMIN"    CDF_REAL4    { -90.0 }
+    "SCALEMAX"    CDF_REAL4    { 90.0 }
+    "LABLAXIS"    CDF_CHAR     { "Dec" }
+    "UNITS"       CDF_CHAR     { "deg" }
+    "VAR_TYPE"    CDF_CHAR     { "support_data" }
+    "FORMAT"      CDF_CHAR     { "f7.1" }
+    "FILLVAL"     CDF_REAL4    { -1.0e+31 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_start" }
+    "DICT_KEY"    CDF_CHAR     { "position>dec_bin" }
+    "CATDESC"     CDF_CHAR     { "Center of Dec bins used for 2-D images." }
+    "AVG_TYPE"    CDF_CHAR     { " " }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { " " }
+    "VAR_NOTES"   CDF_CHAR     { " Length equal to Dec dimension of the image." } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ra_bin_map"
+                  CDF_REAL4      1       2     91  91       T     T T
+
+  ! VAR_COMPRESSION: None
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -1.0e+30
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "Right Ascension bin centers expanded to 2D" }
+    "VALIDMIN"    CDF_REAL4    { 0.0 }
+    "VALIDMAX"    CDF_REAL4    { 360.0 }
+    "SCALEMIN"    CDF_REAL4    { 0.0 }
+    "SCALEMAX"    CDF_REAL4    { 360.0 }
+    "LABLAXIS"    CDF_CHAR     { "RA" }
+    "UNITS"       CDF_CHAR     { "deg" }
+    "VAR_TYPE"    CDF_CHAR     { "support_data" }
+    "FORMAT"      CDF_CHAR     { "f7.1" }
+    "FILLVAL"     CDF_REAL4    { -1.0e+31 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_start" }
+    "DEPEND_1"    CDF_CHAR     { "ra_bin" }
+    "DEPEND_2"    CDF_CHAR     { "dec_bin" }
+    "DICT_KEY"    CDF_CHAR     { "position>ra_bin_map" }
+    "CATDESC"     CDF_CHAR     { "Right Ascension bin centers expanded to 2D." }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "image" }
+    "VAR_NOTES"   CDF_CHAR     { " RA bin centers expanded to 2D for easy plotting." } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "dec_bin_map"
+                  CDF_REAL4      1       2     91  91       T     T T
+
+  ! VAR_COMPRESSION: None
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -1.0e+30
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "Declination bin centers expanded to 2D" }
+    "VALIDMIN"    CDF_REAL4    { -90.0 }
+    "VALIDMAX"    CDF_REAL4    { 90.0 }
+    "SCALEMIN"    CDF_REAL4    { -90.0 }
+    "SCALEMAX"    CDF_REAL4    { 90.0 }
+    "LABLAXIS"    CDF_CHAR     { "Dec" }
+    "UNITS"       CDF_CHAR     { "deg" }
+    "VAR_TYPE"    CDF_CHAR     { "support_data" }
+    "FORMAT"      CDF_CHAR     { "f7.1" }
+    "FILLVAL"     CDF_REAL4    { -1.0e+31 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_start" }
+    "DEPEND_1"    CDF_CHAR     { "ra_bin" }
+    "DEPEND_2"    CDF_CHAR     { "dec_bin" }
+    "DICT_KEY"    CDF_CHAR     { "position>dec_bin_map" }
+    "CATDESC"     CDF_CHAR     { "Declination bin centers expanded to 2D." }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "image" }
+    "VAR_NOTES"   CDF_CHAR     { " Dec bin centers expanded to 2D for easy plotting." } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "exposure_map"
+                  CDF_REAL4      1       2     91  91       T     T T
+
+  ! VAR_COMPRESSION: None
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -1.0e+30
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "Exposure time at bin centers" }
+    "VALIDMIN"    CDF_REAL4    { 0.0 }
+    "VALIDMAX"    CDF_REAL4    { 1.0e+06 }
+    "SCALEMIN"    CDF_REAL4    { 0.0 }
+    "SCALEMAX"    CDF_REAL4    { 1.0e+05 }
+    "LABLAXIS"    CDF_CHAR     { "Exposure" }
+    "UNITS"       CDF_CHAR     { "s" }
+    "VAR_TYPE"    CDF_CHAR     { "support_data" }
+    "FORMAT"      CDF_CHAR     { "f12.3" }
+    "FILLVAL"     CDF_REAL4    { -1.0e+31 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_start" }
+    "DEPEND_1"    CDF_CHAR     { "ra_bin" }
+    "DEPEND_2"    CDF_CHAR     { "dec_bin" }
+    "DICT_KEY"    CDF_CHAR     { "image>exposure_map" }
+    "CATDESC"     CDF_CHAR     { "Effective exposure seconds per (RA, Dec) pixel." }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "image" }
+    "VAR_NOTES"   CDF_CHAR     { " " } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "flat_field_map"
+                  CDF_REAL4      1       2     91  91       T     T T
+
+  ! VAR_COMPRESSION: None
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -1.0e+30
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "Flat field correction at bin centers" }
+    "VALIDMIN"    CDF_REAL4    { 0.0 }
+    "VALIDMAX"    CDF_REAL4    { 1.0 }
+    "SCALEMIN"    CDF_REAL4    { 0.0 }
+    "SCALEMAX"    CDF_REAL4    { 1.0 }
+    "LABLAXIS"    CDF_CHAR     { "FlatField" }
+    "UNITS"       CDF_CHAR     { " " }
+    "VAR_TYPE"    CDF_CHAR     { "support_data" }
+    "FORMAT"      CDF_CHAR     { "f12.3" }
+    "FILLVAL"     CDF_REAL4    { -1.0e+31 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_start" }
+    "DEPEND_1"    CDF_CHAR     { "ra_bin" }
+    "DEPEND_2"    CDF_CHAR     { "dec_bin" }
+    "DICT_KEY"    CDF_CHAR     { "image>flat_field_map" }
+    "CATDESC"     CDF_CHAR     { "Flat field correction factor per (RA, Dec) pixel." -
+                                 " The histogram is normalized to 1." }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "image" }
+    "VAR_NOTES"   CDF_CHAR     { " Flat field correction factor, typically near 1.0." } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "background_map"
+                  CDF_REAL4      1       2     91  91       T     T T
+
+  ! VAR_COMPRESSION: None
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -1.0e+30
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "Background counts at bin centers" }
+    "VALIDMIN"    CDF_REAL4    { 0.0 }
+    "VALIDMAX"    CDF_REAL4    { 1.0e+06 }
+    "SCALEMIN"    CDF_REAL4    { 0.0 }
+    "SCALEMAX"    CDF_REAL4    { 1.0e+05 }
+    "LABLAXIS"    CDF_CHAR     { "Background" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "VAR_TYPE"    CDF_CHAR     { "support_data" }
+    "FORMAT"      CDF_CHAR     { "f12.3" }
+    "FILLVAL"     CDF_REAL4    { -1.0e+31 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_start" }
+    "DEPEND_1"    CDF_CHAR     { "ra_bin" }
+    "DEPEND_2"    CDF_CHAR     { "dec_bin" }
+    "DICT_KEY"    CDF_CHAR     { "image>background_map" }
+    "CATDESC"     CDF_CHAR     { "Background counts per (RA, Dec) pixel." }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "image" }
+    "VAR_NOTES"   CDF_CHAR     { " Background counts, typically small compared" -
+                                 " to the lexi_hist." } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "lexi_hist"
+                  CDF_REAL4      1       2     91  91       T     T T
+
+  ! VAR_COMPRESSION: None
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -1.0e+30
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "LEXI counts at bin centers" }
+    "VALIDMIN"    CDF_REAL4    { 0.0 }
+    "VALIDMAX"    CDF_REAL4    { 1.0e+06 }
+    "SCALEMIN"    CDF_REAL4    { 0.0 }
+    "SCALEMAX"    CDF_REAL4    { 1.0e+05 }
+    "LABLAXIS"    CDF_CHAR     { "Counts/sec" }
+    "UNITS"       CDF_CHAR     { "counts/sec" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FORMAT"      CDF_CHAR     { "f12.3" }
+    "FILLVAL"     CDF_REAL4    { -1.0e+31 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_start" }
+    "DEPEND_1"    CDF_CHAR     { "ra_bin" }
+    "DEPEND_2"    CDF_CHAR     { "dec_bin" }
+    "DICT_KEY"    CDF_CHAR     { "image>lexi_hist" }
+    "CATDESC"     CDF_CHAR     { "LEXI counts per (RA, Dec) pixel per second." }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "image" }
+    "VAR_NOTES"   CDF_CHAR     { " LEXI counts, background not subtracted," -
+                                 " flat field not applied." } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "lexi_histogram_bgnd_corrected"
+                  CDF_REAL4      1       2     91  91       T     T T
+
+  ! VAR_COMPRESSION: None
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -1.0e+30
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "Background corrected LEXI counts at bin centers" }
+    "VALIDMIN"    CDF_REAL4    { 0.0 }
+    "VALIDMAX"    CDF_REAL4    { 1.0e+06 }
+    "SCALEMIN"    CDF_REAL4    { 0.0 }
+    "SCALEMAX"    CDF_REAL4    { 1.0e+05 }
+    "LABLAXIS"    CDF_CHAR     { "Counts/sec" }
+    "UNITS"       CDF_CHAR     { "counts/sec" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FORMAT"      CDF_CHAR     { "f12.3" }
+    "FILLVAL"     CDF_REAL4    { -1.0e+31 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_start" }
+    "DEPEND_1"    CDF_CHAR     { "ra_bin" }
+    "DEPEND_2"    CDF_CHAR     { "dec_bin" }
+    "DICT_KEY"    CDF_CHAR     { "image>lexi_histogram_bgnd_corrected" }
+    "CATDESC"     CDF_CHAR     { "LEXI counts per (RA, Dec) pixel per second," -
+                                 " background subtracted." }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "image" }
+    "VAR_NOTES"   CDF_CHAR     { " LEXI counts, background subtracted," -
+                                 " flat field not applied." } .
+
+  ! RV values were not requested.
+
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "lexi_histogram_bgnd_flat_corrected"
+                  CDF_REAL4      1       2     91  91       T     T T
+
+  ! VAR_COMPRESSION: None
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -1.0e+30
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "Background and flat field corrected LEXI counts at bin centers" }
+    "VALIDMIN"    CDF_REAL4    { 0.0 }
+    "VALIDMAX"    CDF_REAL4    { 1.0e+06 }
+    "SCALEMIN"    CDF_REAL4    { 0.0 }
+    "SCALEMAX"    CDF_REAL4    { 1.0e+05 }
+    "LABLAXIS"    CDF_CHAR     { "Counts/sec" }
+    "UNITS"       CDF_CHAR     { "counts/sec" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FORMAT"      CDF_CHAR     { "f12.3" }
+    "FILLVAL"     CDF_REAL4    { -1.0e+31 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_start" }
+    "DEPEND_1"    CDF_CHAR     { "ra_bin" }
+    "DEPEND_2"    CDF_CHAR     { "dec_bin" }
+    "DICT_KEY"    CDF_CHAR     { "image>lexi_histogram_bgnd_flat_corrected" }
+    "CATDESC"     CDF_CHAR     { "LEXI counts per (RA, Dec) pixel per second," -
+                                 " background and flat field corrected." }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "image" }
+    "VAR_NOTES"   CDF_CHAR     { " LEXI counts, background subtracted," -
+                                 " flat field applied." } .
+
+  ! RV values were not requested.
+
+#end

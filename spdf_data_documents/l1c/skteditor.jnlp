@@ -63,5 +63,6 @@
        <property name="com.apple.mrj.application.growbox.inturdes" 
                 value="true" />
      </resources>
+     <security><all-permissions/></security>
      <application-desc main-class="gsfc.spdf.edit.guis.SKTEditor"/> 
 </jnlp> 
