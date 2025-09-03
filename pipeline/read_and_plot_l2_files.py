@@ -80,6 +80,7 @@ def plot_on_ra_dec(
     dec_corners,
     data,
     title=None,
+    cbar_title=None,
     time_range=None,
     vmin=None,
     vmax=None,
@@ -142,7 +143,9 @@ def plot_on_ra_dec(
 
     ax.add_artist(circle)
     ax.set_aspect("equal")
-    cbar = plt.colorbar(pm, ax=ax, label=title, orientation="vertical", fraction=0.046, pad=0.00)
+    cbar = plt.colorbar(
+        pm, ax=ax, label=cbar_title, orientation="vertical", fraction=0.046, pad=0.00
+    )
 
     # Force scientific notation with offset at the top
     formatter = ScalarFormatter(useMathText=True)
@@ -178,7 +181,7 @@ keys_to_plot = [
 ]
 
 
-for i, f in enumerate(l2_files[:1]):
+for i, f in enumerate(l2_files[:]):
     dat = cdf(f)
 
     print(f"Reading file: {f}, {i + 1} out of {len(l2_files)}", end="\r")
@@ -201,7 +204,8 @@ for i, f in enumerate(l2_files[:1]):
         DECcorn,
         np.asarray(dat["exposure_map"][...])[0],
         time_range=time_range,
-        title="Exposure Map (s)",
+        title="Exposure Map",
+        cbar_title="Exposure Time (s)",
         norm="log",
         vmin=1e0,
         vmax=3e2,
@@ -211,7 +215,8 @@ for i, f in enumerate(l2_files[:1]):
         RAcorn,
         DECcorn,
         np.asarray(dat["flat_field_map"][...])[0],
-        title="Flat Field Map (norm.)",
+        title="Flat Field Map.)",
+        cbar_title="Normalized Counts",
         time_range=time_range,
         vmin=1e-1,
         vmax=1e0,
@@ -222,7 +227,8 @@ for i, f in enumerate(l2_files[:1]):
         RAcorn,
         DECcorn,
         np.asarray(dat["background_map"][...])[0],
-        title="Background Map (cts)",
+        title="Background Map",
+        cbar_title="Counts/pixel",
         time_range=time_range,
         norm="log",
         vmin=1e-3,
@@ -235,6 +241,7 @@ for i, f in enumerate(l2_files[:1]):
         np.asarray(dat["lexi_hist"][...])[0],
         time_range=time_range,
         title="Raw Counts",
+        cbar_title="Counts/sec",
         norm="log",
     )
     plot_on_ra_dec(
@@ -244,6 +251,7 @@ for i, f in enumerate(l2_files[:1]):
         np.asarray(dat["lexi_histogram_bgnd_corrected"][...])[0],
         time_range=time_range,
         title="Background-Corrected Counts",
+        cbar_title="Counts/sec",
         norm="log",
     )
 
@@ -254,6 +262,7 @@ for i, f in enumerate(l2_files[:1]):
         np.asarray(dat["lexi_histogram_bgnd_flat_corrected"][...])[0],
         time_range=time_range,
         title="Background & Flat-Field Corrected Counts",
+        cbar_title="Counts/sec",
         norm="log",
     )
 
