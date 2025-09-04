@@ -1,5 +1,4 @@
 import importlib
-import shutil
 from pathlib import Path
 
 import get_l2_files as gl2f
@@ -8,15 +7,10 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from matplotlib.ticker import ScalarFormatter
 
 importlib.reload(gl2f)
 importlib.reload(gl1c)
-
-import matplotlib.pyplot as plt
-import numpy as np
-import plotly.graph_objects as go
-import plotly.subplots as sp
-from matplotlib.ticker import ScalarFormatter
 
 
 def centers_to_corners_2d(ra_c, dec_c):

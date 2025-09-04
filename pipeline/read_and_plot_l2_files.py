@@ -11,7 +11,7 @@ from matplotlib.ticker import ScalarFormatter
 from spacepy.pycdf import CDF as cdf
 
 # l2_files = sorted(glob.glob("/mnt/cephadrius/bu_research/lexi_data/l2/*.cdf"))
-l2_files = sorted(glob.glob("/home/vetinari/Desktop/git/Lexi-Bu/lexi_data_pipeline/data/l2/*.cdf"))
+l2_files = sorted(glob.glob("./data/l2/*.cdf"))
 
 
 def centers_to_corners_2d(ra_c, dec_c):
