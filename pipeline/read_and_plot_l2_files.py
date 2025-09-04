@@ -10,7 +10,8 @@ import pandas as pd
 from matplotlib.ticker import ScalarFormatter
 from spacepy.pycdf import CDF as cdf
 
-l2_files = sorted(glob.glob("/mnt/cephadrius/bu_research/lexi_data/l2/*.cdf"))
+# l2_files = sorted(glob.glob("/mnt/cephadrius/bu_research/lexi_data/l2/*.cdf"))
+l2_files = sorted(glob.glob("/home/vetinari/Desktop/git/Lexi-Bu/lexi_data_pipeline/data/l2/*.cdf"))
 
 
 def centers_to_corners_2d(ra_c, dec_c):
@@ -273,7 +274,7 @@ for i, f in enumerate(l2_files[:]):
         )
         ax.set_aspect("equal")
 
-    figure_path = Path("../figures/exposure_maps/bg_corrected/from_l2")
+    figure_path = Path("../figures/exposure_maps/bg_corrected/from_l2/new/")
     figure_path.mkdir(parents=True, exist_ok=True)
     fig.savefig(
         figure_path / (Path(f).stem + "_exposure_and_counts.png"),
