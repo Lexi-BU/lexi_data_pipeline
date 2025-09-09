@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import save_data_to_cdf_l2_istp as sdtc
+import scipy as scipy
 from astropy.io import fits
 from astropy.wcs import WCS
 from spacepy.pycdf import CDF as cdf
@@ -768,9 +769,11 @@ def implement_flat_field_correction(
         flat_field_hist = Hff.astype(float)  # shape (H, W)
 
     # --- normalize to max=1
-    max_ff = flat_field_hist.max() if flat_field_hist.size else 0.0
-    if max_ff > 0:
-        flat_field_hist_norm = flat_field_hist / max_ff
+    # max_ff = flat_field_hist.max() if flat_field_hist.size else 0.0
+    ff_0 = flat_field_hist[flat_field_hist != 0]
+    ff_mode = scipy.stats.mode(ff_0, axis=None, keepdims=False).mode if ff_0.size else 0.0
+    if ff_mode > 0:
+        flat_field_hist_norm = flat_field_hist / ff_mode
     else:
         flat_field_hist_norm = np.zeros_like(flat_field_hist, dtype=float)
 
@@ -814,7 +817,7 @@ def save_lexi_results(data: dict, output_dir: str = "/mnt/cephadrius/bu_research
 
     # Selected keys
     selected_keys = [
-        "exposure_map",
+        # "exposure_map",
         "flat_field_map",
         "background_map",
         "lexi_hist",
@@ -825,7 +828,7 @@ def save_lexi_results(data: dict, output_dir: str = "/mnt/cephadrius/bu_research
     # Create a mask of bins where exposure is greater than zero, and only select those bins
     exposure_mask = selected_data["exposure_map"] <= 0
     for k in selected_keys:
-        selected_data[k] = np.where(exposure_mask, 0, selected_data[k])
+        selected_data[k] = np.where(exposure_mask, -1.0e31, selected_data[k])
 
     selected_data["epoch_start"] = data["time_range"][0].to_pydatetime()
     selected_data["epoch_end"] = data["time_range"][1].to_pydatetime()
@@ -912,6 +915,8 @@ for start, end in time_ranges[:]:
         )
 
         counts_dict = implement_flat_field_correction(counts_dict=bgnd_counts_dict)
+
+        #
 
         cdf_file = save_lexi_results(
             data=counts_dict,

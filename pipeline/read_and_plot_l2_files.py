@@ -1,5 +1,6 @@
 import datetime
 import glob
+import re
 import warnings
 from pathlib import Path
 
@@ -10,8 +11,29 @@ import pandas as pd
 from matplotlib.ticker import ScalarFormatter
 from spacepy.pycdf import CDF as cdf
 
-# l2_files = sorted(glob.glob("/mnt/cephadrius/bu_research/lexi_data/l2/*.cdf"))
-l2_files = sorted(glob.glob("./data/l2/*.cdf"))
+
+def keep_highest_versions(paths):
+    best = {}
+
+    for p in map(Path, paths):
+        stem = p.stem
+        try:
+            base, vstr = stem.rsplit("_V", 1)
+        except ValueError:
+            # If no _V part, treat version as 0
+            base, vstr = stem, "0"
+        vtup = tuple(int(x) for x in vstr.split("."))  # e.g. (0, 1)
+
+        if base not in best or vtup > best[base][0]:
+            best[base] = (vtup, str(p))
+
+    # Return in chronological/base order
+    return [best[k][1] for k in sorted(best)]
+
+
+# Example
+all_l2_files = sorted(glob.glob("/mnt/cephadrius/bu_research/lexi_data/l2/*.cdf"))
+l2_files = keep_highest_versions(all_l2_files)
 
 
 def centers_to_corners_2d(ra_c, dec_c):
@@ -91,27 +113,23 @@ def plot_on_ra_dec(
         norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
     elif norm == "log":
         if vmin is None:
-            if np.nanmin(data) > 0:
-                vmin = np.nanmin(data)
-            else:
-                vmin = 1e-3 * np.nanmax(data)
+            vmin = np.nanmin(data) if np.nanmin(data) > 0 else 1e-3 * np.nanmax(data)
         if vmax is None:
             vmax = np.nanmax(data)
         norm = mpl.colors.LogNorm(vmin=vmin, vmax=vmax)
     else:
         norm = None
+
     pm = ax.pcolormesh(
         ra_corners,
         dec_corners,
         data,
         shading="auto",
-        # vmin=vmin,
-        # vmax=vmax,
         cmap="plasma",
         norm=norm,
     )
-    ax.set_xlabel("RA (deg)")
-    ax.set_ylabel("Dec (deg)")
+    ax.set_xlabel("RA [deg]")
+    ax.set_ylabel("Dec [deg]")
     ax.set_title(title)
 
     spc_df = pd.read_csv(
@@ -120,45 +138,54 @@ def plot_on_ra_dec(
     spc_df["RA"] = spc_df["ra_lexi"]
     spc_df["DEC"] = spc_df["dec_lexi"]
 
-    # Set Epoch as index and convert to datetime
     spc_df["Epoch"] = pd.to_datetime(spc_df["Epoch"], utc=True)
     spc_df.set_index("Epoch", inplace=True)
-    # Select the dataframe within the time range
     time_range = pd.to_datetime(time_range, utc=True)
     spc_df = spc_df.loc[time_range[0] : time_range[1]]
+
     ra_center = spc_df["RA"].median()
     dec_center = spc_df["DEC"].median()
     ax.set_aspect("equal", adjustable="box")
+
     circle = plt.Circle((ra_center, dec_center), 4.55, color="white", fill=False)
-    # Put a dot at the center
     ax.plot(ra_center, dec_center, marker="o", color="k", markersize=5)
-    # Add an annotation with the center coordinates
     ax.annotate(
         f"({ra_center:.2f}, {dec_center:.2f})",
-        (ra_center + 0.5, dec_center + 0.5),
+        (ra_center + 0.1, dec_center + 0.1),
         color="white",
         fontsize=12,
         weight="bold",
-        bbox=dict(facecolor="black", alpha=0.5, pad=2),
+        bbox=dict(facecolor="black", alpha=0.5, pad=1),
     )
-
     ax.add_artist(circle)
     ax.set_aspect("equal")
-    cbar = plt.colorbar(
-        pm, ax=ax, label=cbar_title, orientation="vertical", fraction=0.046, pad=0.00
-    )
+
+    # Make the colorbar (no 'label=' here)
+    cbar = plt.colorbar(pm, ax=ax, orientation="vertical", fraction=0.046, pad=0.00)
 
     # Force scientific notation with offset at the top
     formatter = ScalarFormatter(useMathText=True)
     formatter.set_scientific(True)
-    # formatter.set_powerlimits((-1, 1))  # force sci notation outside [-1e-3, 1e3]
     cbar.ax.yaxis.set_major_formatter(formatter)
-    # Hide minor ticks
     cbar.ax.yaxis.set_minor_formatter(plt.NullFormatter())
+    cbar.ax.yaxis.get_offset_text().set(size=14)
+    cbar.ax.yaxis.get_offset_text().set_position((1.15, 1))  # move ×10^n to the top-right
 
-    # Move the offset (×10^n) to the top of the colorbar
-    cbar.ax.yaxis.get_offset_text().set(size=14)  # font size if you like
-    cbar.ax.yaxis.get_offset_text().set_position((1.15, 1))
+    if cbar_title:
+        cbar.ax.text(
+            0.5,
+            0.5,
+            cbar_title,
+            transform=cbar.ax.transAxes,
+            ha="center",
+            va="center",
+            rotation=90,
+            color="white",
+            fontsize=12,
+            fontweight="bold",
+            bbox=dict(facecolor="black", alpha=0.25, pad=2, edgecolor="none"),
+        )
+
     return pm
 
 
@@ -216,24 +243,24 @@ for i, f in enumerate(l2_files[:]):
         RAcorn,
         DECcorn,
         np.asarray(dat["flat_field_map"][...])[0],
-        title="Flat Field Map.)",
-        cbar_title="Normalized Counts",
+        title="Flat Field Map",
+        cbar_title="Mode Normalized Counts",
         time_range=time_range,
         vmin=1e-1,
-        vmax=1e0,
+        vmax=2e0,
         norm="log",
     )
     plot_on_ra_dec(
         axs[0, 2],
         RAcorn,
         DECcorn,
-        np.asarray(dat["background_map"][...])[0],
+        np.asarray(dat["background_map"][...])[0] / np.asarray(dat["exposure_map"][...])[0],
         title="Background Map",
-        cbar_title="Counts/pixel",
+        cbar_title="Counts/second",
         time_range=time_range,
         norm="log",
-        vmin=1e-3,
-        vmax=1e-1,
+        vmin=1e-5,
+        vmax=1e-3,
     )
     plot_on_ra_dec(
         axs[1, 0],
@@ -244,6 +271,8 @@ for i, f in enumerate(l2_files[:]):
         title="Raw Counts",
         cbar_title="Counts/sec",
         norm="log",
+        vmin=1e-3,
+        vmax=1e0,
     )
     plot_on_ra_dec(
         axs[1, 1],
@@ -254,6 +283,8 @@ for i, f in enumerate(l2_files[:]):
         title="Background-Corrected Counts",
         cbar_title="Counts/sec",
         norm="log",
+        vmin=1e-3,
+        vmax=1e0,
     )
 
     plot_on_ra_dec(
@@ -265,6 +296,8 @@ for i, f in enumerate(l2_files[:]):
         title="Background & Flat-Field Corrected Counts",
         cbar_title="Counts/sec",
         norm="log",
+        vmin=1e-3,
+        vmax=1e0,
     )
 
     for ax in axs.flatten():
