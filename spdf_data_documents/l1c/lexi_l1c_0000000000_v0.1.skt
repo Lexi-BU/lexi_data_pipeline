@@ -12,7 +12,7 @@
 
 ! Variables  G.Attributes  V.Attributes  Records  Dims  Sizes
 ! ---------  ------------  ------------  -------  ----  -----
-     0/8          28            23         0/z      1     3
+     0/8          24            23         0/z      1     3
 ! CDF_COMPRESSION: None
 ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
 ! CDF_CHECKSUM: None
@@ -51,6 +51,8 @@
                                              "(LEXI) mission." }
                         2:    CDF_CHAR     { "BM Walsh, et al., Space " -
                                              "Sci. Rev., 2024" } .
+                        3:    CDF_CHAR     { "https://doi.org/10.1007/" -
+                                             "s11214-024-01063-4" } .
 
   "MODS"                1:    CDF_CHAR     { "TBD" } .
 
@@ -73,33 +75,25 @@
   "Instrument_type"     1:    CDF_CHAR     { "Imaging and Remote Sensing" -
                                              "(Magnetosphere/Earth) " } .
 
-  "TEXT_supplement_1"
-                        1:    CDF_CHAR     { " " } .
-
   "File_naming_convention"
                         1:    CDF_CHAR     { "source_datatype_descriptor" -
                                              "_yyyyMMddHH" } .
-
-  "Acknowledgement" .
-
-  "LINK_TITLE"          1:    CDF_CHAR     { "LEXI Mission" } .
 
   "spase_DatasetResourceID" .
 
   "Generated_by"     1:    CDF_CHAR     { "Ramiz A. Qudsi" } .
 
-  "Rules_of_use" .
-
   "Generation_date" .
 
-  "HTTP_LINK"           1:    CDF_CHAR     { "https://sites.bu.edu/lexi/" } .
+  "DOI"                 1:    CDF_CHAR     { " " } .
 
-  "DOI"                 1:    CDF_CHAR     { "https://doi.org/10.1007/" -
-                                             "s11214-024-01063-4" } .
+  "LINK_TEXT"           1:    CDF_CHAR     { "Full LEXI mission L1 and L2 files " -
+                                             "2 March 2025 through 16 March 2025 " -
+                                             "are available at " } .
 
-  "LINK_TEXT" .
+  "LINK_TITLE"          1:    CDF_CHAR     { "LEXI Full Mission" } .
 
-  "Time_resolution" .
+  "HTTP_LINK"           1:    CDF_CHAR     { "https://sites.bu.edu/lexi/data-access/" } .
 
 
 #VARIABLEattributes
