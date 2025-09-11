@@ -51,6 +51,8 @@
                                              "(LEXI) mission." }
                         2:    CDF_CHAR     { "BM Walsh, et al., Space " -
                                              "Sci. Rev., 2024" } .
+                        3:    CDF_CHAR     { "https://doi.org/10.1007/" -
+                                             "s11214-024-01063-4" } .
 
   "MODS"                1:    CDF_CHAR     { "TBD" } .
 
@@ -59,9 +61,7 @@
   "Logical_source"      1:    CDF_CHAR     { "lexi_l2" } .
 
   "Logical_source_description"
-                        1:    CDF_CHAR     { "Lunar Environment " -
-                                             "Heliospheric X-ray Imager " -
-                                             "(LEXI)" } .
+                        1:    CDF_CHAR     { "lexi_l2:Level 2 histogram datasets" } .
 
   "PI_name"             1:    CDF_CHAR     { "B. Walsh" } .
 
@@ -73,33 +73,24 @@
   "Instrument_type"     1:    CDF_CHAR     { "Imaging and Remote Sensing " -
                                              "(Magnetosphere/Earth)" } .
 
-  "TEXT_supplement_1"
-                        1:    CDF_CHAR     { " " } .
-
   "File_naming_convention"
                         1:    CDF_CHAR     { "source_datatype_descriptor" -
                                              "_yyyyMMddHH" } .
-
-  "Acknowledgement" .
-
-  "LINK_TITLE"          1:    CDF_CHAR     { "LEXI Mission" } .
 
   "spase_DatasetResourceID" .
 
   "Generated_by"        1:    CDF_CHAR     { "Ramiz A. Qudsi" } .
 
-  "Rules_of_use" .
-
   "Generation_date" .
+  "DOI"                 1:    CDF_CHAR     { " " } .
 
-  "HTTP_LINK"           1:    CDF_CHAR     { "https://sites.bu.edu/lexi/" } .
+  "LINK_TEXT"           1:    CDF_CHAR     { "Full LEXI mission L1 and L2 files " -
+                                             "2 March 2025 through 16 March 2025 " -
+                                             "are available at " } .
 
-  "DOI"                 1:    CDF_CHAR     { "https://doi.org/10.1007/" -
-                                             "s11214-024-01063-4" } .
+  "LINK_TITLE"          1:    CDF_CHAR     { "LEXI Full Mission" } .
 
-  "LINK_TEXT" .
-
-  "Time_resolution"     1:    CDF_CHAR     { "Variable, see integration_duration" } .
+  "HTTP_LINK"           1:    CDF_CHAR     { "https://sites.bu.edu/lexi/data-access/" } .
 
 
 #VARIABLEattributes
@@ -120,8 +111,6 @@
   "DEPEND_2"
   "DICT_KEY"
   "CATDESC"
-  "AVG_TYPE"
-  "DISPLAY_TYPE"
   "VAR_NOTES"
   "TIME_BASE"
   "FORM_PTR"
@@ -166,9 +155,6 @@
     "DICT_KEY"    CDF_CHAR     { "time>epoch_start" }
     "CATDESC"     CDF_CHAR     { "Start time (UTC) of the image " -
                                  "integration interval." }
-    "AVG_TYPE"    CDF_CHAR     { " " }
-    "DISPLAY_TYPE"
-                  CDF_CHAR     { " " }
     "VAR_NOTES"   CDF_CHAR     { " " }
     "TIME_BASE"   CDF_CHAR     { "0 AD" } .
 
@@ -204,9 +190,6 @@
     "DICT_KEY"    CDF_CHAR     { "time>epoch_end" }
     "CATDESC"     CDF_CHAR     { "End time (UTC) of the image " -
                                  "integration interval." }
-    "AVG_TYPE"    CDF_CHAR     { " " }
-    "DISPLAY_TYPE"
-                  CDF_CHAR     { " " }
     "VAR_NOTES"   CDF_CHAR     { " " }
     "TIME_BASE"   CDF_CHAR     { "0 AD" } .
 
@@ -243,9 +226,6 @@
     "DEPEND_0"    CDF_CHAR     { "epoch_start" }
     "DICT_KEY"    CDF_CHAR     { "position>ra_bin" }
     "CATDESC"     CDF_CHAR     { "Center of RA bins used for 2-D images." }
-    "AVG_TYPE"    CDF_CHAR     { " " }
-    "DISPLAY_TYPE"
-                  CDF_CHAR     { " " }
     "VAR_NOTES"   CDF_CHAR     { " Length equal to RA dimension of the image." } .
 
 
@@ -282,9 +262,6 @@
     "DEPEND_0"    CDF_CHAR     { "epoch_start" }
     "DICT_KEY"    CDF_CHAR     { "position>dec_bin" }
     "CATDESC"     CDF_CHAR     { "Center of Dec bins used for 2-D images." }
-    "AVG_TYPE"    CDF_CHAR     { " " }
-    "DISPLAY_TYPE"
-                  CDF_CHAR     { " " }
     "VAR_NOTES"   CDF_CHAR     { " Length equal to Dec dimension of the image." } .
 
   ! RV values were not requested.
