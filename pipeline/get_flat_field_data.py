@@ -338,7 +338,6 @@ def fast_transform_fixed_epoch(
     # One rotation for all rows
     R = get_rotation_matrix_detector_to_J2000(epoch_value=central_epoch)
 
-    # (N,3) = (N,3) @ (3,3)^T  OR  (R @ X.T).T — either is fine
     Xj = (R @ X.T).T
 
     x, y, z = Xj[:, 0], Xj[:, 1], Xj[:, 2]
@@ -352,3 +351,69 @@ def fast_transform_fixed_epoch(
     # out["photon_Dec"] = Dec
     # return out[["photon_RA", "photon_Dec"]]
     return (RA, Dec)
+
+
+def get_dark_background(
+    central_epoch: pd.Timestamp,
+    random_seed: int = 42,
+    n_photons: int | str = "all",
+) -> tuple[np.ndarray, np.ndarray, float]:
+    """
+    Get the dark background count rate.
+
+    Parameters
+    ----------
+    central_epoch : pd.Timestamp
+        The central epoch for which to get the dark background.
+
+    n_photons : int or str, optional
+        Number of photons to use. If "all", use all photons. Default is "all".
+
+    Returns
+    -------
+    tuple[np.ndarray, np.ndarray, float]
+        Dark background count rate.
+    """
+    # Load the flat field data
+    flat_field_file = "/media/cephadrius/lexi_data/lexi_data/flat_field_data/lexi_l1c_flat_field_data_20240524_20240530.cdf"
+
+    with cdf(flat_field_file) as ff:
+        x = ff["photon_x_mcp"][:]
+        y = ff["photon_y_mcp"][:]
+        time_interval = (ff["Epoch"][:][-1] - ff["Epoch"][:][0]).total_seconds()
+
+    if n_photons == "all":
+        n_photons = len(x)
+    elif n_photons > len(x):
+        n_photons = len(x)
+    rng = np.random.default_rng(random_seed)
+    idx = rng.choice(len(x), size=n_photons, replace=False)
+
+    df = pd.DataFrame(
+        {
+            "photon_x_mcp": x[idx],
+            "photon_y_mcp": y[idx],
+            "photon_z_mcp": 37.5,  # broadcast scalar
+        }
+    )
+
+    # Apply mask in NumPy
+    mask = (np.abs(x) <= 4.5) & (np.abs(y) <= 4.5)
+
+    x, y = x[mask], y[mask]
+
+    # Prepare inputs once
+    X = df[["photon_x_mcp", "photon_y_mcp", "photon_z_mcp"]].to_numpy()
+
+    # One rotation for all rows
+    R = get_rotation_matrix_detector_to_J2000(epoch_value=central_epoch)
+
+    Xj = (R @ X.T).T
+
+    x, y, z = Xj[:, 0], Xj[:, 1], Xj[:, 2]
+    n = np.linalg.norm(Xj, axis=1)
+
+    RA = np.arctan2(y, x) / deg2rad
+    Dec = np.arcsin(z / n) / deg2rad
+
+    return (RA, Dec, time_interval)

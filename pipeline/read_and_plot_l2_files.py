@@ -254,7 +254,8 @@ for i, f in enumerate(l2_files[:]):
         axs[0, 2],
         RAcorn,
         DECcorn,
-        np.asarray(dat["background_map"][...])[0] / np.asarray(dat["exposure_map"][...])[0],
+        np.asarray(dat["galactic_background_map"][...])[0]
+        / np.asarray(dat["exposure_map"][...])[0],
         title="Background Map",
         cbar_title="Counts/second",
         time_range=time_range,
@@ -278,7 +279,7 @@ for i, f in enumerate(l2_files[:]):
         axs[1, 1],
         RAcorn,
         DECcorn,
-        np.asarray(dat["lexi_histogram_bgnd_corrected"][...])[0],
+        np.asarray(dat["lexi_histogram_background_corrected"][...])[0],
         time_range=time_range,
         title="Background-Corrected Counts",
         cbar_title="Counts/sec",
@@ -291,7 +292,7 @@ for i, f in enumerate(l2_files[:]):
         axs[1, 2],
         RAcorn,
         DECcorn,
-        np.asarray(dat["lexi_histogram_bgnd_flat_corrected"][...])[0],
+        np.asarray(dat["lexi_histogram_background_flatfield_corrected"][...])[0],
         time_range=time_range,
         title="Background & Flat-Field Corrected Counts",
         cbar_title="Counts/sec",
@@ -307,7 +308,7 @@ for i, f in enumerate(l2_files[:]):
         )
         ax.set_aspect("equal")
 
-    figure_path = Path("../figures/exposure_maps/bg_corrected/from_l2/new/")
+    figure_path = Path("../figures/exposure_maps/bg_corrected/from_l2/v3/")
     figure_path.mkdir(parents=True, exist_ok=True)
     fig.savefig(
         figure_path / (Path(f).stem + "_exposure_and_counts.png"),

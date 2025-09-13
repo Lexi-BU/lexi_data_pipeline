@@ -1,18 +1,18 @@
-! Skeleton table for the "lexi_l2_000000000000_v0.1.cdf" CDF.
-! Generated: Wednesday, 03-Sep-2025 13:00:00
+! Skeleton table for the "skteditor13342626542440377323.cdf" CDF.
+! Generated: Friday, 12-Sep-2025 12:22:33
 ! CDF created/modified by CDF V3.9.1
 ! Skeleton table created by CDF V3.9.1_0
 
 #header
 
-                       CDF NAME: lexi_l2_000000000000_v0.1.cdf
+                       CDF NAME: skteditor13342626542440377323.cdf
                   DATA ENCODING: NETWORK
                        MAJORITY: COLUMN
                          FORMAT: SINGLE
 
 ! Variables  G.Attributes  V.Attributes  Records  Dims  Sizes
 ! ---------  ------------  ------------  -------  ----  -----
-     0/13         24            22         0/z      2   91 91
+    0/14          27            23         0/z      2   91 91
 ! CDF_COMPRESSION: None
 ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
 ! CDF_CHECKSUM: None
@@ -44,22 +44,24 @@
 
   "Data_type"           1:    CDF_CHAR     { "L2>RADEC_IMAGE" } .
 
-  "Data_version"        1:    CDF_CHAR     { "0.1" } .
+  "Data_version"        1:    CDF_CHAR     { "0.2" } .
 
   "TEXT"                1:    CDF_CHAR     { "The lunar environment " -
                                              "heliophysics X-ray imager " -
-                                             "(LEXI) mission." -
-                                             "BM Walsh, et al., Space Sci. Rev., 2024" -
-                                             "https://doi.org/10.1007/s11214-024-01063-4" } .
+                                             "(LEXI) mission.BM Walsh, " -
+                                             "et al., Space Sci. Rev., " -
+                                             "2024https://doi.org/10.100" -
+                                             "7/s11214-024-01063-4" } .
 
   "MODS"                1:    CDF_CHAR     { "TBD" } .
 
-  "Logical_file_id"     1:    CDF_CHAR     { "lexi_l2_000000000000_v0.1" } .
+  "Logical_file_id"     1:    CDF_CHAR     { "lexi_l2_lexi_0000000000_v0.2" } .
 
-  "Logical_source"      1:    CDF_CHAR     { "lexi_l2" } .
+  "Logical_source"      1:    CDF_CHAR     { "lexi_l2_lexi" } .
 
   "Logical_source_description"
-                        1:    CDF_CHAR     { "lexi_l2:Level 2 histogram datasets" } .
+                        1:    CDF_CHAR     { "lexi_l2:Level 2 histogram " -
+                                             "datasets" } .
 
   "PI_name"             1:    CDF_CHAR     { "B. Walsh" } .
 
@@ -68,12 +70,12 @@
   "Mission_group"       1:    CDF_CHAR     { "LEXI>Lunar Environment " -
                                              "Heliospheric X-ray Imager" } .
 
-  "Instrument_type"     1:    CDF_CHAR     { "Imaging and Remote Sensing " -
-                                             "(Magnetosphere/Earth)" } .
+  "Instrument_type"     1:    CDF_CHAR     { "Imaging and Remote Sensing" -
+                                             " (Magnetosphere/Earth)" } .
 
   "File_naming_convention"
                         1:    CDF_CHAR     { "source_datatype_descriptor" -
-                                             "_yyyyMMddHHMM" } .
+                                             "_yyyyMMddHH" } .
 
   "spase_DatasetResourceID" .
 
@@ -83,13 +85,21 @@
 
   "DOI"                 1:    CDF_CHAR     { " " } .
 
-  "LINK_TEXT"           1:    CDF_CHAR     { "Full LEXI mission L1 and L2 files " -
-                                             "2 March 2025 through 16 March 2025 " -
-                                             "are available at " } .
+  "LINK_TEXT"           1:    CDF_CHAR     { "Full LEXI mission L1 and " -
+                                             "L2 files 2 March 2025 " -
+                                             "through 16 March 2025 are " -
+                                             "available at " } .
 
   "LINK_TITLE"          1:    CDF_CHAR     { "LEXI Full Mission" } .
 
-  "HTTP_LINK"           1:    CDF_CHAR     { "https://sites.bu.edu/lexi/data-access/" } .
+  "HTTP_LINK"           1:    CDF_CHAR     { "https://sites.bu.edu/lexi/" -
+                                             "data-access/" } .
+
+  "Acknowledgement" .
+
+  "Rules_of_use" .
+
+  "Time_resolution" .
 
 
 #VARIABLEattributes
@@ -200,8 +210,7 @@
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
 ! --------          ----     --------  ----  -----  --------  ---------
 
-  "ra_bin"
-                  CDF_REAL4      1       1     91         T     T
+  "ra_bin"        CDF_REAL4      1       1     91       T         T
 
   ! VAR_COMPRESSION: None
   ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
@@ -226,8 +235,8 @@
     "DEPEND_0"    CDF_CHAR     { "epoch_start" }
     "DICT_KEY"    CDF_CHAR     { "position>ra_bin" }
     "CATDESC"     CDF_CHAR     { "Center of RA bins used for 2-D images." }
-    "VAR_NOTES"   CDF_CHAR     { " Length equal to RA dimension of the image." } .
-
+    "VAR_NOTES"   CDF_CHAR     { " Length equal to RA dimension of the " -
+                                 "image." } .
 
   ! RV values were not requested.
 
@@ -236,8 +245,7 @@
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
 ! --------          ----     --------  ----  -----  --------  ---------
 
-  "dec_bin"
-                  CDF_REAL4      1       1     91         T     T
+  "dec_bin"       CDF_REAL4      1       1     91       T         T
 
   ! VAR_COMPRESSION: None
   ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
@@ -262,7 +270,8 @@
     "DEPEND_0"    CDF_CHAR     { "epoch_start" }
     "DICT_KEY"    CDF_CHAR     { "position>dec_bin" }
     "CATDESC"     CDF_CHAR     { "Center of Dec bins used for 2-D images." }
-    "VAR_NOTES"   CDF_CHAR     { " Length equal to Dec dimension of the image." } .
+    "VAR_NOTES"   CDF_CHAR     { " Length equal to Dec dimension of the " -
+                                 "image." } .
 
   ! RV values were not requested.
 
@@ -271,8 +280,7 @@
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
 ! --------          ----     --------  ----  -----  --------  ---------
 
-  "ra_bin_map"
-                  CDF_REAL4      1       2     91  91       T     T T
+  "ra_bin_map"    CDF_REAL4      1       2   91 91      T        T T
 
   ! VAR_COMPRESSION: None
   ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
@@ -284,7 +292,8 @@
   ! Name            Type       Value
   ! --------        ----       -----
 
-    "FIELDNAM"    CDF_CHAR     { "Right Ascension bin centers expanded to 2D" }
+    "FIELDNAM"    CDF_CHAR     { "Right Ascension bin centers expanded " -
+                                 "to 2D" }
     "VALIDMIN"    CDF_REAL4    { 0.0 }
     "VALIDMAX"    CDF_REAL4    { 360.0 }
     "SCALEMIN"    CDF_REAL4    { 0.0 }
@@ -298,10 +307,12 @@
     "DEPEND_1"    CDF_CHAR     { "ra_bin" }
     "DEPEND_2"    CDF_CHAR     { "dec_bin" }
     "DICT_KEY"    CDF_CHAR     { "position>ra_bin_map" }
-    "CATDESC"     CDF_CHAR     { "Right Ascension bin centers expanded to 2D." }
     "DISPLAY_TYPE"
                   CDF_CHAR     { "image" }
-    "VAR_NOTES"   CDF_CHAR     { " RA bin centers expanded to 2D for easy plotting." } .
+    "CATDESC"     CDF_CHAR     { "Right Ascension bin centers expanded " -
+                                 "to 2D." }
+    "VAR_NOTES"   CDF_CHAR     { " RA bin centers expanded to 2D for " -
+                                 "easy plotting." } .
 
   ! RV values were not requested.
 
@@ -310,8 +321,7 @@
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
 ! --------          ----     --------  ----  -----  --------  ---------
 
-  "dec_bin_map"
-                  CDF_REAL4      1       2     91  91       T     T T
+  "dec_bin_map"   CDF_REAL4      1       2   91 91      T        T T
 
   ! VAR_COMPRESSION: None
   ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
@@ -337,10 +347,11 @@
     "DEPEND_1"    CDF_CHAR     { "ra_bin" }
     "DEPEND_2"    CDF_CHAR     { "dec_bin" }
     "DICT_KEY"    CDF_CHAR     { "position>dec_bin_map" }
-    "CATDESC"     CDF_CHAR     { "Declination bin centers expanded to 2D." }
     "DISPLAY_TYPE"
                   CDF_CHAR     { "image" }
-    "VAR_NOTES"   CDF_CHAR     { " Dec bin centers expanded to 2D for easy plotting." } .
+    "CATDESC"     CDF_CHAR     { "Declination bin centers expanded to 2D." }
+    "VAR_NOTES"   CDF_CHAR     { " Dec bin centers expanded to 2D for " -
+                                 "easy plotting." } .
 
   ! RV values were not requested.
 
@@ -350,7 +361,7 @@
 ! --------          ----     --------  ----  -----  --------  ---------
 
   "exposure_map"
-                  CDF_REAL4      1       2     91  91       T     T T
+                  CDF_REAL4      1       2   91 91      T        T T
 
   ! VAR_COMPRESSION: None
   ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
@@ -366,7 +377,7 @@
     "VALIDMIN"    CDF_REAL4    { 0.0 }
     "VALIDMAX"    CDF_REAL4    { 1.0e+06 }
     "SCALEMIN"    CDF_REAL4    { 0.0 }
-    "SCALEMAX"    CDF_REAL4    { 1.0e+05 }
+    "SCALEMAX"    CDF_REAL4    { 100000.0 }
     "LABLAXIS"    CDF_CHAR     { "Exposure" }
     "UNITS"       CDF_CHAR     { "s" }
     "VAR_TYPE"    CDF_CHAR     { "support_data" }
@@ -376,9 +387,10 @@
     "DEPEND_1"    CDF_CHAR     { "ra_bin" }
     "DEPEND_2"    CDF_CHAR     { "dec_bin" }
     "DICT_KEY"    CDF_CHAR     { "image>exposure_map" }
-    "CATDESC"     CDF_CHAR     { "Effective exposure seconds per (RA, Dec) pixel." }
     "DISPLAY_TYPE"
                   CDF_CHAR     { "image" }
+    "CATDESC"     CDF_CHAR     { "Effective exposure seconds per (RA, " -
+                                 "Dec) pixel." }
     "VAR_NOTES"   CDF_CHAR     { " " } .
 
   ! RV values were not requested.
@@ -389,7 +401,7 @@
 ! --------          ----     --------  ----  -----  --------  ---------
 
   "flat_field_map"
-                  CDF_REAL4      1       2     91  91       T     T T
+                  CDF_REAL4      1       2   91 91      T        T T
 
   ! VAR_COMPRESSION: None
   ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
@@ -415,22 +427,64 @@
     "DEPEND_1"    CDF_CHAR     { "ra_bin" }
     "DEPEND_2"    CDF_CHAR     { "dec_bin" }
     "DICT_KEY"    CDF_CHAR     { "image>flat_field_map" }
-    "CATDESC"     CDF_CHAR     { "Flat field correction factor per (RA, Dec) pixel." -
-                                 " The histogram is normalized to 1." }
     "DISPLAY_TYPE"
                   CDF_CHAR     { "image" }
-    "VAR_NOTES"   CDF_CHAR     { " Flat field correction factor, typically near 1.0." } .
+    "CATDESC"     CDF_CHAR     { "Flat field correction factor per (RA, " -
+                                 "Dec) pixel. The histogram is " -
+                                 "normalized by the mode of the map." }
+    "VAR_NOTES"   CDF_CHAR     { " Flat field correction factor, " -
+                                 "typically near 1.0." } .
 
   ! RV values were not requested.
-
 
 
 ! Variable          Data      Number                 Record   Dimension
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
 ! --------          ----     --------  ----  -----  --------  ---------
 
-  "dark_bgnd_map"
-                  CDF_REAL4      1       2     91  91       T     T T
+  "galactic_background_map"
+                  CDF_REAL4      1       2   91 91      T        T T
+
+  ! VAR_COMPRESSION: None
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -1.0e+30
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "Galactic background at bin centers" }
+    "VALIDMIN"    CDF_REAL4    { 0.0 }
+    "VALIDMAX"    CDF_REAL4    { 1.0e+06 }
+    "SCALEMIN"    CDF_REAL4    { 0.0 }
+    "SCALEMAX"    CDF_REAL4    { 100000.0 }
+    "LABLAXIS"    CDF_CHAR     { "GalacticBackground" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "VAR_TYPE"    CDF_CHAR     { "support_data" }
+    "FORMAT"      CDF_CHAR     { "f12.3" }
+    "FILLVAL"     CDF_REAL4    { -1.0e+31 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_start" }
+    "DEPEND_1"    CDF_CHAR     { "ra_bin" }
+    "DEPEND_2"    CDF_CHAR     { "dec_bin" }
+    "DICT_KEY"    CDF_CHAR     { "image>galactic_background_map" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "image" }
+    "CATDESC"     CDF_CHAR     { "Galactic background counts per (RA, " -
+                                 "Dec) pixel." }
+    "VAR_NOTES"   CDF_CHAR     { " Galactic background counts, typically" -
+                                 " small compared to the lexi_hist." } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "dark_background_map"
+                  CDF_REAL4      1       2   91 91      T        T T
 
   ! VAR_COMPRESSION: None
   ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
@@ -446,7 +500,7 @@
     "VALIDMIN"    CDF_REAL4    { 0.0 }
     "VALIDMAX"    CDF_REAL4    { 1.0e+06 }
     "SCALEMIN"    CDF_REAL4    { 0.0 }
-    "SCALEMAX"    CDF_REAL4    { 1.0e+05 }
+    "SCALEMAX"    CDF_REAL4    { 100000.0 }
     "LABLAXIS"    CDF_CHAR     { "DarkBackground" }
     "UNITS"       CDF_CHAR     { "counts" }
     "VAR_TYPE"    CDF_CHAR     { "support_data" }
@@ -455,14 +509,15 @@
     "DEPEND_0"    CDF_CHAR     { "epoch_start" }
     "DEPEND_1"    CDF_CHAR     { "ra_bin" }
     "DEPEND_2"    CDF_CHAR     { "dec_bin" }
-    "DICT_KEY"    CDF_CHAR     { "image>dark_bgnd_map" }
-    "CATDESC"     CDF_CHAR     { "Dark background counts per (RA, Dec) pixel." }
+    "DICT_KEY"    CDF_CHAR     { "image>dark_background_map" }
     "DISPLAY_TYPE"
                   CDF_CHAR     { "image" }
-    "VAR_NOTES"   CDF_CHAR     { " Dark background counts, typically small" -
-                                 " compared to the lexi_hist. Can be used" -
-                                 " as uncertainty in each pixel." } .
-    
+    "CATDESC"     CDF_CHAR     { "Dark background counts per (RA, Dec) " -
+                                 "pixel." }
+    "VAR_NOTES"   CDF_CHAR     { " Dark background counts, typically " -
+                                 "small compared to the lexi_hist. Can " -
+                                 "be used as uncertainty in each pixel." } .
+
   ! RV values were not requested.
 
 
@@ -470,8 +525,8 @@
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
 ! --------          ----     --------  ----  -----  --------  ---------
 
-  "background_map"
-                  CDF_REAL4      1       2     91  91       T     T T
+  "total_background_map"
+                  CDF_REAL4      1       2   91 91      T        T T
 
   ! VAR_COMPRESSION: None
   ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
@@ -483,12 +538,12 @@
   ! Name            Type       Value
   ! --------        ----       -----
 
-    "FIELDNAM"    CDF_CHAR     { "Background counts at bin centers" }
+    "FIELDNAM"    CDF_CHAR     { "Total background at bin centers" }
     "VALIDMIN"    CDF_REAL4    { 0.0 }
     "VALIDMAX"    CDF_REAL4    { 1.0e+06 }
     "SCALEMIN"    CDF_REAL4    { 0.0 }
-    "SCALEMAX"    CDF_REAL4    { 1.0e+05 }
-    "LABLAXIS"    CDF_CHAR     { "Background" }
+    "SCALEMAX"    CDF_REAL4    { 100000.0 }
+    "LABLAXIS"    CDF_CHAR     { "TotalBackground" }
     "UNITS"       CDF_CHAR     { "counts" }
     "VAR_TYPE"    CDF_CHAR     { "support_data" }
     "FORMAT"      CDF_CHAR     { "f12.3" }
@@ -496,12 +551,15 @@
     "DEPEND_0"    CDF_CHAR     { "epoch_start" }
     "DEPEND_1"    CDF_CHAR     { "ra_bin" }
     "DEPEND_2"    CDF_CHAR     { "dec_bin" }
-    "DICT_KEY"    CDF_CHAR     { "image>background_map" }
-    "CATDESC"     CDF_CHAR     { "Background counts per (RA, Dec) pixel." }
+    "DICT_KEY"    CDF_CHAR     { "image>total_background_map" }
     "DISPLAY_TYPE"
                   CDF_CHAR     { "image" }
-    "VAR_NOTES"   CDF_CHAR     { " Background counts, typically small compared" -
-                                 " to the lexi_hist." } .
+    "CATDESC"     CDF_CHAR     { "Total background counts per (RA, Dec) " -
+                                 "pixel." }
+    "VAR_NOTES"   CDF_CHAR     { " Total background counts, typically " -
+                                 "small compared to the lexi_hist. This " -
+                                 "is sum of galactic and dark " -
+                                 "background." } .
 
   ! RV values were not requested.
 
@@ -510,8 +568,7 @@
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
 ! --------          ----     --------  ----  -----  --------  ---------
 
-  "lexi_hist"
-                  CDF_REAL4      1       2     91  91       T     T T
+  "lexi_hist"     CDF_REAL4      1       2   91 91      T        T T
 
   ! VAR_COMPRESSION: None
   ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
@@ -527,7 +584,7 @@
     "VALIDMIN"    CDF_REAL4    { 0.0 }
     "VALIDMAX"    CDF_REAL4    { 1.0e+06 }
     "SCALEMIN"    CDF_REAL4    { 0.0 }
-    "SCALEMAX"    CDF_REAL4    { 1.0e+05 }
+    "SCALEMAX"    CDF_REAL4    { 100000.0 }
     "LABLAXIS"    CDF_CHAR     { "Counts/sec" }
     "UNITS"       CDF_CHAR     { "counts/sec" }
     "VAR_TYPE"    CDF_CHAR     { "data" }
@@ -537,11 +594,12 @@
     "DEPEND_1"    CDF_CHAR     { "ra_bin" }
     "DEPEND_2"    CDF_CHAR     { "dec_bin" }
     "DICT_KEY"    CDF_CHAR     { "image>lexi_hist" }
-    "CATDESC"     CDF_CHAR     { "LEXI counts per (RA, Dec) pixel per second." }
     "DISPLAY_TYPE"
                   CDF_CHAR     { "image" }
-    "VAR_NOTES"   CDF_CHAR     { " LEXI counts, background not subtracted," -
-                                 " flat field not applied." } .
+    "CATDESC"     CDF_CHAR     { "LEXI counts per (RA, Dec) pixel per " -
+                                 "second." }
+    "VAR_NOTES"   CDF_CHAR     { " Raw LEXI counts, background not " -
+                                 "subtracted, flat field not applied." } .
 
   ! RV values were not requested.
 
@@ -550,8 +608,8 @@
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
 ! --------          ----     --------  ----  -----  --------  ---------
 
-  "lexi_histogram_bgnd_corrected"
-                  CDF_REAL4      1       2     91  91       T     T T
+  "lexi_histogram_background_corrected"
+                  CDF_REAL4      1       2   91 91      T        T T
 
   ! VAR_COMPRESSION: None
   ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
@@ -563,11 +621,12 @@
   ! Name            Type       Value
   ! --------        ----       -----
 
-    "FIELDNAM"    CDF_CHAR     { "Background corrected LEXI counts at bin centers" }
+    "FIELDNAM"    CDF_CHAR     { "Background corrected LEXI counts at " -
+                                 "bin centers" }
     "VALIDMIN"    CDF_REAL4    { 0.0 }
     "VALIDMAX"    CDF_REAL4    { 1.0e+06 }
     "SCALEMIN"    CDF_REAL4    { 0.0 }
-    "SCALEMAX"    CDF_REAL4    { 1.0e+05 }
+    "SCALEMAX"    CDF_REAL4    { 100000.0 }
     "LABLAXIS"    CDF_CHAR     { "Counts/sec" }
     "UNITS"       CDF_CHAR     { "counts/sec" }
     "VAR_TYPE"    CDF_CHAR     { "data" }
@@ -576,24 +635,24 @@
     "DEPEND_0"    CDF_CHAR     { "epoch_start" }
     "DEPEND_1"    CDF_CHAR     { "ra_bin" }
     "DEPEND_2"    CDF_CHAR     { "dec_bin" }
-    "DICT_KEY"    CDF_CHAR     { "image>lexi_histogram_bgnd_corrected" }
-    "CATDESC"     CDF_CHAR     { "LEXI counts per (RA, Dec) pixel per second," -
-                                 " background subtracted." }
+    "DICT_KEY"    CDF_CHAR     { "image>lexi_histogram_background_correc" -
+                                 "ted" }
     "DISPLAY_TYPE"
                   CDF_CHAR     { "image" }
-    "VAR_NOTES"   CDF_CHAR     { " LEXI counts, background subtracted," -
-                                 " flat field not applied." } .
+    "CATDESC"     CDF_CHAR     { "LEXI counts per (RA, Dec) pixel per " -
+                                 "second, background subtracted." }
+    "VAR_NOTES"   CDF_CHAR     { " LEXI counts, background subtracted, " -
+                                 "flat field not applied." } .
 
   ! RV values were not requested.
-
 
 
 ! Variable          Data      Number                 Record   Dimension
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
 ! --------          ----     --------  ----  -----  --------  ---------
 
-  "lexi_histogram_bgnd_flat_corrected"
-                  CDF_REAL4      1       2     91  91       T     T T
+  "lexi_histogram_background_flatfield_corrected"
+                  CDF_REAL4      1       2   91 91      T        T T
 
   ! VAR_COMPRESSION: None
   ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
@@ -605,11 +664,12 @@
   ! Name            Type       Value
   ! --------        ----       -----
 
-    "FIELDNAM"    CDF_CHAR     { "Background and flat field corrected LEXI counts at bin centers" }
+    "FIELDNAM"    CDF_CHAR     { "Background and flat field corrected " -
+                                 "LEXI counts at bin centers" }
     "VALIDMIN"    CDF_REAL4    { 0.0 }
     "VALIDMAX"    CDF_REAL4    { 1.0e+06 }
     "SCALEMIN"    CDF_REAL4    { 0.0 }
-    "SCALEMAX"    CDF_REAL4    { 1.0e+05 }
+    "SCALEMAX"    CDF_REAL4    { 100000.0 }
     "LABLAXIS"    CDF_CHAR     { "Counts/sec" }
     "UNITS"       CDF_CHAR     { "counts/sec" }
     "VAR_TYPE"    CDF_CHAR     { "data" }
@@ -618,14 +678,17 @@
     "DEPEND_0"    CDF_CHAR     { "epoch_start" }
     "DEPEND_1"    CDF_CHAR     { "ra_bin" }
     "DEPEND_2"    CDF_CHAR     { "dec_bin" }
-    "DICT_KEY"    CDF_CHAR     { "image>lexi_histogram_bgnd_flat_corrected" }
-    "CATDESC"     CDF_CHAR     { "LEXI counts per (RA, Dec) pixel per second," -
-                                 " background and flat field corrected." }
+    "DICT_KEY"    CDF_CHAR     { "image>lexi_histogram_background_flatfi" -
+                                 "eld_corrected" }
     "DISPLAY_TYPE"
                   CDF_CHAR     { "image" }
-    "VAR_NOTES"   CDF_CHAR     { " LEXI counts, background subtracted," -
-                                 " flat field applied." } .
+    "CATDESC"     CDF_CHAR     { "LEXI counts per (RA, Dec) pixel per " -
+                                 "second, background and flat field " -
+                                 "corrected." }
+    "VAR_NOTES"   CDF_CHAR     { " LEXI counts, background subtracted, " -
+                                 "flat field applied." } .
 
   ! RV values were not requested.
+
 
 #end

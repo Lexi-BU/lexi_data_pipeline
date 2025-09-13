@@ -1,11 +1,11 @@
-! Skeleton table for the "lexi_l1c_0000000000_v0.1.cdf" CDF.
+! Skeleton table for the "lexi_l1c_0000000000_v0.2.cdf" CDF.
 ! Generated: Friday, 01-Aug-2025 12:59:33
 ! CDF created/modified by CDF V3.9.1
 ! Skeleton table created by CDF V3.9.1_0
 
 #header
 
-                       CDF NAME: lexi_l1c_0000000000_v0.1.cdf
+                       CDF NAME: lexi_l1c_0000000000_v0.2.cdf
                   DATA ENCODING: NETWORK
                        MAJORITY: COLUMN
                          FORMAT: SINGLE
@@ -44,7 +44,8 @@
 
   "Data_type"           1:    CDF_CHAR     { "L1c>Level 1c Data" } .
 
-  "Data_version"        1:    CDF_CHAR     { "0.1" } .
+  "Data_version"        1:    CDF_CHAR     { "0.2" } .
+
 
   "TEXT"                1:    CDF_CHAR     { "The lunar environment " -
                                              "heliophysics X-ray imager " -

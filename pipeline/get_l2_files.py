@@ -580,7 +580,7 @@ def background_counts_from_exposure(exposure_maps_dict, sky_bgnds_dict):
     dec_arr = np.asarray(exposure_maps_dict["dec_arr"])  # (Ny_exp,), deg, increasing
 
     # Sum exposure over time dimension → total exposure time per RA/Dec bin [s]
-    exp_total = exp_maps.sum(axis=0)  # shape is (len(ra_arr), len(dec_arr)) given your allocation
+    exp_total = exp_maps.sum(axis=0)  # shape is (len(ra_arr), len(dec_arr))
 
     # map background centers (ra_c, dec_c) to nearest exposure bin
     ra_res = float(np.median(np.diff(ra_arr))) if ra_arr.size > 1 else np.nan
@@ -596,10 +596,10 @@ def background_counts_from_exposure(exposure_maps_dict, sky_bgnds_dict):
     exp_at_centers = exp_total[ra_idx, dec_idx]
 
     # Final counts per background pixel
-    counts = bg * exp_at_centers * area_arcmin2  # units: counts
+    galactic_counts = bg * exp_at_centers * area_arcmin2  # units: counts
 
     out = {
-        "counts_map": counts,  # same shape as background (Ny_bg, Nx_bg)
+        "galactic_counts": galactic_counts,  # same shape as background (Ny_bg, Nx_bg)
         "exposure_at_centers_sec": exp_at_centers,
         "background_counts_per_s_per_arcmin2": bg,
         "pixel_area_arcmin2": area_arcmin2,
@@ -616,7 +616,7 @@ def background_counts_from_exposure(exposure_maps_dict, sky_bgnds_dict):
                 "background": "count/s/arcmin^2",
                 "exposure_at_centers": "s",
                 "pixel_area": "arcmin^2",
-                "counts_map": "count",
+                "galactic_counts": "count",
             },
         },
     }
@@ -688,8 +688,36 @@ def implement_background_correction(
         lexi_hist = H_raw.astype(float)
 
     # --- Expected background counts per pixel = rate (cnt/s/arcmin^2) * area (arcmin^2) * exposure (s) ---
-    expected_bg = bg_rate * pix_area * expos
+    expected_galactic_bg = bg_rate * pix_area * expos
 
+    # Compute the dark background expected counts
+    central_epoch = (
+        pd.to_datetime(counts_dict["time_range"][0])
+        + (
+            pd.to_datetime(counts_dict["time_range"][1])
+            - pd.to_datetime(counts_dict["time_range"][0])
+        )
+        / 2
+    )
+    ra_dark, dec_dark, dark_time_interval = gffd.get_dark_background(central_epoch=central_epoch)
+
+    ra_dark = np.asarray(ra_dark, dtype=float) + 2
+    dec_dark = np.asarray(dec_dark, dtype=float)
+    m = np.isfinite(ra_dark) & np.isfinite(dec_dark)
+    ra_dark, dec_dark = ra_dark[m], dec_dark[m]
+    # 2D histogram in (RA, Dec) using the SAME edges as LEXI
+    if ra_dark.size == 0:
+        dark_bgnd_hist = np.zeros((H, W), dtype=float)
+    else:
+        H_dark, _, _ = np.histogram2d(ra_dark, dec_dark, bins=[ra_edges, dec_edges])
+    dark_bgnd_hist = H_dark.astype(float)
+    # Convert to rate (cnt/s) using the time interval over which the dark background was
+    # accumulated
+    dark_bgnd_hist_rate = dark_bgnd_hist / dark_time_interval
+    # Convert to expected counts using the exposure map
+    dark_bgnd_hist_counts = dark_bgnd_hist_rate * expos
+
+    expected_bg = expected_galactic_bg + dark_bgnd_hist_counts
     # --- Background-corrected histogram ---
     lexi_bgnd_corrected = lexi_hist - expected_bg
     # It's common to clip negatives to zero (no physical negative counts after subtraction)
@@ -700,6 +728,8 @@ def implement_background_correction(
     results.update(
         {
             "lexi_hist_raw": lexi_hist,
+            "expected_galactic_bg_counts": expected_galactic_bg,
+            "expected_dark_bg_counts": dark_bgnd_hist_counts,
             "expected_bg_counts": expected_bg,
             "lexi_hist_bgnd_corrected": lexi_bgnd_corrected,
             "ra_edges": ra_edges,
@@ -776,12 +806,11 @@ def implement_flat_field_correction(
         flat_field_hist_norm = flat_field_hist / ff_mode
     else:
         flat_field_hist_norm = np.zeros_like(flat_field_hist, dtype=float)
-
     # Optional floor to avoid exploding corrections where the FF is ~0
     # if min_ff_norm is not None and min_ff_norm > 0:
     #     flat_field_hist_norm = np.maximum(flat_field_hist_norm, float(min_ff_norm))
 
-    # --- LEXI histogram (already on this grid)
+    # --- LEXI histogram
     lexi_hist = np.asarray(counts_dict["lexi_hist_raw"], dtype=float)
 
     # --- flat-field corrected: divide counts by normalized FF
@@ -806,12 +835,14 @@ def save_lexi_results(data: dict, output_dir: str = "/mnt/cephadrius/bu_research
 
     selected_data["exposure_map"] = data["exposure_at_centers_sec"]
     selected_data["flat_field_map"] = data["flat_field_hist_norm"]
-    selected_data["background_map"] = data["counts_map"]
+    selected_data["galactic_background_map"] = data["expected_galactic_bg_counts"]
+    selected_data["dark_background_map"] = data["expected_dark_bg_counts"]
+    selected_data["total_background_map"] = data["galactic_counts"]
     selected_data["lexi_hist"] = data["lexi_hist_raw"] / data["exposure_at_centers_sec"][:, :]
-    selected_data["lexi_histogram_bgnd_corrected"] = (
+    selected_data["lexi_histogram_background_corrected"] = (
         data["lexi_hist_bgnd_corrected"] / data["exposure_at_centers_sec"][:, :]
     )
-    selected_data["lexi_histogram_bgnd_flat_corrected"] = (
+    selected_data["lexi_histogram_background_flatfield_corrected"] = (
         data["lexi_flat_corrected_hist"] / data["exposure_at_centers_sec"][:, :]
     )
 
@@ -819,10 +850,12 @@ def save_lexi_results(data: dict, output_dir: str = "/mnt/cephadrius/bu_research
     selected_keys = [
         # "exposure_map",
         "flat_field_map",
-        "background_map",
+        "galactic_background_map",
+        "dark_background_map",
+        "total_background_map",
         "lexi_hist",
-        "lexi_histogram_bgnd_corrected",
-        "lexi_histogram_bgnd_flat_corrected",
+        "lexi_histogram_background_corrected",
+        "lexi_histogram_background_flatfield_corrected",
     ]
 
     # Create a mask of bins where exposure is greater than zero, and only select those bins
