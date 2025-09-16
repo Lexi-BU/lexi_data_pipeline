@@ -107,7 +107,7 @@ def save_data_to_cdf(
 
     # Path to the read-only skeleton file
     skeleton_path = Path(
-        "/home/cephadrius/Desktop/git/Lexi-BU/lexi_data_pipeline/spdf_data_documents/l2/lexi_l2_lexi_0000000000_v0.2.cdf"
+        "/home/cephadrius/Desktop/git/Lexi-BU/lexi_data_pipeline/spdf_data_documents/l2/lexi_l2_000000000000_v0.2.cdf"
     )
     if not skeleton_path.exists():
         raise FileNotFoundError(f"Skeleton file not found: {skeleton_path}")
@@ -142,7 +142,7 @@ def save_data_to_cdf(
         "galactic_background_map",
         "dark_background_map",
         "total_background_map",
-        "lexi_hist",
+        "lexi_histogram",
         "lexi_histogram_background_corrected",
         "lexi_histogram_background_flatfield_corrected",
     ]

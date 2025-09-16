@@ -679,13 +679,13 @@ def implement_background_correction(
 
     if ra_ev.size == 0:
         # Nothing to bin; return zeros and background-only corrected (=> zeros after clip)
-        lexi_hist = np.zeros((H, W), dtype=float)
+        lexi_histogram = np.zeros((H, W), dtype=float)
     else:
         # --- Histogram: rows index RA bins, columns index Dec bins ---
         # Note: numpy.histogram2d takes (x, y, bins=[x_edges, y_edges]) and returns H[xbin, ybin]
         H_raw, _, _ = np.histogram2d(ra_ev, dec_ev, bins=[ra_edges, dec_edges])
         # H_raw.shape == (len(ra_edges)-1, len(dec_edges)-1) = (H, W)
-        lexi_hist = H_raw.astype(float)
+        lexi_histogram = H_raw.astype(float)
 
     # --- Expected background counts per pixel = rate (cnt/s/arcmin^2) * area (arcmin^2) * exposure (s) ---
     expected_galactic_bg = bg_rate * pix_area * expos
@@ -719,7 +719,7 @@ def implement_background_correction(
 
     expected_bg = expected_galactic_bg + dark_bgnd_hist_counts
     # --- Background-corrected histogram ---
-    lexi_bgnd_corrected = lexi_hist - expected_bg
+    lexi_bgnd_corrected = lexi_histogram - expected_bg
     # It's common to clip negatives to zero (no physical negative counts after subtraction)
     lexi_bgnd_corrected = np.clip(lexi_bgnd_corrected, 0.0, None)
 
@@ -727,7 +727,7 @@ def implement_background_correction(
     results = counts_dict.copy()
     results.update(
         {
-            "lexi_hist_raw": lexi_hist,
+            "lexi_histogram_raw": lexi_histogram,
             "expected_galactic_bg_counts": expected_galactic_bg,
             "expected_dark_bg_counts": dark_bgnd_hist_counts,
             "expected_bg_counts": expected_bg,
@@ -747,7 +747,7 @@ def implement_flat_field_correction(
     epsilon: float = 1e-12,  # numerical safety
 ) -> dict:
     """
-    Build a flat-field map on the same RA/Dec grid as `lexi_result['lexi_hist']`,
+    Build a flat-field map on the same RA/Dec grid as `lexi_result['lexi_histogram']`,
     normalize it to max=1, and divide the LEXI histogram by it.
 
     Parameters
@@ -756,7 +756,7 @@ def implement_flat_field_correction(
         Must contain 'ra_center_map' and 'dec_center_map' (HxW).
     lexi_result : dict
         Output of compute_lexi_histograms(...), must include:
-          'lexi_hist', 'ra_edges', 'dec_edges'
+          'lexi_histogram', 'ra_edges', 'dec_edges'
     flat_field_file : str
         Path to CDF containing variables 'photon_RA' and 'photon_Dec' (degrees).
     min_ff_norm : float
@@ -811,17 +811,17 @@ def implement_flat_field_correction(
     #     flat_field_hist_norm = np.maximum(flat_field_hist_norm, float(min_ff_norm))
 
     # --- LEXI histogram
-    lexi_hist = np.asarray(counts_dict["lexi_hist_raw"], dtype=float)
+    lexi_histogram = np.asarray(counts_dict["lexi_histogram_raw"], dtype=float)
 
     # --- flat-field corrected: divide counts by normalized FF
-    lexi_flat_corrected_hist = lexi_hist / (flat_field_hist_norm + epsilon)
+    lexi_flat_corrected_hist = lexi_histogram / (flat_field_hist_norm + epsilon)
 
     results = counts_dict.copy()
     results.update(
         {
             "flat_field_hist": flat_field_hist,
             "flat_field_hist_norm": flat_field_hist_norm,
-            "lexi_hist": lexi_hist,
+            "lexi_histogram": lexi_histogram,
             "lexi_flat_corrected_hist": lexi_flat_corrected_hist,
         }
     )
@@ -838,7 +838,9 @@ def save_lexi_results(data: dict, output_dir: str = "/mnt/cephadrius/bu_research
     selected_data["galactic_background_map"] = data["expected_galactic_bg_counts"]
     selected_data["dark_background_map"] = data["expected_dark_bg_counts"]
     selected_data["total_background_map"] = data["galactic_counts"]
-    selected_data["lexi_hist"] = data["lexi_hist_raw"] / data["exposure_at_centers_sec"][:, :]
+    selected_data["lexi_histogram"] = (
+        data["lexi_histogram_raw"] / data["exposure_at_centers_sec"][:, :]
+    )
     selected_data["lexi_histogram_background_corrected"] = (
         data["lexi_hist_bgnd_corrected"] / data["exposure_at_centers_sec"][:, :]
     )
@@ -853,7 +855,7 @@ def save_lexi_results(data: dict, output_dir: str = "/mnt/cephadrius/bu_research
         "galactic_background_map",
         "dark_background_map",
         "total_background_map",
-        "lexi_hist",
+        "lexi_histogram",
         "lexi_histogram_background_corrected",
         "lexi_histogram_background_flatfield_corrected",
     ]

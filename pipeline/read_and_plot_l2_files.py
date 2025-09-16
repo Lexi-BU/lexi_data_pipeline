@@ -209,7 +209,7 @@ keys_to_plot = [
 ]
 
 
-for i, f in enumerate(l2_files[:]):
+for i, f in enumerate(l2_files[:1]):
     dat = cdf(f)
 
     print(f"Reading file: {f}, {i + 1} out of {len(l2_files)}", end="\r")
@@ -267,7 +267,7 @@ for i, f in enumerate(l2_files[:]):
         axs[1, 0],
         RAcorn,
         DECcorn,
-        np.asarray(dat["lexi_hist"][...])[0],
+        np.asarray(dat["lexi_histogram"][...])[0],
         time_range=time_range,
         title="Raw Counts",
         cbar_title="Counts/sec",

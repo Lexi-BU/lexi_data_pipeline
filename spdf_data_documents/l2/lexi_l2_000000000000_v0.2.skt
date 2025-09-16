@@ -1,18 +1,18 @@
-! Skeleton table for the "skteditor13342626542440377323.cdf" CDF.
-! Generated: Friday, 12-Sep-2025 12:22:33
+! Skeleton table for the "skteditor8497462832031533598.cdf" CDF.
+! Generated: Tuesday, 16-Sep-2025 11:29:17
 ! CDF created/modified by CDF V3.9.1
 ! Skeleton table created by CDF V3.9.1_0
 
 #header
 
-                       CDF NAME: skteditor13342626542440377323.cdf
+                       CDF NAME: skteditor8497462832031533598.cdf
                   DATA ENCODING: NETWORK
                        MAJORITY: COLUMN
                          FORMAT: SINGLE
 
 ! Variables  G.Attributes  V.Attributes  Records  Dims  Sizes
 ! ---------  ------------  ------------  -------  ----  -----
-    0/14          27            23         0/z      2   91 91
+    0/14          24            23         0/z      2   91 91
 ! CDF_COMPRESSION: None
 ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
 ! CDF_CHECKSUM: None
@@ -55,9 +55,9 @@
 
   "MODS"                1:    CDF_CHAR     { "TBD" } .
 
-  "Logical_file_id"     1:    CDF_CHAR     { "lexi_l2_lexi_0000000000_v0.2" } .
+  "Logical_file_id"     1:    CDF_CHAR     { "lexi_l2_000000000000_v0.2" } .
 
-  "Logical_source"      1:    CDF_CHAR     { "lexi_l2_lexi" } .
+  "Logical_source"      1:    CDF_CHAR     { "lexi_l2" } .
 
   "Logical_source_description"
                         1:    CDF_CHAR     { "lexi_l2:Level 2 histogram " -
@@ -75,7 +75,7 @@
 
   "File_naming_convention"
                         1:    CDF_CHAR     { "source_datatype_descriptor" -
-                                             "_yyyyMMddHH" } .
+                                             "_yyyyMMddHHmm" } .
 
   "spase_DatasetResourceID" .
 
@@ -94,12 +94,6 @@
 
   "HTTP_LINK"           1:    CDF_CHAR     { "https://sites.bu.edu/lexi/" -
                                              "data-access/" } .
-
-  "Acknowledgement" .
-
-  "Rules_of_use" .
-
-  "Time_resolution" .
 
 
 #VARIABLEattributes
@@ -474,7 +468,7 @@
     "CATDESC"     CDF_CHAR     { "Galactic background counts per (RA, " -
                                  "Dec) pixel." }
     "VAR_NOTES"   CDF_CHAR     { " Galactic background counts, typically" -
-                                 " small compared to the lexi_hist." } .
+                                 " small compared to the lexi_histogram." } .
 
   ! RV values were not requested.
 
@@ -515,7 +509,7 @@
     "CATDESC"     CDF_CHAR     { "Dark background counts per (RA, Dec) " -
                                  "pixel." }
     "VAR_NOTES"   CDF_CHAR     { " Dark background counts, typically " -
-                                 "small compared to the lexi_hist. Can " -
+                                 "small compared to the lexi_histogram. Can " -
                                  "be used as uncertainty in each pixel." } .
 
   ! RV values were not requested.
@@ -557,7 +551,7 @@
     "CATDESC"     CDF_CHAR     { "Total background counts per (RA, Dec) " -
                                  "pixel." }
     "VAR_NOTES"   CDF_CHAR     { " Total background counts, typically " -
-                                 "small compared to the lexi_hist. This " -
+                                 "small compared to the lexi_histogram. This " -
                                  "is sum of galactic and dark " -
                                  "background." } .
 
@@ -568,7 +562,7 @@
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
 ! --------          ----     --------  ----  -----  --------  ---------
 
-  "lexi_hist"     CDF_REAL4      1       2   91 91      T        T T
+  "lexi_histogram"     CDF_REAL4      1       2   91 91      T        T T
 
   ! VAR_COMPRESSION: None
   ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
@@ -593,7 +587,7 @@
     "DEPEND_0"    CDF_CHAR     { "epoch_start" }
     "DEPEND_1"    CDF_CHAR     { "ra_bin" }
     "DEPEND_2"    CDF_CHAR     { "dec_bin" }
-    "DICT_KEY"    CDF_CHAR     { "image>lexi_hist" }
+    "DICT_KEY"    CDF_CHAR     { "image>lexi_histogram" }
     "DISPLAY_TYPE"
                   CDF_CHAR     { "image" }
     "CATDESC"     CDF_CHAR     { "LEXI counts per (RA, Dec) pixel per " -
