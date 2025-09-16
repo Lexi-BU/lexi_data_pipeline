@@ -209,7 +209,7 @@ keys_to_plot = [
 ]
 
 
-for i, f in enumerate(l2_files[:1]):
+for i, f in enumerate(l2_files[:]):
     dat = cdf(f)
 
     print(f"Reading file: {f}, {i + 1} out of {len(l2_files)}", end="\r")
