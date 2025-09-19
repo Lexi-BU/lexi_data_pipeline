@@ -43,7 +43,7 @@
 
   "Data_type"           1:    CDF_CHAR     { "L1c>Level 1c Data" } .
 
-  "Data_version"        1:    CDF_CHAR     { "0.1" } .
+  "Data_version"        1:    CDF_CHAR     { "01" } .
 
   "TEXT"                1:    CDF_CHAR     { "The lunar environment " -
                                              "heliophysics X-ray imager " -
@@ -152,7 +152,7 @@
     "VAR_TYPE"    CDF_CHAR     { "support_data" }
     "FILLVAL"     CDF_EPOCH    { 31-Dec-9999 23:59:59.999 }
     "DICT_KEY"    CDF_CHAR     { "time>Epoch" }
-    "CATDESC"     CDF_CHAR     { "Time, centered, in NSSDC Epoch" }
+    "CATDESC"     CDF_CHAR     { "Time, centered, in CDF Epoch" }
     "AVG_TYPE"    CDF_CHAR     { " " }
     "DISPLAY_TYPE"
                   CDF_CHAR     { " " }
@@ -166,7 +166,7 @@
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
 ! --------          ----     --------  ----  -----  --------  ---------
 
-  "Epoch_unix"    CDF_UINT4      1       0              T
+  "Unix_time"    CDF_INT4      1       0              T
 
   ! VAR_COMPRESSION: None
   ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
@@ -179,18 +179,18 @@
   ! --------        ----       -----
 
     "FIELDNAM"    CDF_CHAR     { "Time in Unix Epoch" }
-    "VALIDMIN"    CDF_UINT4    { 1740902400 }
-    "VALIDMAX"    CDF_UINT4    { 1742159748 }
-    "SCALEMIN"    CDF_UINT4    { 1740873600 }
-    "SCALEMAX"    CDF_UINT4    { 1742169599 }
+    "VALIDMIN"    CDF_INT4     { 1740902400 }
+    "VALIDMAX"    CDF_INT4     { 1742159748 }
+    "SCALEMIN"    CDF_INT4     { 1740873600 }
+    "SCALEMAX"    CDF_INT4     { 1742169599 }
     "LABLAXIS"    CDF_CHAR     { "Epoch Unix" }
     "UNITS"       CDF_CHAR     { "s" }
     "MONOTON"     CDF_CHAR     { "INCREASE" }
     "VAR_TYPE"    CDF_CHAR     { "support_data" }
     "FORMAT"      CDF_CHAR     { "I10" }
-    "FILLVAL"     CDF_UINT4    { 4294967295 }
+    "FILLVAL"     CDF_INT4     { -2147483648 }
     "DEPEND_0"    CDF_CHAR     { "Epoch" }
-    "DICT_KEY"    CDF_CHAR     { "time>Epoch_unix" }
+    "DICT_KEY"    CDF_CHAR     { "time>Unix_time" }
     "CATDESC"     CDF_CHAR     { "Time, centered, in Unix Epoch seconds" }
     "AVG_TYPE"    CDF_CHAR     { " " }
     "DISPLAY_TYPE"
@@ -211,7 +211,7 @@
   ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
   ! VAR_SPARSERECORDS: None
   ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
-  ! VAR_PADVALUE: -1.0e+30
+  ! VAR_PADVALUE: -1.0E+30
 
   ! Attribute       Data
   ! Name            Type       Value
@@ -226,7 +226,7 @@
     "UNITS"       CDF_CHAR     { "cm" }
     "VAR_TYPE"    CDF_CHAR     { "data" }
     "FORMAT"      CDF_CHAR     { "f7.1" }
-    "FILLVAL"     CDF_REAL4    { -1.0e+31 }
+    "FILLVAL"     CDF_REAL4    { -1.0E+31 }
     "DEPEND_0"    CDF_CHAR     { "Epoch" }
     "DICT_KEY"    CDF_CHAR     { "position>photon_x_mcp" }
     "CATDESC"     CDF_CHAR     { "Photon position in detector " -
@@ -250,7 +250,7 @@
   ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
   ! VAR_SPARSERECORDS: None
   ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
-  ! VAR_PADVALUE: -1.0e+30
+  ! VAR_PADVALUE: -1.0E+30
 
   ! Attribute       Data
   ! Name            Type       Value
@@ -265,7 +265,7 @@
     "UNITS"       CDF_CHAR     { "cm" }
     "VAR_TYPE"    CDF_CHAR     { "data" }
     "FORMAT"      CDF_CHAR     { "f7.1" }
-    "FILLVAL"     CDF_REAL4    { -1.0e+31 }
+    "FILLVAL"     CDF_REAL4    { -1.0E+31 }
     "DEPEND_0"    CDF_CHAR     { "Epoch" }
     "DICT_KEY"    CDF_CHAR     { "position>photon_y_mcp" }
     "CATDESC"     CDF_CHAR     { "Photon position in detector " -
@@ -282,28 +282,28 @@
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
 ! --------          ----     --------  ----  -----  --------  ---------
 
-  "photon_RA"     CDF_REAL4      1       0              T
+  "photon_RA"     CDF_REAL8      1       0              T
 
   ! VAR_COMPRESSION: None
   ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
   ! VAR_SPARSERECORDS: None
   ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
-  ! VAR_PADVALUE: -1.0e+30
+  ! VAR_PADVALUE: -1.0E+30
 
   ! Attribute       Data
   ! Name            Type       Value
   ! --------        ----       -----
 
     "FIELDNAM"    CDF_CHAR     { "Photon position in J2000 coordinates" }
-    "VALIDMIN"    CDF_REAL4    { 0.0 }
-    "VALIDMAX"    CDF_REAL4    { 360.0 }
+    "VALIDMIN"    CDF_REAL8    { 0.0 }
+    "VALIDMAX"    CDF_REAL8    { 360.0 }
     "SCALEMIN"    CDF_REAL4    { 0.0 }
     "SCALEMAX"    CDF_REAL4    { 360.0 }
     "LABLAXIS"    CDF_CHAR     { "RA" }
     "UNITS"       CDF_CHAR     { "deg" }
     "VAR_TYPE"    CDF_CHAR     { "data" }
     "FORMAT"      CDF_CHAR     { "f7.1" }
-    "FILLVAL"     CDF_REAL4    { -1.0e+31 }
+    "FILLVAL"     CDF_REAL8    { -1.0E+31 }
     "DEPEND_0"    CDF_CHAR     { "Epoch" }
     "DICT_KEY"    CDF_CHAR     { "position>photon_RA" }
     "CATDESC"     CDF_CHAR     { "Photon position in J2000 coordinates, " -
@@ -320,28 +320,28 @@
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
 ! --------          ----     --------  ----  -----  --------  ---------
 
-  "photon_Dec"    CDF_REAL4      1       0              T
+  "photon_Dec"    CDF_REAL8      1       0              T
 
   ! VAR_COMPRESSION: None
   ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
   ! VAR_SPARSERECORDS: None
   ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
-  ! VAR_PADVALUE: -1.0e+30
+  ! VAR_PADVALUE: -1.0E+30
 
   ! Attribute       Data
   ! Name            Type       Value
   ! --------        ----       -----
 
     "FIELDNAM"    CDF_CHAR     { "Photon position in J2000 coordinates" }
-    "VALIDMIN"    CDF_REAL4    { -90.0 }
-    "VALIDMAX"    CDF_REAL4    { 90.0 }
+    "VALIDMIN"    CDF_REAL8    { -90.0 }
+    "VALIDMAX"    CDF_REAL8    { 90.0 }
     "SCALEMIN"    CDF_REAL4    { -90.0 }
     "SCALEMAX"    CDF_REAL4    { 90.0 }
     "LABLAXIS"    CDF_CHAR     { "DEC" }
     "UNITS"       CDF_CHAR     { "deg" }
     "VAR_TYPE"    CDF_CHAR     { "data" }
     "FORMAT"      CDF_CHAR     { "f7.1" }
-    "FILLVAL"     CDF_REAL4    { -1.0e+31 }
+    "FILLVAL"     CDF_REAL8    { -1.0E+31 }
     "DEPEND_0"    CDF_CHAR     { "Epoch" }
     "DICT_KEY"    CDF_CHAR     { "position>photon_Dec" }
     "CATDESC"     CDF_CHAR     { "Photon position in J2000 coordinates, " -
@@ -358,13 +358,13 @@
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
 ! --------          ----     --------  ----  -----  --------  ---------
 
-  "photon_az"     CDF_REAL4      1       0              T
+  "photon_az"     CDF_REAL8      1       0              T
 
   ! VAR_COMPRESSION: None
   ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
   ! VAR_SPARSERECORDS: None
   ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
-  ! VAR_PADVALUE: -1.0e+30
+  ! VAR_PADVALUE: -1.0E+30
 
   ! Attribute       Data
   ! Name            Type       Value
@@ -372,15 +372,15 @@
 
     "FIELDNAM"    CDF_CHAR     { "Photon azimuth angle in the local " -
                                  "topocentric coordinates" }
-    "VALIDMIN"    CDF_REAL4    { 0.0 }
-    "VALIDMAX"    CDF_REAL4    { 360.0 }
+    "VALIDMIN"    CDF_REAL8    { 0.0 }
+    "VALIDMAX"    CDF_REAL8    { 360.0 }
     "SCALEMIN"    CDF_REAL4    { 0.0 }
     "SCALEMAX"    CDF_REAL4    { 360.0 }
     "LABLAXIS"    CDF_CHAR     { "Azimuth" }
     "UNITS"       CDF_CHAR     { "deg" }
     "VAR_TYPE"    CDF_CHAR     { "data" }
     "FORMAT"      CDF_CHAR     { "f7.1" }
-    "FILLVAL"     CDF_REAL4    { -1.0e+31 }
+    "FILLVAL"     CDF_REAL8    { -1.0E+31 }
     "DEPEND_0"    CDF_CHAR     { "Epoch" }
     "DICT_KEY"    CDF_CHAR     { "position>photon_az" }
     "CATDESC"     CDF_CHAR     { "Photon azimuth angle in the local " -
@@ -397,13 +397,13 @@
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
 ! --------          ----     --------  ----  -----  --------  ---------
 
-  "photon_el"     CDF_REAL4      1       0              T
+  "photon_el"     CDF_REAL8      1       0              T
 
   ! VAR_COMPRESSION: None
   ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
   ! VAR_SPARSERECORDS: None
   ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
-  ! VAR_PADVALUE: -1.0e+30
+  ! VAR_PADVALUE: -1.0E+30
 
   ! Attribute       Data
   ! Name            Type       Value
@@ -411,15 +411,15 @@
 
     "FIELDNAM"    CDF_CHAR     { "Photon elevation angle in the local " -
                                  "topocentric coordinates" }
-    "VALIDMIN"    CDF_REAL4    { -90.0 }
-    "VALIDMAX"    CDF_REAL4    { 90.0 }
+    "VALIDMIN"    CDF_REAL8    { -90.0 }
+    "VALIDMAX"    CDF_REAL8    { 90.0 }
     "SCALEMIN"    CDF_REAL4    { -90.0 }
     "SCALEMAX"    CDF_REAL4    { 90.0 }
     "LABLAXIS"    CDF_CHAR     { "Elevation" }
     "UNITS"       CDF_CHAR     { "deg" }
     "VAR_TYPE"    CDF_CHAR     { "data" }
     "FORMAT"      CDF_CHAR     { "f7.1" }
-    "FILLVAL"     CDF_REAL4    { -1.0e+31 }
+    "FILLVAL"     CDF_REAL8    { -1.0E+31 }
     "DEPEND_0"    CDF_CHAR     { "Epoch" }
     "DICT_KEY"    CDF_CHAR     { "position>photon_el" }
     "CATDESC"     CDF_CHAR     { "Photon elevation angle in the local " -

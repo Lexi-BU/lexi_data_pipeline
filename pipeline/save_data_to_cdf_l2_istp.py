@@ -17,8 +17,8 @@ StrPath = Union[str, Path]
 
 def generate_lexi_cdf_filename(
     start_time: datetime.datetime,
-    logical_source: str = "lexi_l1c",
-    version: str = "0.1",
+    logical_source: str = "clps-bgm1_lexi_l2-xray-images",
+    version: int = 0,
     output_dir: Path = Path("."),
 ) -> Path:
     """
@@ -31,7 +31,7 @@ def generate_lexi_cdf_filename(
     logical_source : str
         Logical source name, e.g., 'lexi_l1c'.
     version : str
-        Version string in the form '0.1'.
+        Version string in the form '0'.
     output_dir : Path
         Directory where the file will be saved.
 
@@ -41,23 +41,18 @@ def generate_lexi_cdf_filename(
         Full path to the generated filename.
     """
     start_str = start_time.strftime("%Y%m%d%H%M")
-    # Extract initial version parts
-    primary_version = int(version.split(".")[0])
-    secondary_version = int(version.split(".")[1])
-
     while True:
-        version_str = f"V{primary_version}.{secondary_version}"
+        version_str = f"V{version}"
+        print(f"Current version: {version}, type {type(version)} {version_str}")
         filename = f"{logical_source}_{start_str}_{version_str}.cdf"
         file_path = output_dir / filename
 
         if not file_path.exists():
             break
 
-        # Update version: bump secondary version (or whatever logic you prefer)
-        secondary_version += 1
-        if secondary_version > 9:
-            secondary_version = 0
-            primary_version += 1
+        print(f"File {filename} exists. Incrementing version.")
+        # Update version
+        version += 1
 
     print(f"Generated CDF filename: {filename} in {output_dir}")
     return output_dir / filename
@@ -66,8 +61,8 @@ def generate_lexi_cdf_filename(
 def save_data_to_cdf(
     data: dict = None,
     output_dir: Optional[StrPath] = None,
-    version: str = "0.0",
-    logical_source: str = "lexi_l2",
+    version: int = 0,
+    logical_source: str = "clps-bgm1_lexi_l2-xray-images",
 ):
     """
     Save data to an ISTP-compliant LEXI CDF file.
@@ -78,10 +73,10 @@ def save_data_to_cdf(
         Dictionary containing data arrays and metadata.
     output_dir : StrPath, optional
         Directory to save the CDF file. Defaults to current directory.
-    version : str
-        Version string in the form '0.1'.
+    version : int
+        Version number as an integer.
     logical_source : str
-        Logical source name, e.g., 'lexi_l2'.
+        Logical source name, e.g., 'clps-bgm1_lexi_l2-xray-images'.
 
     Returns
     -------
@@ -107,7 +102,7 @@ def save_data_to_cdf(
 
     # Path to the read-only skeleton file
     skeleton_path = Path(
-        "/home/cephadrius/Desktop/git/Lexi-BU/lexi_data_pipeline/spdf_data_documents/l2/lexi_l2_000000000000_v0.2.cdf"
+        "/home/cephadrius/Desktop/git/Lexi-BU/lexi_data_pipeline/spdf_data_documents/l2/clps-bgm1_lexi_l2-xray-images_000000000000_v02.cdf"
     )
     if not skeleton_path.exists():
         raise FileNotFoundError(f"Skeleton file not found: {skeleton_path}")
