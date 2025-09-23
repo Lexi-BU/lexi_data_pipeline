@@ -88,7 +88,7 @@ with fits.open(path) as hdul:
                 print(f"  {k}: {ra[k]}, {dec[k]}")
 
     else:
-        # Case B: maybe it’s an image/cube with WCS in some HDU (but your info() showed none)
+        # Case B: maybe it’s an image/cube with WCS in some HDU header
         if hdul[0].data is not None and hdul[0].data.size > 0:
             print("\nPrimary contains image data. You can build WCS like:")
             from astropy.wcs import WCS

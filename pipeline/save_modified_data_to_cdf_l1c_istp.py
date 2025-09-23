@@ -2,7 +2,7 @@ import datetime
 import shutil
 import warnings
 from pathlib import Path
-from typing import Optional, Union
+from typing import Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -19,7 +19,7 @@ def generate_lexi_cdf_filename(
     logical_source: str = "clps-bgm1_lexi_l1c-photons",
     version: int = 0,
     output_dir: Path = Path("."),
-) -> Path:
+) -> Tuple[Path, str]:
     """
     Generate an ISTP-compliant LEXI CDF filename.
 
@@ -52,11 +52,12 @@ def generate_lexi_cdf_filename(
         # Update version
         version += 1
     print(f"Generated CDF filename: {filename} in {output_dir}")
-    return output_dir / filename
+    return (output_dir / filename, version_str)
 
 
 def save_data_to_cdf(
     df: Optional[pd.DataFrame] = None,
+    df_eph: Optional[pd.DataFrame] = None,
     output_dir: Optional[StrPath] = None,
     version: int = 0,
     logical_source: str = "clps-bgm1_lexi_l1c-photons",
@@ -90,7 +91,7 @@ def save_data_to_cdf(
 
     start_time = df.index[0].to_pydatetime()
 
-    cdf_file = generate_lexi_cdf_filename(
+    (cdf_file, version_str) = generate_lexi_cdf_filename(
         start_time=start_time,
         logical_source=logical_source,
         version=version,
@@ -119,39 +120,47 @@ def save_data_to_cdf(
     for key in skeleton_cdf.attrs:
         cdf_data.attrs[key] = skeleton_cdf.attrs[key][...]
 
+        # Remove following attributes, if present, from the file
+        attributes_to_remove = ["Acknowledgement", "Time_resolution", "Rules_of_use"]
+        for attr in attributes_to_remove:
+            if attr in cdf_data.attrs:
+                del cdf_data.attrs[attr]
+
     # Update dynamic global attributes
     cdf_data.attrs.update(
         {
             "Generation_date": str(datetime.datetime.now(datetime.timezone.utc)),
             "Logical_file_id": cdf_file.stem,
-            "source": cdf_file.name,
+            "Logical_source": "clps-bgm1_lexi_l1c-photons",
+            "Data_version": version_str,
         }
     )
     # ========== Variables ==========
     cdf_data["Epoch"] = df.index
+    cdf_data["lexi_sc_eph_epoch"] = df_eph.index
 
     # Convert index to signed 32-bit integers (seconds since Unix epoch)
     epoch_unix_vals = (df.index.astype(int) // 10**9).astype(np.int32)
 
     # Explicitly create variable as CDF_INT4 (code 32)
-    cdf_data.new("Epoch_unix", data=epoch_unix_vals)
+    cdf_data.new("Unix_time", data=epoch_unix_vals)
     # Set internal fill value
-    # cdf_data["Epoch_unix"].pad = np.int32(-2147483648)
-    cdf_data["Epoch_unix"].attrs.update(
+    # cdf_data["Unix_time"].pad = np.int32(-2147483648)
+    cdf_data["Unix_time"].attrs.update(
         {
             "FIELDNAM": "Time in Unix Epoch",
             "VALIDMIN": np.int32(epoch_unix_vals.min()),
             "VALIDMAX": np.int32(epoch_unix_vals.max()),
             "SCALEMIN": np.int32(epoch_unix_vals.min()),
             "SCALEMAX": np.int32(epoch_unix_vals.max()),
-            "LABLAXIS": "Epoch Unix",
+            "LABLAXIS": "Unix Time",
             "UNITS": "s",
             "MONOTON": "INCREASE",
             "VAR_TYPE": "support_data",
             "FORMAT": "I10",
             "FILLVAL": np.int32(-2147483648),  # standard ISTP fill value for INT4
             "DEPEND_0": "Epoch",
-            "DICT_KEY": "time>Epoch_unix",
+            "DICT_KEY": "time>Unix_time",
             "CATDESC": "Time, centered, in Unix Epoch seconds",
             "AVG_TYPE": " ",
             "DISPLAY_TYPE": " ",
@@ -167,11 +176,25 @@ def save_data_to_cdf(
         "photon_el",
     ]
 
-    for var in photon_vars:
-        if var in df.columns:
-            # Let data type match the skeleton — no need to force type
-            cdf_data[var] = df[var].values
+    eph_vars = [
+        # "lexi_sc_eph_epoch",
+        "lexi_sc_pos_gse_x",
+        "lexi_sc_pos_gse_y",
+        "lexi_sc_pos_gse_z",
+        "sza",
+    ]
 
+    var_list = photon_vars + eph_vars
+
+    for var in var_list:
+        if var in df.columns:
+            cdf_data[var] = df[var].values
+            print(f"Added variable: {var}")
+        elif var in df_eph.columns:
+            cdf_data[var] = df_eph[var].values
+            print(f"Added variable: {var}")
+
+    # Copy variable attributes from skeleton
     for varname in skeleton_cdf:
         if varname in cdf_data:
             for attr in skeleton_cdf[varname].attrs:

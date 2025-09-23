@@ -89,7 +89,7 @@ def small_angle_offsets_deg(ra_grid_deg, dec_grid_deg, ra0_deg, dec0_deg):
 
 def vignette_uv(u, v):
     """
-    Example elliptical support: inside ellipse => apply your vignette as function of
+    Example elliptical support: inside ellipse => apply vignette as function of
     elliptical radius; outside => 0.
     For circular, set FOV_U == FOV_V.
     """
@@ -241,21 +241,59 @@ def make_background_file(
     strict_consecutive: bool = False,
 ):
     """
-    Aggregate FITS files in [start_time, end_time] into one background payload and save it as a pickle.
+    Aggregate FITS files over a given time window into a single background
+    data product and serialize to a pickle.
 
-    Features:
-      - Selects files by *minute-stamped* filenames (YYYY-MM-DDTHH:MM:SS.fits.gz).
-      - Accepts arbitrary timestamps; auto-expands to full minutes (floor start, ceil end).
-      - Per-pixel center RA/Dec via spherical centroid of 4 corners (robust to RA wrap).
-      - Per-pixel area as spherical quadrilateral (two triangles), in arcmin^2.
+    This routine:
+      - Selects 1-minute FITS files with UTC timestamps in their names.
+      - Floors the start time and ceils the end time to whole minutes.
+      - Loads all relevant FITS images and their WCS information.
+      - Reduces the stack (mean, median, etc.) pixel-by-pixel.
+      - Computes per-pixel RA/Dec edges, spherical centroids, and projected areas.
+      - Computes a whole-image pointing center.
+      - Stores results and metadata in a dictionary, written as a `.pkl`.
+
+    Parameters
+    ----------
+    start_time : datetime.datetime or pandas.Timestamp
+        Start of aggregation window. Can be timezone-naive (will default to UTC)
+        or timezone-aware.
+    end_time : datetime.datetime or pandas.Timestamp
+        End of aggregation window. Same rules as start_time.
+    fits_folder : str, optional
+        Path to directory containing 1-minute background FITS files.
+        Default is "../data/background_files/fits_files/1min/".
+    out_dir : str, optional
+        Output directory where pickle files are stored. A subdirectory is created
+        for each window length (e.g. "15min_by_window").
+    reducer : callable, optional
+        Function used to combine the image stack along the time axis.
+        Must accept `axis=0`. Examples: np.mean, np.median, np.sum.
+    strict_consecutive : bool, optional
+        If True, enforce that all selected FITS files form a consecutive
+        uninterrupted 1-minute sequence. Raise ValueError if any gap.
 
     Returns
     -------
     payload : dict
-        Dict with keys:
-          ra_edges, dec_edges, background, wcs_header_dict, files_used,
-          ra_center, dec_center, corner_radec,
-          ra_center_map, dec_center_map, ra_dec_area
+        Dictionary containing:
+          - ra_edges (2D array): RA coordinates of pixel edges [deg].
+          - dec_edges (2D array): Dec coordinates of pixel edges [deg].
+          - background (2D array): Reduced background map.
+          - ra_center (float): Image pointing center RA [deg].
+          - dec_center (float): Image pointing center Dec [deg].
+          - ra_center_map (2D array): Per-pixel RA center [deg].
+          - dec_center_map (2D array): Per-pixel Dec center [deg].
+          - ra_dec_area (2D array): Per-pixel area [arcmin^2].
+          - wcs_header_dict (dict): WCS header keywords and comments.
+
+    Raises
+    ------
+    FileNotFoundError
+        If no FITS files found in the requested interval.
+    ValueError
+        If FITS shapes or WCS metadata do not match, or if strict_consecutive
+        is True and there is a time gap.
     """
     fits_files = sorted(glob.glob(str(Path(fits_folder) / "*.fits.gz")))
 
@@ -263,6 +301,23 @@ def make_background_file(
     # Helpers
     # -----------------
     def load_data_and_wcs(fp):
+        """
+        Open a FITS file and extract image data and WCS.
+
+        Parameters
+        ----------
+        fp : str or Path
+            Path to FITS file.
+
+        Returns
+        -------
+        data : np.ndarray
+            Image array as float.
+        hdr : astropy.io.fits.Header
+            FITS header.
+        w : astropy.wcs.WCS
+            WCS object constructed from the header.
+        """
         with fits.open(fp) as hdul:
             hdu = hdul[0]
             data = np.asarray(hdu.data, dtype=float)
@@ -270,18 +325,69 @@ def make_background_file(
         return data, hdr, WCS(hdr)
 
     def wcs_header_to_dict(w):
+        """
+        Convert a WCS object into a dictionary with values and comments.
+
+        Parameters
+        ----------
+        w : astropy.wcs.WCS
+            Input WCS.
+
+        Returns
+        -------
+        dict
+            Mapping of header keyword → (value, comment).
+        """
         h = w.to_header(relax=True)
         return {k: (h[k], h.comments[k]) for k in h.keys()}
 
     def strip_fits_suffix(p: Path) -> str:
+        """
+        Strip .fits or .fits.gz from filename.
+
+        Parameters
+        ----------
+        p : Path
+            Input path.
+
+        Returns
+        -------
+        str
+            Basename without FITS extensions.
+        """
         # handles .fits and .fits.gz
         return Path(p.stem).stem
 
     def parse_timestamp_from_name(name: str) -> dt.datetime:
+        """
+        Parse UTC timestamp from FITS filename stem.
+
+        Parameters
+        ----------
+        name : str
+            Expected format: YYYY-MM-DDTHH:MM:SS
+
+        Returns
+        -------
+        datetime.datetime
+            Time with UTC tzinfo.
+        """
         # filenames are UTC, exact second
         return dt.datetime.strptime(name, "%Y-%m-%dT%H:%M:%S").replace(tzinfo=dt.timezone.utc)
 
     def format_timestamp(obj) -> str:
+        """
+        Convert datetime-like to string for filenames.
+
+        Parameters
+        ----------
+        obj : str | datetime | pandas.Timestamp
+
+        Returns
+        -------
+        str
+            "YYYYMMDD_HHMMSS" string.
+        """
         if isinstance(obj, str):
             d = parse_timestamp_from_name(obj)
         elif isinstance(obj, pd.Timestamp):
@@ -293,6 +399,21 @@ def make_background_file(
         return d.strftime("%Y%m%d_%H%M%S")
 
     def spherical_centroid(ra_deg: np.ndarray, dec_deg: np.ndarray) -> tuple[float, float]:
+        """
+        Compute spherical centroid of multiple (RA, Dec) points.
+
+        Uses unit-vector averaging to handle wrap-around at RA=0.
+
+        Parameters
+        ----------
+        ra_deg, dec_deg : array-like
+            Arrays of RA, Dec in degrees.
+
+        Returns
+        -------
+        ra_c, dec_c : float
+            Centroid coordinates in degrees.
+        """
         ra = np.radians(ra_deg)
         dec = np.radians(dec_deg)
         x = np.cos(dec) * np.cos(ra)
@@ -307,6 +428,19 @@ def make_background_file(
     def spherical_centroid_vec(
         ra_deg4: np.ndarray, dec_deg4: np.ndarray
     ) -> tuple[np.ndarray, np.ndarray]:
+        """
+        Vectorized spherical centroid of per-pixel corners.
+
+        Parameters
+        ----------
+        ra_deg4, dec_deg4 : ndarray
+            Shape (..., 4). RA/Dec of four corners of each pixel.
+
+        Returns
+        -------
+        ra_c, dec_c : ndarray
+            Per-pixel centroid RA/Dec [deg].
+        """
         ra = np.radians(ra_deg4)
         dec = np.radians(dec_deg4)
         x = np.cos(dec) * np.cos(ra)
@@ -322,10 +456,26 @@ def make_background_file(
 
     # --- Spherical geometry for per-pixel area ---
     def _wrap_dlon(lon2, lon1):
+        """
+        Wrap longitude difference into [-pi, pi].
+        """
         d = lon2 - lon1
         return (d + np.pi) % (2.0 * np.pi) - np.pi
 
     def central_angle(lon1, lat1, lon2, lat2):
+        """
+        Great-circle central angle between two points on a sphere.
+
+        Parameters
+        ----------
+        lon1, lat1, lon2, lat2 : ndarray
+            Longitudes and latitudes in radians.
+
+        Returns
+        -------
+        ndarray
+            Central angle in radians.
+        """
         dlat = lat2 - lat1
         dlon = _wrap_dlon(lon2, lon1)
         a = np.sin(dlat / 2.0) ** 2 + np.cos(lat1) * np.cos(lat2) * np.sin(dlon / 2.0) ** 2
@@ -333,6 +483,19 @@ def make_background_file(
         return 2.0 * np.arcsin(np.sqrt(a))
 
     def spherical_triangle_area_lhuilier(a, b, c):
+        """
+        Spherical triangle area (steradians) via L'Huilier's theorem.
+
+        Parameters
+        ----------
+        a, b, c : float or ndarray
+            Side lengths (radians).
+
+        Returns
+        -------
+        float or ndarray
+            Triangle area in steradians.
+        """
         s = 0.5 * (a + b + c)
         t1 = np.tan(s / 2.0)
         t2 = np.tan((s - a) / 2.0)
@@ -343,6 +506,19 @@ def make_background_file(
         return 4.0 * E_over4  # steradians
 
     def spherical_quad_area_sr(lon00, lat00, lon10, lat10, lon01, lat01, lon11, lat11):
+        """
+        Compute spherical quadrilateral area by splitting into two triangles.
+
+        Parameters
+        ----------
+        lonXY, latXY : ndarray
+            Corner coordinates in radians.
+
+        Returns
+        -------
+        ndarray
+            Quadrilateral area in steradians.
+        """
         a1 = central_angle(lon10, lat10, lon11, lat11)
         b1 = central_angle(lon11, lat11, lon00, lat00)
         c1 = central_angle(lon00, lat00, lon10, lat10)

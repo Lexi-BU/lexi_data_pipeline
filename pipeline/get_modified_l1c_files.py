@@ -80,31 +80,50 @@ def main(start_time: str = None, end_time: str = None):
         l1c_sci_files = filtered_files
     print(f"Found {len(l1c_sci_files)} L1C SCI files in the specified time range.")
 
+    # Epoch from ephemeris file to be added to CDF
+    eph_file = "/home/cephadrius/Desktop/git/Lexi-BU/lexi_data_pipeline/data/ephemeris_data/LEXIAngleData_ACTUAL_20250723_10min_linear.csv"
+    df_eph = pd.read_csv(eph_file, parse_dates=["Epoch"], index_col="Epoch")
+    df_eph.index = pd.to_datetime(df_eph.index).tz_localize("UTC")
+    # Rename the index to lexi_sc_eph_epoch
     # Read the CDF files and convert to DataFrames
     for file_name in l1c_sci_files[:]:
         print(f"Processing file: {file_name}")
         data_df = read_cdf_files_to_dataframes(file_name)
+
+        # Count the number observations each second
+        data_df["lexi_counts_per_sec"] = data_df.groupby(data_df.index).cumcount() + 1
 
         # Select the data between the specified start and end times
         if start_time is not None and end_time is not None:
             start_dt = parser.parse(start_time).replace(tzinfo=datetime.timezone.utc)
             end_dt = parser.parse(end_time).replace(tzinfo=datetime.timezone.utc)
             data_df = data_df[(data_df.index >= start_dt) & (data_df.index <= end_dt)]
+            eph_df = df_eph[(df_eph.index >= start_dt) & (df_eph.index <= end_dt)]
 
         # Save the DataFrame to a new CDF file
         # Get the modified L1C SCI folder path same as the stem of the original file
         modified_l1c_sci_folder = Path(file_name).parent
         cdf_file = sdtc.save_data_to_cdf(
             df=data_df,
+            df_eph=eph_df,
             output_dir=modified_l1c_sci_folder,
             version=0,
             logical_source="clps-bgm1_lexi_l1c-photons",
         )
+        print(f"Saved modified CDF file: {cdf_file}")
 
     return (l1c_sci_files, data_df, cdf_file)
 
 
-start_date = "2025-03-16T16:00:00"
-end_date = "2025-03-16T22:05:00"
+start_date = "2025-03-16T21:00:00"
+end_date = "2025-03-16T21:20:00"
 if __name__ == "__main__":
     results = main(start_time=start_date, end_time=end_date)
+
+dat_r = cdf(results[-1])
+
+print(dat_r)
+
+print(dat_r.attrs)
+
+print(len(dat_r.attrs))

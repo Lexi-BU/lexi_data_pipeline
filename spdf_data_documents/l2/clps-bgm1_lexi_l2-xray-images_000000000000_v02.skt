@@ -57,17 +57,17 @@
 
   "Logical_file_id"     1:    CDF_CHAR     { "clps-bgm1_lexi_l2-images_000000000000_v02" } .
 
-  "Logical_source"      1:    CDF_CHAR     { "clps-bgm1_lexi_l2" } .
+  "Logical_source"      1:    CDF_CHAR     { "clps-bgm1_lexi_l2-images" } .
 
   "Logical_source_description"
-                        1:    CDF_CHAR     { "lexi_l2:Level 2 histogram " -
+                        1:    CDF_CHAR     { "clps-bgm1_lexi_l2-images:Level 2 histogram " -
                                              "datasets" } .
 
   "PI_name"             1:    CDF_CHAR     { "B. Walsh" } .
 
   "PI_affiliation"      1:    CDF_CHAR     { "Boston U." } .
 
-  "Mission_group"       1:    CDF_CHAR     { "Lunar" } .
+  "Mission_group"       1:    CDF_CHAR     { "Moon" } .
 
   "Instrument_type"     1:    CDF_CHAR     { "Imaging and Remote Sensing" -
                                              " (Magnetosphere/Earth)" } .

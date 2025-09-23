@@ -83,7 +83,7 @@ xy_coordinates = np.column_stack((X.ravel(), Y.ravel()))
 max_count_coordinates = np.full_like(xy_new_holes, np.nan)
 
 # Radius for searching
-search_radius = 0.35  # You can adjust this based on your requirement
+search_radius = 0.35
 search_radius_array = np.full_like(xy_new_holes[0], search_radius)
 
 # Make the radius corresponding to following indices smaller:
@@ -132,7 +132,7 @@ undistorted_points = pts1.reshape((-1, 1, 2))
 distorted_points = pts2.reshape((-1, 1, 2))
 
 # Read the distorted image
-distorted_img = cv2.imread("../figures/non_lin/original.jpg")  # Replace with your actual image path
+distorted_img = cv2.imread("../figures/non_lin/original.jpg")
 
 gray = cv2.cvtColor(distorted_img, cv2.COLOR_BGR2GRAY)
 

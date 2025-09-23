@@ -90,7 +90,7 @@ xy_coordinates = np.column_stack((X.ravel(), Y.ravel()))
 max_count_coordinates = np.full_like(xy_new_holes, np.nan)
 
 # Radius for searching
-search_radius = 0.35  # You can adjust this based on your requirement
+search_radius = 0.35
 search_radius_array = np.full_like(xy_new_holes[0], search_radius)
 
 # Make the radius corresponding to following indices smaller:

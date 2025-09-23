@@ -320,7 +320,7 @@ df_radec["Epoch"] = df_radec["Epoch"].dt.tz_localize(None)
 
 cutoff_date = pd.to_datetime("2025-03-16 21:15:00")
 
-# If your datetime is in a column named 'timestamp'
+# If datetime is in a column named 'timestamp'
 df_radec = df_radec[df_radec["Epoch"] <= cutoff_date]
 
 fig2, ax2 = plt.subplots(figsize=(10, 6))

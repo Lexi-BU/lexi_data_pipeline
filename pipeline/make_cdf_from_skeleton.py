@@ -17,7 +17,7 @@
 # Tip:
 # - If you later want to populate data into the created CDF, you can use SpacePy:
 #     from spacepy import pycdf
-#     with pycdf.CDF('your.cdf', '') as f:
+#     with pycdf.CDF('file.cdf', '') as f:
 #         f['zVarName'][...] = data_array
 #
 # (c) 2025 — Ramiz A. Qudsi & collaborators
