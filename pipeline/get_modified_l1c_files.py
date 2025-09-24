@@ -1,4 +1,5 @@
 import datetime
+import getpass
 import glob
 import importlib
 import re
@@ -8,9 +9,10 @@ import pandas as pd
 import save_modified_data_to_cdf_l1c_istp as sdtc
 from dateutil import parser
 from spacepy.pycdf import CDF as cdf
-from tqdm import tqdm
 
 importlib.reload(sdtc)
+
+user = getpass.getuser()
 
 
 def read_cdf_files_to_dataframes(file_name):
@@ -60,7 +62,10 @@ def read_cdf_files_to_dataframes(file_name):
 
 def main(start_time: str = None, end_time: str = None):
 
-    l1c_sci_folder = "/mnt/cephadrius/bu_research/lexi_data/L1c/sci/cdf/"
+    if user == "cephadrius":
+        l1c_sci_folder = "/mnt/cephadrius/bu_research/lexi_data/L1c/sci/cdf/"
+    elif user == "vetinari":
+        l1c_sci_folder = "/home/vetinari/Desktop/git/Lexi-Bu/lexi_data_pipeline/data/L1c/sci/cdf/"
     # Get all files in the folder and subfolders
     l1c_sci_files = sorted(glob.glob(f"{l1c_sci_folder}/**/*.cdf", recursive=True))
     print(f"Found {len(l1c_sci_files)} total L1C SCI files.")
@@ -81,7 +86,7 @@ def main(start_time: str = None, end_time: str = None):
     print(f"Found {len(l1c_sci_files)} L1C SCI files in the specified time range.")
 
     # Epoch from ephemeris file to be added to CDF
-    eph_file = "/home/cephadrius/Desktop/git/Lexi-BU/lexi_data_pipeline/data/ephemeris_data/LEXIAngleData_ACTUAL_20250723_10min_linear.csv"
+    eph_file = f"/home/{user}/Desktop/git/Lexi-Bu/lexi_data_pipeline/data/ephemeris_data/LEXIAngleData_ACTUAL_20250723_10min_linear.csv"
     df_eph = pd.read_csv(eph_file, parse_dates=["Epoch"], index_col="Epoch")
     df_eph.index = pd.to_datetime(df_eph.index).tz_localize("UTC")
     # Rename the index to lexi_sc_eph_epoch

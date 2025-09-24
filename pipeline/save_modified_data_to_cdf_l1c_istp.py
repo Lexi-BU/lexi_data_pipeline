@@ -1,5 +1,5 @@
 import datetime
-import shutil
+import getpass
 import warnings
 from pathlib import Path
 from typing import Optional, Tuple, Union
@@ -12,6 +12,7 @@ from spacepy.pycdf import CDF as cdf
 warnings.filterwarnings("ignore")
 
 StrPath = Union[str, Path]
+user = getpass.getuser()
 
 
 def generate_lexi_cdf_filename(
@@ -100,7 +101,7 @@ def save_data_to_cdf(
 
     # Path to the read-only skeleton
     skeleton_path = Path(
-        "/home/cephadrius/Desktop/git/Lexi-BU/lexi_data_pipeline/spdf_data_documents/l1c/clps-bgm1_lexi_l1c-photons_000000000000_v01.cdf"
+        f"/home/{user}/Desktop/git/Lexi-Bu/lexi_data_pipeline/spdf_data_documents/l1c/clps-bgm1_lexi_l1c-photons_000000000000_v01.cdf"
     )
 
     # Load the skeleton in read-only mode

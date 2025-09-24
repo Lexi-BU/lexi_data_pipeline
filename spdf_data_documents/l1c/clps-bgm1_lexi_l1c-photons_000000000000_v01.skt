@@ -12,7 +12,7 @@
 
 ! Variables  G.Attributes  V.Attributes  Records  Dims  Sizes
 ! ---------  ------------  ------------  -------  ----  -----
-     0/14          24            18         0/z      1     3
+     0/17          24            18         0/z      1     3
 ! CDF_COMPRESSION: None
 ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
 ! CDF_CHECKSUM: None
@@ -668,6 +668,127 @@
                                  "landing location. The landing site is located " -
                                  "at Lunar Latitude and Longitude of " -
                                  "(18.56, 61.81) degrees" } .
+
+  ! RV values were not requested.
+
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "moon_pos_gse_x"
+                  CDF_REAL8      1       0              T
+
+  ! VAR_COMPRESSION: None
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -1.0E+30
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+    "FIELDNAM"    CDF_CHAR     { "x-component of Moon position in GSE " -
+                                 "coordinates" }
+    "VALIDMIN"    CDF_REAL8    { -1.0E+06 }
+    "VALIDMAX"    CDF_REAL8    { 1.0E+06 }
+    "SCALEMIN"    CDF_REAL4    { -1.0E+06 }
+    "SCALEMAX"    CDF_REAL4    { 1.0E+06 }
+    "LABLAXIS"    CDF_CHAR     { "Moon GSE X" }
+    "UNITS"       CDF_CHAR     { "km" }
+    "VAR_TYPE"    CDF_CHAR     { "support_data" }
+    "FORMAT"      CDF_CHAR     { "f10.1" }
+    "FILLVAL"     CDF_REAL8    { -1.0E+31 }
+    "DEPEND_0"    CDF_CHAR     { "lexi_sc_eph_epoch" }
+    "DICT_KEY"    CDF_CHAR     { "moon_position>moon_pos_gse_x" }
+    "CATDESC"     CDF_CHAR     { "Moon position in GSE coordinates, scalar" }
+    "AVG_TYPE"    CDF_CHAR     { " " }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VAR_NOTES"   CDF_CHAR     { "The cadence of ephemeris data is 10 minutes. " -
+                                 "One should use lexi_sc_eph_epoch to properly "
+                                 "interpret these values." } .
+
+  ! RV values were not requested.
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "moon_pos_gse_y"
+                  CDF_REAL8      1       0              T
+
+  ! VAR_COMPRESSION: None
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -1.0E+30
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "y-component of Moon position in GSE " -
+                                 "coordinates" }
+    "VALIDMIN"    CDF_REAL8    { -1.0E+06 }
+    "VALIDMAX"    CDF_REAL8    { 1.0E+06 }
+    "SCALEMIN"    CDF_REAL4    { -1.0E+06 }
+    "SCALEMAX"    CDF_REAL4    { 1.0E+06 }
+    "LABLAXIS"    CDF_CHAR     { "Moon GSE Y" }
+    "UNITS"       CDF_CHAR     { "km" }
+    "VAR_TYPE"    CDF_CHAR     { "support_data" }
+    "FORMAT"      CDF_CHAR     { "f10.1" }
+    "FILLVAL"     CDF_REAL8    { -1.0E+31 }
+    "DEPEND_0"    CDF_CHAR     { "lexi_sc_eph_epoch" }
+    "DICT_KEY"    CDF_CHAR     { "moon_position>moon_pos_gse_y" }
+    "CATDESC"     CDF_CHAR     { "Moon position in GSE coordinates, scalar" }
+    "AVG_TYPE"    CDF_CHAR     { " " }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VAR_NOTES"   CDF_CHAR     { "The cadence of ephemeris data is 10 minutes. " -
+                                 "One should use lexi_sc_eph_epoch to properly "
+                                 "interpret these values." } .
+
+  ! RV values were not requested.
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "moon_pos_gse_z"
+                  CDF_REAL8      1       0              T
+
+  ! VAR_COMPRESSION: None
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -1.0E+30
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "z-component of Moon position in GSE " -
+                                 "coordinates" }
+    "VALIDMIN"    CDF_REAL8    { -1.0E+06 }
+    "VALIDMAX"    CDF_REAL8    { 1.0E+06 }
+    "SCALEMIN"    CDF_REAL4    { -1.0E+06 }
+    "SCALEMAX"    CDF_REAL4    { 1.0E+06 }
+    "LABLAXIS"    CDF_CHAR     { "Moon GSE Z" }
+    "UNITS"       CDF_CHAR     { "km" }
+    "VAR_TYPE"    CDF_CHAR     { "support_data" }
+    "FORMAT"      CDF_CHAR     { "f10.1" }
+    "FILLVAL"     CDF_REAL8    { -1.0E+31 }
+    "DEPEND_0"    CDF_CHAR     { "lexi_sc_eph_epoch" }
+    "DICT_KEY"    CDF_CHAR     { "moon_position>moon_pos_gse_z" }
+    "CATDESC"     CDF_CHAR     { "Moon position in GSE coordinates, scalar" }
+    "AVG_TYPE"    CDF_CHAR     { " " }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VAR_NOTES"   CDF_CHAR     { "The cadence of ephemeris data is 10 minutes. " -
+                                 "One should use lexi_sc_eph_epoch to properly "
+                                 "interpret these values." } .
 
   ! RV values were not requested.
 
