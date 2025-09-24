@@ -543,7 +543,7 @@
     "DISPLAY_TYPE"
                   CDF_CHAR     { "time_series" }
     "VAR_NOTES"   CDF_CHAR     { "The cadence of ephemeris data is 10 minutes. " -
-                                 "One should use lexi_sc_eph_epoch to properly "
+                                 "One should use lexi_sc_eph_epoch to properly " -
                                  "interpret these values." } .
 
   ! RV values were not requested.
@@ -707,7 +707,7 @@
     "DISPLAY_TYPE"
                   CDF_CHAR     { "time_series" }
     "VAR_NOTES"   CDF_CHAR     { "The cadence of ephemeris data is 10 minutes. " -
-                                 "One should use lexi_sc_eph_epoch to properly "
+                                 "One should use lexi_sc_eph_epoch to properly " -
                                  "interpret these values." } .
 
   ! RV values were not requested.
@@ -747,7 +747,7 @@
     "DISPLAY_TYPE"
                   CDF_CHAR     { "time_series" }
     "VAR_NOTES"   CDF_CHAR     { "The cadence of ephemeris data is 10 minutes. " -
-                                 "One should use lexi_sc_eph_epoch to properly "
+                                 "One should use lexi_sc_eph_epoch to properly " -
                                  "interpret these values." } .
 
   ! RV values were not requested.
@@ -787,7 +787,7 @@
     "DISPLAY_TYPE"
                   CDF_CHAR     { "time_series" }
     "VAR_NOTES"   CDF_CHAR     { "The cadence of ephemeris data is 10 minutes. " -
-                                 "One should use lexi_sc_eph_epoch to properly "
+                                 "One should use lexi_sc_eph_epoch to properly " -
                                  "interpret these values." } .
 
   ! RV values were not requested.
