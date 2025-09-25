@@ -101,7 +101,7 @@ def save_data_to_cdf(
 
     # Path to the read-only skeleton
     skeleton_path = Path(
-        f"/home/{user}/Desktop/git/Lexi-Bu/lexi_data_pipeline/spdf_data_documents/l1c/clps-bgm1_lexi_l1c-photons_000000000000_v01.cdf"
+        f"/home/{user}/Desktop/git/Lexi-BU/lexi_data_pipeline/spdf_data_documents/l1c/clps-bgm1_lexi_l1c-photons_0000000000_v01.cdf"
     )
 
     # Load the skeleton in read-only mode
@@ -141,7 +141,8 @@ def save_data_to_cdf(
     cdf_data["lexi_sc_eph_epoch"] = df_eph.index
 
     # Convert index to signed 32-bit integers (seconds since Unix epoch)
-    epoch_unix_vals = (df.index.astype(int) // 10**9).astype(np.int32)
+    # epoch_unix_vals = (df.index.astype(int) // 10**9).astype(np.int32)
+    epoch_unix_vals = (df.index.view("int64") // 10**9).astype(np.float64)
 
     # Explicitly create variable as CDF_INT4 (code 32)
     cdf_data.new("Unix_time", data=epoch_unix_vals)
@@ -150,16 +151,16 @@ def save_data_to_cdf(
     cdf_data["Unix_time"].attrs.update(
         {
             "FIELDNAM": "Time in Unix Epoch",
-            "VALIDMIN": np.int32(epoch_unix_vals.min()),
-            "VALIDMAX": np.int32(epoch_unix_vals.max()),
-            "SCALEMIN": np.int32(epoch_unix_vals.min()),
-            "SCALEMAX": np.int32(epoch_unix_vals.max()),
+            "VALIDMIN": np.float64(epoch_unix_vals.min()),
+            "VALIDMAX": np.float64(epoch_unix_vals.max()),
+            "SCALEMIN": np.float64(epoch_unix_vals.min()),
+            "SCALEMAX": np.float64(epoch_unix_vals.max()),
             "LABLAXIS": "Unix Time",
             "UNITS": "s",
             "MONOTON": "INCREASE",
             "VAR_TYPE": "support_data",
-            "FORMAT": "I10",
-            "FILLVAL": np.int32(-2147483648),  # standard ISTP fill value for INT4
+            "FORMAT": "F13.1",
+            "FILLVAL": np.float64(-1.0e31),
             "DEPEND_0": "Epoch",
             "DICT_KEY": "time>Unix_time",
             "CATDESC": "Time, centered, in Unix Epoch seconds",
@@ -175,6 +176,7 @@ def save_data_to_cdf(
         "photon_Dec",
         "photon_az",
         "photon_el",
+        "lexi_counts_per_sec",
     ]
 
     eph_vars = [
@@ -182,6 +184,9 @@ def save_data_to_cdf(
         "lexi_sc_pos_gse_x",
         "lexi_sc_pos_gse_y",
         "lexi_sc_pos_gse_z",
+        "moon_pos_gse_x",
+        "moon_pos_gse_y",
+        "moon_pos_gse_z",
         "sza",
     ]
 

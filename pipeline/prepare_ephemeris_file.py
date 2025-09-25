@@ -9,9 +9,9 @@ from matplotlib.dates import DateFormatter
 # Check the username to set file paths
 user = getpass.getuser()
 
-lexi_file_name = f"/home/{user}/Desktop/git/Lexi-Bu/lexi_data_pipeline/data/ephemeris_data/LEXIAngleData_ACTUAL_20250723.csv"
+lexi_file_name = f"/home/{user}/Desktop/git/Lexi-BU/lexi_data_pipeline/data/ephemeris_data/LEXIAngleData_ACTUAL_20250723.csv"
 
-lunar_file_name = f"/home/{user}/Desktop/git/Lexi-Bu/lexi_data_pipeline/data/ephemeris_data/LEXI_Lunar_Pos_cleaned.txt"
+lunar_file_name = f"/home/{user}/Desktop/git/Lexi-BU/lexi_data_pipeline/data/ephemeris_data/LEXI_Lunar_Pos_cleaned.txt"
 
 df_eph = pd.read_csv(lexi_file_name)
 # Rename "[Epoch (UTC)]" to "Epoch"

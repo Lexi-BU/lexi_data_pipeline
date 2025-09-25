@@ -1,11 +1,11 @@
-! Skeleton table for the "clps-bgm1_lexi_l1c-photons_000000000000_v01.cdf" CDF.
+! Skeleton table for the "clps-bgm1_lexi_l1c-photons_0000000000_v01.cdf" CDF.
 ! Generated: Friday, 01-Aug-2025 12:59:33
 ! CDF created/modified by CDF V3.9.1
 ! Skeleton table created by CDF V3.9.1_0
 
 #header
 
-                       CDF NAME: clps-bgm1_lexi_l1c-photons_000000000000_v01.cdf
+                       CDF NAME: clps-bgm1_lexi_l1c-photons_0000000000_v01.cdf
                   DATA ENCODING: NETWORK
                        MAJORITY: COLUMN
                          FORMAT: SINGLE
@@ -53,7 +53,7 @@
 
   "MODS"                1:    CDF_CHAR     { "TBD" } .
 
-  "Logical_file_id"     1:    CDF_CHAR     { "clps-bgm1_lexi_l1c-photons_000000000000_v01" } .
+  "Logical_file_id"     1:    CDF_CHAR     { "clps-bgm1_lexi_l1c-photons_0000000000_v01" } .
 
   "Logical_source"      1:    CDF_CHAR     { "clps-bgm1_lexi_l1c-photons" } .
 
@@ -161,7 +161,7 @@
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
 ! --------          ----     --------  ----  -----  --------  ---------
 
-  "Unix_time"    CDF_INT4      1       0              T
+  "Unix_time"    CDF_REAL8      1       0              T
 
   ! VAR_COMPRESSION: None
   ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
@@ -174,16 +174,16 @@
   ! --------        ----       -----
 
     "FIELDNAM"    CDF_CHAR     { "Time in Unix Epoch" }
-    "VALIDMIN"    CDF_INT4     { 1740902400 }
-    "VALIDMAX"    CDF_INT4     { 1742159748 }
-    "SCALEMIN"    CDF_INT4     { 1740873600 }
-    "SCALEMAX"    CDF_INT4     { 1742169599 }
+    "VALIDMIN"    CDF_REAL8     { 1740902400 }
+    "VALIDMAX"    CDF_REAL8     { 1742159748 }
+    "SCALEMIN"    CDF_REAL8     { 1740873600 }
+    "SCALEMAX"    CDF_REAL8     { 1742169599 }
     "LABLAXIS"    CDF_CHAR     { "Unix Time" }
     "UNITS"       CDF_CHAR     { "s" }
     "MONOTON"     CDF_CHAR     { "INCREASE" }
     "VAR_TYPE"    CDF_CHAR     { "support_data" }
-    "FORMAT"      CDF_CHAR     { "I10" }
-    "FILLVAL"     CDF_INT4     { -2147483648 }
+    "FORMAT"      CDF_CHAR     { "f13.1" }
+    "FILLVAL"     CDF_REAL8    { -1.0E+31 }
     "DEPEND_0"    CDF_CHAR     { "Epoch" }
     "DICT_KEY"    CDF_CHAR     { "time>Unix_time" }
     "CATDESC"     CDF_CHAR     { "Time, centered, in Unix Epoch seconds" }
@@ -220,7 +220,7 @@
     "LABLAXIS"    CDF_CHAR     { "X MCP" }
     "UNITS"       CDF_CHAR     { "cm" }
     "VAR_TYPE"    CDF_CHAR     { "data" }
-    "FORMAT"      CDF_CHAR     { "f7.1" }
+    "FORMAT"      CDF_CHAR     { "f10.1" }
     "FILLVAL"     CDF_REAL4    { -1.0E+31 }
     "DEPEND_0"    CDF_CHAR     { "Epoch" }
     "DICT_KEY"    CDF_CHAR     { "position>photon_x_mcp" }
@@ -259,7 +259,7 @@
     "LABLAXIS"    CDF_CHAR     { "Y MCP" }
     "UNITS"       CDF_CHAR     { "cm" }
     "VAR_TYPE"    CDF_CHAR     { "data" }
-    "FORMAT"      CDF_CHAR     { "f7.1" }
+    "FORMAT"      CDF_CHAR     { "f10.1" }
     "FILLVAL"     CDF_REAL4    { -1.0E+31 }
     "DEPEND_0"    CDF_CHAR     { "Epoch" }
     "DICT_KEY"    CDF_CHAR     { "position>photon_y_mcp" }
@@ -297,7 +297,7 @@
     "LABLAXIS"    CDF_CHAR     { "RA" }
     "UNITS"       CDF_CHAR     { "deg" }
     "VAR_TYPE"    CDF_CHAR     { "data" }
-    "FORMAT"      CDF_CHAR     { "f7.1" }
+    "FORMAT"      CDF_CHAR     { "f10.1" }
     "FILLVAL"     CDF_REAL8    { -1.0E+31 }
     "DEPEND_0"    CDF_CHAR     { "Epoch" }
     "DICT_KEY"    CDF_CHAR     { "position>photon_RA" }
@@ -335,7 +335,7 @@
     "LABLAXIS"    CDF_CHAR     { "DEC" }
     "UNITS"       CDF_CHAR     { "deg" }
     "VAR_TYPE"    CDF_CHAR     { "data" }
-    "FORMAT"      CDF_CHAR     { "f7.1" }
+    "FORMAT"      CDF_CHAR     { "f10.1" }
     "FILLVAL"     CDF_REAL8    { -1.0E+31 }
     "DEPEND_0"    CDF_CHAR     { "Epoch" }
     "DICT_KEY"    CDF_CHAR     { "position>photon_Dec" }
@@ -374,7 +374,7 @@
     "LABLAXIS"    CDF_CHAR     { "Azimuth" }
     "UNITS"       CDF_CHAR     { "deg" }
     "VAR_TYPE"    CDF_CHAR     { "data" }
-    "FORMAT"      CDF_CHAR     { "f7.1" }
+    "FORMAT"      CDF_CHAR     { "f10.1" }
     "FILLVAL"     CDF_REAL8    { -1.0E+31 }
     "DEPEND_0"    CDF_CHAR     { "Epoch" }
     "DICT_KEY"    CDF_CHAR     { "position>photon_az" }
@@ -414,7 +414,7 @@
     "LABLAXIS"    CDF_CHAR     { "Elevation" }
     "UNITS"       CDF_CHAR     { "deg" }
     "VAR_TYPE"    CDF_CHAR     { "data" }
-    "FORMAT"      CDF_CHAR     { "f7.1" }
+    "FORMAT"      CDF_CHAR     { "f10.1" }
     "FILLVAL"     CDF_REAL8    { -1.0E+31 }
     "DEPEND_0"    CDF_CHAR     { "Epoch" }
     "DICT_KEY"    CDF_CHAR     { "position>photon_el" }
@@ -435,7 +435,7 @@
 ! --------          ----     --------  ----  -----  --------  ---------
 
   "lexi_counts_per_sec"
-                  CDF_INT4      1       0              T
+                  CDF_REAL8      1       0              T
 
   ! VAR_COMPRESSION: None
   ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
@@ -448,15 +448,15 @@
   ! --------        ----       -----
 
     "FIELDNAM"    CDF_CHAR     { "Counts per second" }
-    "VALIDMIN"    CDF_INT4     { 0 }
-    "VALIDMAX"    CDF_INT4     { 1000000 }
-    "SCALEMIN"    CDF_INT4     { 0 }
-    "SCALEMAX"    CDF_INT4     { 1000000 }
+    "VALIDMIN"    CDF_REAL8     { 0 }
+    "VALIDMAX"    CDF_REAL8     { 1000000 }
+    "SCALEMIN"    CDF_REAL8     { 0 }
+    "SCALEMAX"    CDF_REAL8     { 1000000 }
     "LABLAXIS"    CDF_CHAR     { "Counts per Second" }
     "UNITS"       CDF_CHAR     { "counts" }
     "VAR_TYPE"    CDF_CHAR     { "data" }
-    "FORMAT"      CDF_CHAR     { "I10" }
-    "FILLVAL"     CDF_INT4     { -1E+31 }
+    "FORMAT"      CDF_CHAR     { "f10.1" }
+    "FILLVAL"     CDF_REAL8     { -1.0E+31 }
     "DEPEND_0"    CDF_CHAR     { "Epoch" }
     "DICT_KEY"    CDF_CHAR     { "counts>lexi_counts_per_sec" }
     "CATDESC"     CDF_CHAR     { "Counts per second as observed by LEXI in its" -
@@ -501,7 +501,13 @@
     "AVG_TYPE"    CDF_CHAR     { " " }
     "DISPLAY_TYPE"
                   CDF_CHAR     { "time_series" }
-    "VAR_NOTES"   CDF_CHAR     { " " }
+    "VAR_NOTES"   CDF_CHAR     { "This is the time for the spacecraft ephemeris data." -
+                                 "The extent of the ephemeris times is the same as the " -
+                                 "extent of the photon data, but the cadence of the " -
+                                 "ephemeris data is 10 minutes. One should use this " -
+                                 "variable to properly interpret other spacecraft " -
+                                 "position variables and lunar position variables " -
+                                 "as well as thje solar zenith angle." }
     "TIME_BASE"   CDF_CHAR     { "0 AD" } .
 
   ! RV values were not requested.
@@ -631,47 +637,6 @@
 
   ! RV values were not requested.
 
-! Variable          Data      Number                 Record   Dimension
-! Name              Type     Elements  Dims  Sizes  Variance  Variances
-! --------          ----     --------  ----  -----  --------  ---------
-
-  "sza"
-                  CDF_REAL4      1       0              T
-  
-  ! VAR_COMPRESSION: None
-  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
-  ! VAR_SPARSERECORDS: None
-  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
-  ! VAR_PADVALUE: -1.0E+30
-
-  ! Attribute       Data
-  ! Name            Type       Value
-  ! --------        ----       -----
-
-    "FIELDNAM"    CDF_CHAR     { "Solar zenith angle at LEXI location" }
-    "VALIDMIN"    CDF_REAL4    { -90.0 }
-    "VALIDMAX"    CDF_REAL4    { 90.0 }
-    "SCALEMIN"    CDF_REAL4    { -90.0 }
-    "SCALEMAX"    CDF_REAL4    { 90.0 }
-    "LABLAXIS"    CDF_CHAR     { "Solar Zenith Angle" }
-    "UNITS"       CDF_CHAR     { "deg" }
-    "VAR_TYPE"    CDF_CHAR     { "support_data" }
-    "FORMAT"      CDF_CHAR     { "f7.1" }
-    "FILLVAL"     CDF_REAL4    { -1.0E+31 }
-    "DEPEND_0"    CDF_CHAR     { "lexi_sc_eph_epoch" }
-    "DICT_KEY"    CDF_CHAR     { "spacecraft_position>sza" }
-    "CATDESC"     CDF_CHAR     { "Solar zenith angle at landing location, scalar" }
-    "AVG_TYPE"    CDF_CHAR     { " " }
-    "DISPLAY_TYPE"
-                  CDF_CHAR     { "time_series" }
-    "VAR_NOTES"   CDF_CHAR     { "The solar zenith angle is computed at the " -
-                                 "landing location. The landing site is located " -
-                                 "at Lunar Latitude and Longitude of " -
-                                 "(18.56, 61.81) degrees" } .
-
-  ! RV values were not requested.
-
-
 
 ! Variable          Data      Number                 Record   Dimension
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
@@ -689,8 +654,8 @@
   ! Attribute       Data
   ! Name            Type       Value
   ! --------        ----       -----
-    "FIELDNAM"    CDF_CHAR     { "x-component of Moon position in GSE " -
-                                 "coordinates" }
+
+    "FIELDNAM"    CDF_CHAR     { "x-component of Moon position in GSE coordinates" }
     "VALIDMIN"    CDF_REAL8    { -1.0E+06 }
     "VALIDMAX"    CDF_REAL8    { 1.0E+06 }
     "SCALEMIN"    CDF_REAL4    { -1.0E+06 }
@@ -701,7 +666,7 @@
     "FORMAT"      CDF_CHAR     { "f10.1" }
     "FILLVAL"     CDF_REAL8    { -1.0E+31 }
     "DEPEND_0"    CDF_CHAR     { "lexi_sc_eph_epoch" }
-    "DICT_KEY"    CDF_CHAR     { "moon_position>moon_pos_gse_x" }
+    "DICT_KEY"    CDF_CHAR     { "lunar_position>moon_pos_gse_x" }
     "CATDESC"     CDF_CHAR     { "Moon position in GSE coordinates, scalar" }
     "AVG_TYPE"    CDF_CHAR     { " " }
     "DISPLAY_TYPE"
@@ -711,6 +676,11 @@
                                  "interpret these values." } .
 
   ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
 
 ! Variable          Data      Number                 Record   Dimension
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
@@ -729,8 +699,7 @@
   ! Name            Type       Value
   ! --------        ----       -----
 
-    "FIELDNAM"    CDF_CHAR     { "y-component of Moon position in GSE " -
-                                 "coordinates" }
+    "FIELDNAM"    CDF_CHAR     { "y-component of Moon position in GSE coordinates" }
     "VALIDMIN"    CDF_REAL8    { -1.0E+06 }
     "VALIDMAX"    CDF_REAL8    { 1.0E+06 }
     "SCALEMIN"    CDF_REAL4    { -1.0E+06 }
@@ -741,7 +710,7 @@
     "FORMAT"      CDF_CHAR     { "f10.1" }
     "FILLVAL"     CDF_REAL8    { -1.0E+31 }
     "DEPEND_0"    CDF_CHAR     { "lexi_sc_eph_epoch" }
-    "DICT_KEY"    CDF_CHAR     { "moon_position>moon_pos_gse_y" }
+    "DICT_KEY"    CDF_CHAR     { "lunar_position>moon_pos_gse_y" }
     "CATDESC"     CDF_CHAR     { "Moon position in GSE coordinates, scalar" }
     "AVG_TYPE"    CDF_CHAR     { " " }
     "DISPLAY_TYPE"
@@ -751,6 +720,7 @@
                                  "interpret these values." } .
 
   ! RV values were not requested.
+
 
 ! Variable          Data      Number                 Record   Dimension
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
@@ -769,8 +739,7 @@
   ! Name            Type       Value
   ! --------        ----       -----
 
-    "FIELDNAM"    CDF_CHAR     { "z-component of Moon position in GSE " -
-                                 "coordinates" }
+    "FIELDNAM"    CDF_CHAR     { "z-component of Moon position in GSE coordinates" }
     "VALIDMIN"    CDF_REAL8    { -1.0E+06 }
     "VALIDMAX"    CDF_REAL8    { 1.0E+06 }
     "SCALEMIN"    CDF_REAL4    { -1.0E+06 }
@@ -781,7 +750,7 @@
     "FORMAT"      CDF_CHAR     { "f10.1" }
     "FILLVAL"     CDF_REAL8    { -1.0E+31 }
     "DEPEND_0"    CDF_CHAR     { "lexi_sc_eph_epoch" }
-    "DICT_KEY"    CDF_CHAR     { "moon_position>moon_pos_gse_z" }
+    "DICT_KEY"    CDF_CHAR     { "lunar_position>moon_pos_gse_z" }
     "CATDESC"     CDF_CHAR     { "Moon position in GSE coordinates, scalar" }
     "AVG_TYPE"    CDF_CHAR     { " " }
     "DISPLAY_TYPE"
@@ -791,5 +760,47 @@
                                  "interpret these values." } .
 
   ! RV values were not requested.
+
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "sza"           CDF_REAL8      1       0              T
+
+  ! VAR_COMPRESSION: None
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -1.0E+30
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "Solar zenith angle at LEXI location" }
+    "VALIDMIN"    CDF_REAL8    { -90.0 }
+    "VALIDMAX"    CDF_REAL8    { 90.0 }
+    "SCALEMIN"    CDF_REAL4    { -90.0 }
+    "SCALEMAX"    CDF_REAL4    { 90.0 }
+    "LABLAXIS"    CDF_CHAR     { "Solar Zenith Angle" }
+    "UNITS"       CDF_CHAR     { "degrees" }
+    "VAR_TYPE"    CDF_CHAR     { "support_data" }
+    "FORMAT"      CDF_CHAR     { "f10.1" }
+    "FILLVAL"     CDF_REAL8    { -1.0E+31 }
+    "DEPEND_0"    CDF_CHAR     { "lexi_sc_eph_epoch" }
+    "DICT_KEY"    CDF_CHAR     { "solar_zenith_angle>sza" }
+    "CATDESC"     CDF_CHAR     { "Solar zenith angle at the landing site, scalar" }
+    "AVG_TYPE"    CDF_CHAR     { " " }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VAR_NOTES"   CDF_CHAR     { "The solar zenith angle is computed at the " -
+                                 "landing location. The landing site is located " -
+                                 "at Lunar Latitude and Longitude of " -
+                                 "(18.56, 61.81) degrees" } .
+
+  ! RV values were not requested.
+
 
 #end

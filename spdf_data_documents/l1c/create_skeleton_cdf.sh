@@ -1,0 +1,1 @@
+skeletoncdf -nolog -report "errors,warnings" -delete -cdf clps-bgm1_lexi_l1c-photons_0000000000_v01.cdf   "clps-bgm1_lexi_l1c-photons_0000000000_v01.skt"
