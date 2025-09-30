@@ -289,7 +289,7 @@
   ! Name            Type       Value
   ! --------        ----       -----
 
-    "FIELDNAM"    CDF_CHAR     { "Photon position in J2000 coordinates" }
+    "FIELDNAM"    CDF_CHAR     { "Right Ascension in J2000 frame" }
     "VALIDMIN"    CDF_REAL8    { 0.0 }
     "VALIDMAX"    CDF_REAL8    { 360.0 }
     "SCALEMIN"    CDF_REAL4    { 0.0 }
@@ -301,8 +301,9 @@
     "FILLVAL"     CDF_REAL8    { -1.0E+31 }
     "DEPEND_0"    CDF_CHAR     { "Epoch" }
     "DICT_KEY"    CDF_CHAR     { "position>photon_RA" }
-    "CATDESC"     CDF_CHAR     { "Photon position in J2000 coordinates, " -
-                                 "scalar" }
+    "CATDESC"     CDF_CHAR     { "Right Ascension angle of measured " -
+                                 "photon in J2000 frame centered on LEXI" -
+                                 ", scalar." }
     "AVG_TYPE"    CDF_CHAR     { " " }
     "DISPLAY_TYPE"
                   CDF_CHAR     { "time_series" }
@@ -327,7 +328,7 @@
   ! Name            Type       Value
   ! --------        ----       -----
 
-    "FIELDNAM"    CDF_CHAR     { "Photon position in J2000 coordinates" }
+    "FIELDNAM"    CDF_CHAR     { "Declination in J2000 frame" }
     "VALIDMIN"    CDF_REAL8    { -90.0 }
     "VALIDMAX"    CDF_REAL8    { 90.0 }
     "SCALEMIN"    CDF_REAL4    { -90.0 }
@@ -339,8 +340,8 @@
     "FILLVAL"     CDF_REAL8    { -1.0E+31 }
     "DEPEND_0"    CDF_CHAR     { "Epoch" }
     "DICT_KEY"    CDF_CHAR     { "position>photon_Dec" }
-    "CATDESC"     CDF_CHAR     { "Photon position in J2000 coordinates, " -
-                                 "scalar" }
+    "CATDESC"     CDF_CHAR     { "Declination angle of measured photon in " -
+                                 "J2000 frame centered on LEXI, scalar." }
     "AVG_TYPE"    CDF_CHAR     { " " }
     "DISPLAY_TYPE"
                   CDF_CHAR     { "time_series" }
@@ -378,13 +379,15 @@
     "FILLVAL"     CDF_REAL8    { -1.0E+31 }
     "DEPEND_0"    CDF_CHAR     { "Epoch" }
     "DICT_KEY"    CDF_CHAR     { "position>photon_az" }
-    "CATDESC"     CDF_CHAR     { "Photon azimuth angle in the local " -
-                                 "topocentric coordinates, scalar" }
+    "CATDESC"     CDF_CHAR     { "Azimuth angle of the measured photon " -
+                                 "in the local topocentric frame" -
+                                 ", scalar." }
     "AVG_TYPE"    CDF_CHAR     { " " }
     "DISPLAY_TYPE"
                   CDF_CHAR     { "time_series" }
-    "VAR_NOTES"   CDF_CHAR     { "The zero azimuth angle is north (0 deg)" -
-                                 "and increases clockwise." } .
+    "VAR_NOTES"   CDF_CHAR     { "The local topocentric frame is centered" -
+                                 " on LEXI and is defined with the azimuth" -
+                                 " angle measured from North, through East ." }
 
   ! RV values were not requested.
 
@@ -418,13 +421,16 @@
     "FILLVAL"     CDF_REAL8    { -1.0E+31 }
     "DEPEND_0"    CDF_CHAR     { "Epoch" }
     "DICT_KEY"    CDF_CHAR     { "position>photon_el" }
-    "CATDESC"     CDF_CHAR     { "Photon elevation angle in the local " -
-                                 "topocentric coordinates, scalar" }
+    "CATDESC"     CDF_CHAR     { "Elevation angle of the measured photon " -
+                                 "in the local topocentric frame" -
+                                 ", scalar." }
     "AVG_TYPE"    CDF_CHAR     { " " }
     "DISPLAY_TYPE"
                   CDF_CHAR     { "time_series" }
-    "VAR_NOTES"   CDF_CHAR     { "The elevation angle is 0 deg at the " -
-                                 "horizon and +90 deg at the zenith." } .
+    "VAR_NOTES"   CDF_CHAR     { "The local topocentric frame is centered" -
+                                 " on LEXI and is defined with the elevation" -
+                                 " angle measured positive towards zenith with 0" -
+                                 " degrees at the local horizon." }
 
   ! RV values were not requested.
 

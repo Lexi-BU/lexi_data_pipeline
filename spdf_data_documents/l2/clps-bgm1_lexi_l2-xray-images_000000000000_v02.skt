@@ -435,7 +435,7 @@
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
 ! --------          ----     --------  ----  -----  --------  ---------
 
-  "galactic_background_map"
+  "cosmic_background_map"
                   CDF_REAL4      1       2   91 91      T        T T
 
   ! VAR_COMPRESSION: None
@@ -461,13 +461,13 @@
     "DEPEND_0"    CDF_CHAR     { "epoch_start" }
     "DEPEND_1"    CDF_CHAR     { "ra_bin" }
     "DEPEND_2"    CDF_CHAR     { "dec_bin" }
-    "DICT_KEY"    CDF_CHAR     { "image>galactic_background_map" }
+    "DICT_KEY"    CDF_CHAR     { "image>cosmic_background_map" }
     "DISPLAY_TYPE"
                   CDF_CHAR     { "image" }
-    "CATDESC"     CDF_CHAR     { "Galactic background counts per (RA, " -
+    "CATDESC"     CDF_CHAR     { "Cosmic background counts per (RA, " -
                                  "Dec) pixel." }
-    "VAR_NOTES"   CDF_CHAR     { " Galactic background counts, typically" -
-                                 " small compared to the lexi_histogram." } .
+    "VAR_NOTES"   CDF_CHAR     { " Cosmic background counts, typically" -
+                                 " small compared to the lexi image counts." } .
 
   ! RV values were not requested.
 
@@ -508,7 +508,7 @@
     "CATDESC"     CDF_CHAR     { "Dark background counts per (RA, Dec) " -
                                  "pixel." }
     "VAR_NOTES"   CDF_CHAR     { " Dark background counts, typically " -
-                                 "small compared to the lexi_histogram. Can " -
+                                 "small compared to the lexi image counts. Can " -
                                  "be used as uncertainty in each pixel." } .
 
   ! RV values were not requested.
@@ -550,9 +550,9 @@
     "CATDESC"     CDF_CHAR     { "Total background counts per (RA, Dec) " -
                                  "pixel." }
     "VAR_NOTES"   CDF_CHAR     { " Total background counts, typically " -
-                                 "small compared to the lexi_histogram. This " -
-                                 "is sum of galactic and dark " -
-                                 "background." } .
+                                 "small compared to the lexi image counts. This " -
+                                 "is sum of cosmic and dark " -
+                                 "backgrounds." } .
 
   ! RV values were not requested.
 
@@ -561,7 +561,7 @@
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
 ! --------          ----     --------  ----  -----  --------  ---------
 
-  "lexi_histogram"     CDF_REAL4      1       2   91 91      T        T T
+  "lexi_image"     CDF_REAL4      1       2   91 91      T        T T
 
   ! VAR_COMPRESSION: None
   ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
@@ -586,7 +586,7 @@
     "DEPEND_0"    CDF_CHAR     { "epoch_start" }
     "DEPEND_1"    CDF_CHAR     { "ra_bin" }
     "DEPEND_2"    CDF_CHAR     { "dec_bin" }
-    "DICT_KEY"    CDF_CHAR     { "image>lexi_histogram" }
+    "DICT_KEY"    CDF_CHAR     { "image>lexi_image" }
     "DISPLAY_TYPE"
                   CDF_CHAR     { "image" }
     "CATDESC"     CDF_CHAR     { "LEXI counts per (RA, Dec) pixel per " -
@@ -601,7 +601,7 @@
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
 ! --------          ----     --------  ----  -----  --------  ---------
 
-  "lexi_histogram_background_corrected"
+  "lexi_image_background_corrected"
                   CDF_REAL4      1       2   91 91      T        T T
 
   ! VAR_COMPRESSION: None
@@ -628,8 +628,7 @@
     "DEPEND_0"    CDF_CHAR     { "epoch_start" }
     "DEPEND_1"    CDF_CHAR     { "ra_bin" }
     "DEPEND_2"    CDF_CHAR     { "dec_bin" }
-    "DICT_KEY"    CDF_CHAR     { "image>lexi_histogram_background_correc" -
-                                 "ted" }
+    "DICT_KEY"    CDF_CHAR     { "image>lexi_image_background_corrected" }
     "DISPLAY_TYPE"
                   CDF_CHAR     { "image" }
     "CATDESC"     CDF_CHAR     { "LEXI counts per (RA, Dec) pixel per " -
@@ -644,7 +643,7 @@
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
 ! --------          ----     --------  ----  -----  --------  ---------
 
-  "lexi_histogram_background_flatfield_corrected"
+  "lexi_image_background_flatfield_corrected"
                   CDF_REAL4      1       2   91 91      T        T T
 
   ! VAR_COMPRESSION: None
@@ -671,8 +670,7 @@
     "DEPEND_0"    CDF_CHAR     { "epoch_start" }
     "DEPEND_1"    CDF_CHAR     { "ra_bin" }
     "DEPEND_2"    CDF_CHAR     { "dec_bin" }
-    "DICT_KEY"    CDF_CHAR     { "image>lexi_histogram_background_flatfi" -
-                                 "eld_corrected" }
+    "DICT_KEY"    CDF_CHAR     { "image>lexi_image_background_flatfield_corrected" }
     "DISPLAY_TYPE"
                   CDF_CHAR     { "image" }
     "CATDESC"     CDF_CHAR     { "LEXI counts per (RA, Dec) pixel per " -
