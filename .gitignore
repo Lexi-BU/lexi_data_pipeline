@@ -165,6 +165,7 @@ cython_debug/
 # Ignore the data folder
 data/*
 figures/*
+pipeline/figures/*
 movies/*
 cfitsio-4.6.2/
 

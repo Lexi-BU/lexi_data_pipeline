@@ -5,6 +5,7 @@ import math
 import pickle
 from pathlib import Path
 
+import convert_radec_to_azel as cradecazel
 import get_flat_field_data as gffd
 import get_lexi_l1c_data as gl1c
 import matplotlib as mpl
@@ -20,6 +21,7 @@ from spacepy.pycdf import CDF as cdf
 importlib.reload(gl1c)
 importlib.reload(gffd)
 importlib.reload(sdtc)
+importlib.reload(cradecazel)
 
 
 # Define a list of global variables
@@ -1011,29 +1013,29 @@ def save_lexi_results(data: dict, output_dir: str = "/mnt/cephadrius/bu_research
 
     selected_data["exposure_map"] = data["exposure_at_centers_sec"]
     selected_data["flat_field_map"] = data["flat_field_hist_norm"]
-    selected_data["galactic_background_map"] = data["expected_galactic_bg_counts"]
+    selected_data["cosmic_background_map"] = data["expected_galactic_bg_counts"]
     selected_data["dark_background_map"] = data["expected_dark_bg_counts"]
     selected_data["total_background_map"] = data["galactic_counts"]
-    selected_data["lexi_histogram"] = (
-        data["lexi_histogram_raw"] / data["exposure_at_centers_sec"][:, :]
-    )
-    selected_data["lexi_histogram_background_corrected"] = (
+    selected_data["pixel_area"] = data["pixel_area_arcmin2"]
+    selected_data["lexi_image"] = data["lexi_histogram_raw"] / data["exposure_at_centers_sec"][:, :]
+    selected_data["lexi_image_background_corrected"] = (
         data["lexi_hist_bgnd_corrected"] / data["exposure_at_centers_sec"][:, :]
     )
-    selected_data["lexi_histogram_background_flatfield_corrected"] = (
+    selected_data["lexi_image_background_flatfield_corrected"] = (
         data["lexi_flat_corrected_hist"] / data["exposure_at_centers_sec"][:, :]
     )
 
     # Selected keys
     selected_keys = [
         # "exposure_map",
+        "pixel_area",
         "flat_field_map",
-        "galactic_background_map",
+        "cosmic_background_map",
         "dark_background_map",
         "total_background_map",
-        "lexi_histogram",
-        "lexi_histogram_background_corrected",
-        "lexi_histogram_background_flatfield_corrected",
+        "lexi_image",
+        "lexi_image_background_corrected",
+        "lexi_image_background_flatfield_corrected",
     ]
 
     # Create a mask of bins where exposure is greater than zero, and only select those bins
@@ -1048,8 +1050,49 @@ def save_lexi_results(data: dict, output_dir: str = "/mnt/cephadrius/bu_research
     selected_data["ra_bin_map"] = data["ra_center_map"]
     selected_data["dec_bin_map"] = data["dec_center_map"]
 
+    # Get the az-el epoch as the time between the start and end times
+    az_el_epoch = (
+        data["time_range"][0] + (data["time_range"][1] - data["time_range"][0]) / 2
+    ).to_pydatetime()
+    # Convert RA/Dec bin edges to azimuth/elevation bin edges
+    az_bin_edges, el_bin_edges = cradecazel.radec_to_azel_array(
+        ra_array=data["ra_edges"], dec_array=data["dec_edges"], epoch=az_el_epoch
+    )
+    selected_data["az_bin"] = 0.5 * (az_bin_edges[:-1] + az_bin_edges[1:])
+    selected_data["el_bin"] = 0.5 * (el_bin_edges[:-1] + el_bin_edges[1:])
+    selected_data["az_bin_map"], selected_data["el_bin_map"] = cradecazel.radec_to_azel_grid(
+        ra_grid=data["ra_center_map"],
+        dec_grid=data["dec_center_map"],
+        epoch=az_el_epoch,
+    )
+    # Declare the data types for each variable
+    data_format_dict_lexi_l2 = {
+        "ra_bin": np.float32,
+        "dec_bin": np.float32,
+        "ra_bin_map": np.float32,
+        "dec_bin_map": np.float32,
+        "az_bin": np.float32,
+        "el_bin": np.float32,
+        "az_bin_map": np.float32,
+        "el_bin_map": np.float32,
+        "pixel_area": np.float32,
+        "exposure_map": np.float32,
+        "flat_field_map": np.float32,
+        "cosmic_background_map": np.float32,
+        "dark_background_map": np.float32,
+        "total_background_map": np.float32,
+        "lexi_image": np.float32,
+        "lexi_image_background_corrected": np.float32,
+        "lexi_image_background_flatfield_corrected": np.float32,
+    }
+    formatted_selected_data = {}
+    for k in data_format_dict_lexi_l2.keys():
+        formatted_selected_data[k] = selected_data[k].astype(data_format_dict_lexi_l2[k])
+    formatted_selected_data["epoch_start"] = selected_data["epoch_start"]
+    formatted_selected_data["epoch_end"] = selected_data["epoch_end"]
+    # return formatted_selected_data
     cdf_file = sdtc.save_data_to_cdf(
-        data=selected_data,
+        data=formatted_selected_data,
         output_dir=output_dir,
     )
     return cdf_file

@@ -387,7 +387,7 @@
                   CDF_CHAR     { "time_series" }
     "VAR_NOTES"   CDF_CHAR     { "The local topocentric frame is centered" -
                                  " on LEXI and is defined with the azimuth" -
-                                 " angle measured from North, through East ." }
+                                 " angle measured from North, through East ." } .
 
   ! RV values were not requested.
 
@@ -430,7 +430,7 @@
     "VAR_NOTES"   CDF_CHAR     { "The local topocentric frame is centered" -
                                  " on LEXI and is defined with the elevation" -
                                  " angle measured positive towards zenith with 0" -
-                                 " degrees at the local horizon." }
+                                 " degrees at the local horizon." } .
 
   ! RV values were not requested.
 

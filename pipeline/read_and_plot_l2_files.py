@@ -32,7 +32,9 @@ def keep_highest_versions(paths):
 
 
 # Example
-all_l2_files = sorted(glob.glob("/mnt/cephadrius/bu_research/lexi_data/l2/clps*.cdf"))
+all_l2_files = sorted(
+    glob.glob("/mnt/cephadrius/bu_research/lexi_data/l2/clps-bgm1_lexi_l2-images*.cdf")
+)
 l2_files = keep_highest_versions(all_l2_files)
 
 
@@ -192,6 +194,75 @@ def plot_on_ra_dec(
     return pm
 
 
+def plot_on_az_el(
+    ax,
+    az_corners,
+    el_corners,
+    data,
+    title=None,
+    cbar_title=None,
+    time_range=None,
+    vmin=None,
+    vmax=None,
+    norm="linear",
+):
+    if norm == "linear":
+        norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
+    elif norm == "log":
+        if vmin is None:
+            vmin = np.nanmin(data) if np.nanmin(data) > 0 else 1e-3 * np.nanmax(data)
+        if vmax is None:
+            vmax = np.nanmax(data)
+        norm = mpl.colors.LogNorm(vmin=vmin, vmax=vmax)
+    else:
+        norm = None
+
+    pm = ax.pcolormesh(
+        az_corners,
+        el_corners,
+        data,
+        shading="auto",
+        cmap="plasma",
+        norm=norm,
+    )
+    ax.set_xlabel("Az [deg]")
+    ax.set_ylabel("El [deg]")
+    ax.set_title(title)
+    time_range = pd.to_datetime(time_range, utc=True)
+
+    ax.set_aspect("equal", adjustable="box")
+
+    # Make the colorbar (no 'label=' here)
+    cbar = plt.colorbar(pm, ax=ax, orientation="vertical", fraction=0.046, pad=0.00)
+    # Force scientific notation with offset at the top
+    formatter = ScalarFormatter(useMathText=True)
+    formatter.set_scientific(True)
+    cbar.ax.yaxis.set_major_formatter(formatter)
+    cbar.ax.yaxis.set_minor_formatter(plt.NullFormatter())
+    cbar.ax.yaxis.get_offset_text().set(size=14)
+    cbar.ax.yaxis.get_offset_text().set_position((1.15, 1))  # move ×10^n to the top-right
+
+    if cbar_title:
+        cbar.ax.text(
+            0.5,
+            0.5,
+            cbar_title,
+            transform=cbar.ax.transAxes,
+            ha="center",
+            va="center",
+            rotation=90,
+            color="white",
+            fontsize=12,
+            fontweight="bold",
+            bbox=dict(facecolor="black", alpha=0.25, pad=2, edgecolor="none"),
+        )
+
+    # Set the x and y-axis limits
+    ax.set_xlim(264.5, 275)
+    ax.set_ylim(19.75, 29.75)
+    return pm
+
+
 def overlay_ra_dec_contours(ax, ra_c, dec_c, n_ra=7, n_dec=7, **kw):
     ra_levels = np.linspace(np.nanmin(ra_c), np.nanmax(ra_c), n_ra)
     dec_levels = np.linspace(np.nanmin(dec_c), np.nanmax(dec_c), n_dec)
@@ -201,14 +272,23 @@ def overlay_ra_dec_contours(ax, ra_c, dec_c, n_ra=7, n_dec=7, **kw):
     ax.contour(dec_c, levels=dec_levels, colors="w", linewidths=0.5, alpha=0.4, extent=None)
 
 
+def overlay_az_el_contours(ax, az_c, el_c, n_az=7, n_el=7, **kw):
+    az_levels = np.linspace(np.nanmin(az_c), np.nanmax(az_c), n_az)
+    el_levels = np.linspace(np.nanmin(el_c), np.nanmax(el_c), n_el)
+    ax.contour(
+        az_c, levels=az_levels, colors="k", linewidths=0.5, alpha=0.4, extent=None
+    )  # drawn in pixel coords for quick look
+    ax.contour(el_c, levels=el_levels, colors="w", linewidths=0.5, alpha=0.4, extent=None)
+
+
 warnings.filterwarnings("ignore")
 keys_to_plot = [
     "exposure_map",
     "flat_field_map",
-    "background_map",
-    "lexi_hist",
-    "lexi_histogram_bgnd_corrected",
-    "lexi_histogram_bgnd_flat_corrected",
+    "cosmic_background_map",
+    "lexi_image",
+    "lexi_image_bgnd_corrected",
+    "lexi_image_bgnd_flat_corrected",
 ]
 
 
@@ -218,9 +298,12 @@ for i, f in enumerate(l2_files[:]):
     print(f"Reading file: {f}, {i + 1} out of {len(l2_files)}", end="\r")
     ra_c = np.asarray(dat["ra_bin_map"][...])[0]
     dec_c = np.asarray(dat["dec_bin_map"][...])[0]
+    az_c = np.asarray(dat["az_bin_map"][...])[0]
+    el_c = np.asarray(dat["el_bin_map"][...])[0]
     time_range = [dat["epoch_start"][...][0], dat["epoch_end"][...][0]]
 
     RAcorn, DECcorn = centers_to_corners_2d(ra_c, dec_c)
+    AZcorn, ELcorn = centers_to_corners_2d(az_c, el_c)
     # Plot the exposure maps and counts
     fig, axs = plt.subplots(2, 3, figsize=(20, 12), constrained_layout=True)
     # Set the hspace and wspace
@@ -269,7 +352,7 @@ for i, f in enumerate(l2_files[:]):
         axs[1, 0],
         RAcorn,
         DECcorn,
-        np.asarray(dat["lexi_histogram"][...])[0],
+        np.asarray(dat["lexi_image"][...])[0],
         time_range=time_range,
         title="Raw Counts",
         cbar_title="Counts/s/$deg^2$",
@@ -281,7 +364,7 @@ for i, f in enumerate(l2_files[:]):
         axs[1, 1],
         RAcorn,
         DECcorn,
-        np.asarray(dat["lexi_histogram_background_corrected"][...])[0],
+        np.asarray(dat["lexi_image_background_corrected"][...])[0],
         time_range=time_range,
         title="Background-Corrected Counts",
         cbar_title="Counts/s/$deg^2$",
@@ -294,7 +377,7 @@ for i, f in enumerate(l2_files[:]):
         axs[1, 2],
         RAcorn,
         DECcorn,
-        np.asarray(dat["lexi_histogram_background_flatfield_corrected"][...])[0],
+        np.asarray(dat["lexi_image_background_flatfield_corrected"][...])[0],
         time_range=time_range,
         title="Background & Flat-Field Corrected Counts",
         cbar_title="Counts/s/$deg^2$",
@@ -310,7 +393,7 @@ for i, f in enumerate(l2_files[:]):
         )
         ax.set_aspect("equal")
 
-    figure_path = Path("./figures/exposure_maps/bg_corrected/from_l2/new/")
+    figure_path = Path("./figures/exposure_maps/bg_corrected/from_l2/new/ra_dec/")
     figure_path.mkdir(parents=True, exist_ok=True)
     fig.savefig(
         figure_path / (Path(f).stem + "_exposure_and_counts.png"),
@@ -318,4 +401,102 @@ for i, f in enumerate(l2_files[:]):
         bbox_inches="tight",
         pad_inches=0.1,
     )
+    # print("Saved figure:", figure_path / (Path(f).stem + "_exposure_and_counts.png"))
+    plt.close(fig)
+
+    # Plot the exposure maps and counts
+    fig, axs = plt.subplots(2, 3, figsize=(20, 12), constrained_layout=True)
+    # Set the hspace and wspace
+    fig.subplots_adjust(hspace=0.0, wspace=0.0)
+    # Set the default font size
+    mpl.rcParams.update({"font.size": 16})
+    fig.suptitle(f"LEXI L2 Data from {Path(f).name}", fontsize=20)
+
+    plot_on_az_el(
+        axs[0, 0],
+        AZcorn,
+        ELcorn,
+        np.asarray(dat["exposure_map"][...])[0],
+        time_range=time_range,
+        title="Exposure Map",
+        cbar_title="Exposure Time [s]",
+        norm="log",
+        vmin=1e0,
+        vmax=3e2,
+    )
+    plot_on_az_el(
+        axs[0, 1],
+        AZcorn,
+        ELcorn,
+        np.asarray(dat["flat_field_map"][...])[0],
+        title="Flat Field Map",
+        cbar_title="Normalized Counts",
+        time_range=time_range,
+        vmin=1e-1,
+        vmax=1e0,
+        norm="log",
+    )
+    plot_on_az_el(
+        axs[0, 2],
+        AZcorn,
+        ELcorn,
+        np.asarray(dat["total_background_map"][...])[0] / np.asarray(dat["exposure_map"][...])[0],
+        title="Background Map",
+        cbar_title="Counts/s/$deg^2$",
+        time_range=time_range,
+        norm="log",
+        vmin=1e-5,
+        vmax=1e-3,
+    )
+    plot_on_az_el(
+        axs[1, 0],
+        AZcorn,
+        ELcorn,
+        np.asarray(dat["lexi_image"][...])[0],
+        time_range=time_range,
+        title="Raw Counts",
+        cbar_title="Counts/s/$deg^2$",
+        norm="log",
+        vmin=1e-3,
+        vmax=1e0,
+    )
+    plot_on_az_el(
+        axs[1, 1],
+        AZcorn,
+        ELcorn,
+        np.asarray(dat["lexi_image_background_corrected"][...])[0],
+        time_range=time_range,
+        title="Background-Corrected Counts",
+        cbar_title="Counts/s/$deg^2$",
+        norm="log",
+        vmin=1e-3,
+        vmax=1e0,
+    )
+    plot_on_az_el(
+        axs[1, 2],
+        AZcorn,
+        ELcorn,
+        np.asarray(dat["lexi_image_background_flatfield_corrected"][...])[0],
+        time_range=time_range,
+        title="Background & Flat-Field Corrected Counts",
+        cbar_title="Counts/s/$deg^2$",
+        norm="log",
+        vmin=1e-3,
+        vmax=1e0,
+    )
+
+    for ax in axs.flatten():
+        ax.contour(AZcorn[:-1, :-1], ELcorn[:-1, :-1], az_c, colors="c", linewidths=0.6, alpha=0.5)
+        ax.contour(AZcorn[:-1, :-1], ELcorn[:-1, :-1], el_c, colors="k", linewidths=0.6, alpha=0.5)
+        ax.set_aspect("equal")
+
+    figure_path = Path("./figures/exposure_maps/bg_corrected/from_l2/new/az_el/")
+    figure_path.mkdir(parents=True, exist_ok=True)
+    fig.savefig(
+        figure_path / (Path(f).stem + "_exposure_and_counts_az_el.png"),
+        dpi=200,
+        bbox_inches="tight",
+        pad_inches=0.1,
+    )
+    # print("Saved figure:", figure_path / (Path(f).stem + "_exposure_and_counts_az_el.png"))
     plt.close(fig)

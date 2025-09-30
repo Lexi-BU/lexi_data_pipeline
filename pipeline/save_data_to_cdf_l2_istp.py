@@ -17,7 +17,7 @@ StrPath = Union[str, Path]
 
 def generate_lexi_cdf_filename(
     start_time: datetime.datetime,
-    logical_source: str = "clps-bgm1_lexi_l2-xray-images",
+    logical_source: str = "clps-bgm1_lexi_l2-images",
     version: int = 0,
     output_dir: Path = Path("."),
 ) -> Path:
@@ -62,7 +62,7 @@ def save_data_to_cdf(
     data: dict = None,
     output_dir: Optional[StrPath] = None,
     version: int = 0,
-    logical_source: str = "clps-bgm1_lexi_l2-xray-images",
+    logical_source: str = "clps-bgm1_lexi_l2-images",
 ):
     """
     Save data to an ISTP-compliant LEXI CDF file.
@@ -76,7 +76,7 @@ def save_data_to_cdf(
     version : int
         Version number as an integer.
     logical_source : str
-        Logical source name, e.g., 'clps-bgm1_lexi_l2-xray-images'.
+        Logical source name, e.g., 'clps-bgm1_lexi_l2-images'.
 
     Returns
     -------
@@ -102,7 +102,7 @@ def save_data_to_cdf(
 
     # Path to the read-only skeleton file
     skeleton_path = Path(
-        "/home/cephadrius/Desktop/git/Lexi-BU/lexi_data_pipeline/spdf_data_documents/l2/clps-bgm1_lexi_l2-xray-images_000000000000_v02.cdf"
+        "/home/cephadrius/Desktop/git/Lexi-BU/lexi_data_pipeline/spdf_data_documents/l2/clps-bgm1_lexi_l2-images_000000000000_v02.cdf"
     )
     if not skeleton_path.exists():
         raise FileNotFoundError(f"Skeleton file not found: {skeleton_path}")
@@ -132,14 +132,19 @@ def save_data_to_cdf(
         "dec_bin",
         "ra_bin_map",
         "dec_bin_map",
+        "az_bin",
+        "el_bin",
+        "az_bin_map",
+        "el_bin_map",
+        "pixel_area",
         "exposure_map",
         "flat_field_map",
-        "galactic_background_map",
+        "cosmic_background_map",
         "dark_background_map",
         "total_background_map",
-        "lexi_histogram",
-        "lexi_histogram_background_corrected",
-        "lexi_histogram_background_flatfield_corrected",
+        "lexi_image",
+        "lexi_image_background_corrected",
+        "lexi_image_background_flatfield_corrected",
     ]
 
     for vname in data_vars:
@@ -152,4 +157,10 @@ def save_data_to_cdf(
     print(f"Saved CDF file: {cdf_file}")
     skeleton_cdf.close()
     cdf_data.close()
+    # Copy the cdf file to
+    # "/home/cephadrius/Desktop/git/Lexi-BU/lexi_data_pipeline/spdf_data_documents/l2/"
+    shutil.copy(
+        cdf_file,
+        "/home/cephadrius/Desktop/git/Lexi-BU/lexi_data_pipeline/spdf_data_documents/l2/",
+    )
     return cdf_file
