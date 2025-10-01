@@ -1007,7 +1007,9 @@ def implement_flat_field_correction(
     return results
 
 
-def save_lexi_results(data: dict, output_dir: str = "/mnt/cephadrius/bu_research/lexi_data/l2"):
+def save_lexi_results(
+    data: dict, output_dir: str = "/mnt/cephadrius/bu_research/lexi_data/l2/1min"
+):
 
     selected_data = {}
 
@@ -1117,7 +1119,7 @@ if read_all_lexi:
         },
     )
 
-delta_time_minutes = 5
+delta_time_minutes = 1
 time_ranges = pd.date_range(start=start_time, end=end_time, freq=f"{delta_time_minutes}min")
 time_ranges = [(str(t), str(t + pd.Timedelta(delta_time_minutes, unit="m"))) for t in time_ranges][
     :-1
@@ -1133,7 +1135,7 @@ spc_df["Epoch"] = pd.to_datetime(spc_df["Epoch"], utc=True)
 spc_df.set_index("Epoch", inplace=True)
 
 recompute = True
-for start, end in time_ranges[:]:
+for start, end in time_ranges[1:]:
     if recompute:
         # Select the dataframe within the time range
         time_range = pd.to_datetime([start, end], utc=True)

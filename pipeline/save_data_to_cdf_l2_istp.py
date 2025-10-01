@@ -159,8 +159,8 @@ def save_data_to_cdf(
     cdf_data.close()
     # Copy the cdf file to
     # "/home/cephadrius/Desktop/git/Lexi-BU/lexi_data_pipeline/spdf_data_documents/l2/"
-    shutil.copy(
-        cdf_file,
-        "/home/cephadrius/Desktop/git/Lexi-BU/lexi_data_pipeline/spdf_data_documents/l2/",
-    )
+    # shutil.copy(
+    #     cdf_file,
+    #     "/home/cephadrius/Desktop/git/Lexi-BU/lexi_data_pipeline/spdf_data_documents/l2/",
+    # )
     return cdf_file
