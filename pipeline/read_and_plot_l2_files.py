@@ -31,13 +31,6 @@ def keep_highest_versions(paths):
     return [best[k][1] for k in sorted(best)]
 
 
-# Example
-all_l2_files = sorted(
-    glob.glob("/mnt/cephadrius/bu_research/lexi_data/l2/clps-bgm1_lexi_l2-images*.cdf")
-)
-l2_files = keep_highest_versions(all_l2_files)
-
-
 def centers_to_corners_2d(ra_c, dec_c):
     """
     ra_c, dec_c: (H, W) center maps in degrees.
@@ -291,6 +284,13 @@ keys_to_plot = [
     "lexi_image_bgnd_flat_corrected",
 ]
 
+# Example
+time_res = "5min"
+all_l2_files = sorted(
+    glob.glob(f"/mnt/cephadrius/bu_research/lexi_data/l2/{time_res}/clps-bgm1_lexi_l2-images*.cdf")
+)
+l2_files = keep_highest_versions(all_l2_files)
+
 
 for i, f in enumerate(l2_files[:]):
     dat = cdf(f)
@@ -312,78 +312,101 @@ for i, f in enumerate(l2_files[:]):
     mpl.rcParams.update({"font.size": 16})
     fig.suptitle(f"LEXI L2 Data from {Path(f).name}", fontsize=20)
 
+    v_min_bgnd = 1e-5
+    v_max_bgnd = 1e-4
+    norm_bgnd = "log"
+
+    v_min_lexi = 3e-5
+    v_max_lexi = 2e-3
+    norm_lexi = "log"
+
     plot_on_ra_dec(
         axs[0, 0],
         RAcorn,
         DECcorn,
-        np.asarray(dat["exposure_map"][...])[0],
+        np.asarray(dat["dark_background_map"][...])[0]
+        / np.asarray(dat["exposure_map"][...])[0]
+        / np.asarray(dat["pixel_area"][...])[0],
         time_range=time_range,
-        title="Exposure Map",
-        cbar_title="Exposure Time [s]",
-        norm="log",
-        vmin=1e0,
-        vmax=3e2,
+        title="Dark Background Map",
+        cbar_title="Counts/s/$deg^2$",
+        norm=norm_bgnd,
+        vmin=v_min_bgnd,
+        vmax=v_max_bgnd,
     )
     plot_on_ra_dec(
         axs[0, 1],
         RAcorn,
         DECcorn,
-        np.asarray(dat["flat_field_map"][...])[0],
-        title="Flat Field Map",
-        cbar_title="Normalized Counts",
+        np.asarray(dat["cosmic_background_map"][...])[0]
+        / np.asarray(dat["exposure_map"][...])[0]
+        / np.asarray(dat["pixel_area"][...])[0],
+        title="Cosmic Background Map",
+        cbar_title="Counts/s/$deg^2$",
         time_range=time_range,
-        vmin=1e-1,
-        vmax=1e0,
-        norm="log",
+        vmin=1e-7,
+        vmax=1e-5,
+        norm=norm_bgnd,
     )
     plot_on_ra_dec(
         axs[0, 2],
         RAcorn,
         DECcorn,
-        np.asarray(dat["total_background_map"][...])[0] / np.asarray(dat["exposure_map"][...])[0],
+        np.asarray(dat["total_background_map"][...])[0]
+        / np.asarray(dat["exposure_map"][...])[0]
+        / np.asarray(dat["pixel_area"][...])[0],
         title="Background Map",
         cbar_title="Counts/s/$deg^2$",
         time_range=time_range,
-        norm="log",
-        vmin=1e-5,
-        vmax=1e-3,
+        norm=norm_bgnd,
+        vmin=v_min_bgnd,
+        vmax=v_max_bgnd,
     )
     plot_on_ra_dec(
         axs[1, 0],
         RAcorn,
         DECcorn,
-        np.asarray(dat["lexi_image"][...])[0],
+        np.asarray(dat["lexi_image"][...])[0]
+        * np.asarray(dat["exposure_map"][...])[0]
+        / np.asarray(dat["exposure_map"][...])[0]
+        / np.asarray(dat["pixel_area"][...])[0],
         time_range=time_range,
         title="Raw Counts",
         cbar_title="Counts/s/$deg^2$",
-        norm="log",
-        vmin=1e-3,
-        vmax=1e0,
+        norm=norm_lexi,
+        vmin=v_min_lexi,
+        vmax=v_max_lexi,
     )
     plot_on_ra_dec(
         axs[1, 1],
         RAcorn,
         DECcorn,
-        np.asarray(dat["lexi_image_background_corrected"][...])[0],
+        np.asarray(dat["lexi_image_background_corrected"][...])[0]
+        * np.asarray(dat["exposure_map"][...])[0]
+        / np.asarray(dat["exposure_map"][...])[0]
+        / np.asarray(dat["pixel_area"][...])[0],
         time_range=time_range,
         title="Background-Corrected Counts",
         cbar_title="Counts/s/$deg^2$",
-        norm="log",
-        vmin=1e-3,
-        vmax=1e0,
+        norm=norm_lexi,
+        vmin=v_min_lexi,
+        vmax=v_max_lexi,
     )
 
     plot_on_ra_dec(
         axs[1, 2],
         RAcorn,
         DECcorn,
-        np.asarray(dat["lexi_image_background_flatfield_corrected"][...])[0],
+        np.asarray(dat["lexi_image_background_flatfield_corrected"][...])[0]
+        * np.asarray(dat["exposure_map"][...])[0]
+        / np.asarray(dat["exposure_map"][...])[0]
+        / np.asarray(dat["pixel_area"][...])[0],
         time_range=time_range,
         title="Background & Flat-Field Corrected Counts",
         cbar_title="Counts/s/$deg^2$",
-        norm="log",
-        vmin=1e-3,
-        vmax=1e0,
+        norm=norm_lexi,
+        vmin=v_min_lexi,
+        vmax=v_max_lexi,
     )
 
     for ax in axs.flatten():
@@ -393,16 +416,17 @@ for i, f in enumerate(l2_files[:]):
         )
         ax.set_aspect("equal")
 
-    figure_path = Path("./figures/exposure_maps/bg_corrected/from_l2/new/ra_dec/")
+    figure_path = Path(f"./figures/exposure_maps/bg_corrected/from_l2/{time_res}/ra_dec/")
     figure_path.mkdir(parents=True, exist_ok=True)
     fig.savefig(
-        figure_path / (Path(f).stem + "_exposure_and_counts.png"),
+        figure_path / (Path(f).stem + "_exposure_and_counts)_ra_dec.png"),
         dpi=200,
         bbox_inches="tight",
         pad_inches=0.1,
     )
     # print("Saved figure:", figure_path / (Path(f).stem + "_exposure_and_counts.png"))
     plt.close(fig)
+    # plt.show()
 
     # Plot the exposure maps and counts
     fig, axs = plt.subplots(2, 3, figsize=(20, 12), constrained_layout=True)
@@ -416,73 +440,88 @@ for i, f in enumerate(l2_files[:]):
         axs[0, 0],
         AZcorn,
         ELcorn,
-        np.asarray(dat["exposure_map"][...])[0],
+        np.asarray(dat["dark_background_map"][...])[0]
+        / np.asarray(dat["exposure_map"][...])[0]
+        / np.asarray(dat["pixel_area"][...])[0],
         time_range=time_range,
-        title="Exposure Map",
-        cbar_title="Exposure Time [s]",
-        norm="log",
-        vmin=1e0,
-        vmax=3e2,
+        title="Dark Background Map",
+        cbar_title="Counts/s/$deg^2$",
+        norm=norm_bgnd,
+        vmin=v_min_bgnd,
+        vmax=v_max_bgnd,
     )
     plot_on_az_el(
         axs[0, 1],
         AZcorn,
         ELcorn,
-        np.asarray(dat["flat_field_map"][...])[0],
-        title="Flat Field Map",
-        cbar_title="Normalized Counts",
+        np.asarray(dat["cosmic_background_map"][...])[0]
+        / np.asarray(dat["exposure_map"][...])[0]
+        / np.asarray(dat["pixel_area"][...])[0],
+        title="Cosmic Background Map",
+        cbar_title="Counts/s/$deg^2$",
         time_range=time_range,
-        vmin=1e-1,
-        vmax=1e0,
-        norm="log",
+        vmin=1e-7,
+        vmax=1e-5,
+        norm=norm_bgnd,
     )
     plot_on_az_el(
         axs[0, 2],
         AZcorn,
         ELcorn,
-        np.asarray(dat["total_background_map"][...])[0] / np.asarray(dat["exposure_map"][...])[0],
+        np.asarray(dat["total_background_map"][...])[0]
+        / np.asarray(dat["exposure_map"][...])[0]
+        / np.asarray(dat["pixel_area"][...])[0],
         title="Background Map",
         cbar_title="Counts/s/$deg^2$",
         time_range=time_range,
-        norm="log",
-        vmin=1e-5,
-        vmax=1e-3,
+        norm=norm_bgnd,
+        vmin=v_min_bgnd,
+        vmax=v_max_bgnd,
     )
     plot_on_az_el(
         axs[1, 0],
         AZcorn,
         ELcorn,
-        np.asarray(dat["lexi_image"][...])[0],
+        np.asarray(dat["lexi_image"][...])[0]
+        * np.asarray(dat["exposure_map"][...])[0]
+        / np.asarray(dat["exposure_map"][...])[0]
+        / np.asarray(dat["pixel_area"][...])[0],
         time_range=time_range,
         title="Raw Counts",
         cbar_title="Counts/s/$deg^2$",
-        norm="log",
-        vmin=1e-3,
-        vmax=1e0,
+        norm=norm_lexi,
+        vmin=v_min_lexi,
+        vmax=v_max_lexi,
     )
     plot_on_az_el(
         axs[1, 1],
         AZcorn,
         ELcorn,
-        np.asarray(dat["lexi_image_background_corrected"][...])[0],
+        np.asarray(dat["lexi_image_background_corrected"][...])[0]
+        * np.asarray(dat["exposure_map"][...])[0]
+        / np.asarray(dat["exposure_map"][...])[0]
+        / np.asarray(dat["pixel_area"][...])[0],
         time_range=time_range,
         title="Background-Corrected Counts",
         cbar_title="Counts/s/$deg^2$",
-        norm="log",
-        vmin=1e-3,
-        vmax=1e0,
+        norm=norm_lexi,
+        vmin=v_min_lexi,
+        vmax=v_max_lexi,
     )
     plot_on_az_el(
         axs[1, 2],
         AZcorn,
         ELcorn,
-        np.asarray(dat["lexi_image_background_flatfield_corrected"][...])[0],
+        np.asarray(dat["lexi_image_background_flatfield_corrected"][...])[0]
+        * np.asarray(dat["exposure_map"][...])[0]
+        / np.asarray(dat["exposure_map"][...])[0]
+        / np.asarray(dat["pixel_area"][...])[0],
         time_range=time_range,
         title="Background & Flat-Field Corrected Counts",
         cbar_title="Counts/s/$deg^2$",
-        norm="log",
-        vmin=1e-3,
-        vmax=1e0,
+        norm=norm_lexi,
+        vmin=v_min_lexi,
+        vmax=v_max_lexi,
     )
 
     for ax in axs.flatten():
@@ -490,7 +529,7 @@ for i, f in enumerate(l2_files[:]):
         ax.contour(AZcorn[:-1, :-1], ELcorn[:-1, :-1], el_c, colors="k", linewidths=0.6, alpha=0.5)
         ax.set_aspect("equal")
 
-    figure_path = Path("./figures/exposure_maps/bg_corrected/from_l2/new/az_el/")
+    figure_path = Path(f"./figures/exposure_maps/bg_corrected/from_l2/{time_res}/az_el/")
     figure_path.mkdir(parents=True, exist_ok=True)
     fig.savefig(
         figure_path / (Path(f).stem + "_exposure_and_counts_az_el.png"),

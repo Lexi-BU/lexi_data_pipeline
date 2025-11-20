@@ -14,6 +14,7 @@ import numpy as np
 import pandas as pd
 import save_data_to_cdf_l2_istp as sdtc
 import scipy as scipy
+import tabulate
 from astropy.io import fits
 from astropy.wcs import WCS
 from spacepy.pycdf import CDF as cdf
@@ -865,10 +866,12 @@ def implement_background_correction(
         # H_raw.shape == (len(ra_edges)-1, len(dec_edges)-1) = (H, W)
         lexi_histogram = H_raw.astype(float)
 
-    # --- Expected background counts per pixel = rate (cnt/s/arcmin^2) * area (arcmin^2) * exposure (s) ---
+    # --- Galactic background: Expected counts per pixel ---
+    # Units: (cnt/s/arcmin^2) * (arcmin^2) * (s) = counts
     expected_galactic_bg = bg_rate * pix_area * expos
 
-    # Compute the dark background expected counts
+    # --- Dark background: Expected counts per pixel ---
+    # Must normalize by pixel area to ensure unit consistency with galactic background
     central_epoch = (
         pd.to_datetime(counts_dict["time_range"][0])
         + (
@@ -889,16 +892,71 @@ def implement_background_correction(
     else:
         H_dark, _, _ = np.histogram2d(ra_dark, dec_dark, bins=[ra_edges, dec_edges])
     dark_bgnd_hist = H_dark.astype(float)
-    # Convert to rate (cnt/s) using the time interval over which the dark background was
-    # accumulated
-    dark_bgnd_hist_rate = dark_bgnd_hist / dark_time_interval
-    # Convert to expected counts using the exposure map
-    dark_bgnd_hist_counts = dark_bgnd_hist_rate * expos
+
+    # Convert to rate (cnt/s/arcmin^2) using the time interval over which the dark background
+    # was accumulated AND normalizing by pixel area to match the galactic background units
+    dark_bgnd_hist_rate = dark_bgnd_hist / (dark_time_interval * pix_area)
+    # Convert to expected counts using the exposure map and pixel area
+    # Rate (cnt/s/arcmin^2) * area (arcmin^2) * exposure (s) = counts
+    dark_bgnd_hist_counts = dark_bgnd_hist_rate * pix_area * expos
 
     expected_bg = expected_galactic_bg + dark_bgnd_hist_counts
+    expected_bg_rate = expected_bg / expos  # cnt/s
+    # Print all the statistics (mean, median, std, min, max) of expected_galactic_bg,
+    # dark_bgnd_hist_counts, expected_bg in a table
+    headers = ["Statistic", "Galactic BG", "Dark BG", "Total BG"]
+    table = [
+        [
+            "Mean",
+            np.mean(expected_galactic_bg),
+            np.mean(dark_bgnd_hist_counts),
+            np.mean(expected_bg),
+        ],
+        [
+            "Median",
+            np.median(expected_galactic_bg),
+            np.median(dark_bgnd_hist_counts),
+            np.median(expected_bg),
+        ],
+        ["Std", np.std(expected_galactic_bg), np.std(dark_bgnd_hist_counts), np.std(expected_bg)],
+        ["Min", np.min(expected_galactic_bg), np.min(dark_bgnd_hist_counts), np.min(expected_bg)],
+        ["Max", np.max(expected_galactic_bg), np.max(dark_bgnd_hist_counts), np.max(expected_bg)],
+        [
+            "Total Counts",
+            np.nansum(expected_galactic_bg),
+            np.nansum(dark_bgnd_hist_counts),
+            np.nansum(expected_bg),
+        ],
+        [
+            "Count rate (cnt/s)",
+            np.nansum(expected_galactic_bg / expos),
+            np.nansum(dark_bgnd_hist_counts / expos),
+            np.nansum(expected_bg_rate),
+        ],
+    ]
+    print(tabulate.tabulate(table, headers=headers))
+    ##############
     # --- Background-corrected histogram ---
     lexi_bgnd_corrected = lexi_histogram - expected_bg
-    # It's common to clip negatives to zero (no physical negative counts after subtraction)
+
+    # Print statistics of the raw LEXI histogram and background-corrected histogram
+    headers2 = ["Statistic", "LEXI Raw", "LEXI BGnd-Corrected"]
+    table2 = [
+        ["Mean", np.mean(lexi_histogram), np.mean(lexi_bgnd_corrected)],
+        ["Median", np.median(lexi_histogram), np.median(lexi_bgnd_corrected)],
+        ["Std", np.std(lexi_histogram), np.std(lexi_bgnd_corrected)],
+        ["Min", np.min(lexi_histogram), np.min(lexi_bgnd_corrected)],
+        ["Max", np.max(lexi_histogram), np.max(lexi_bgnd_corrected)],
+        ["Total Counts", np.nansum(lexi_histogram), np.nansum(lexi_bgnd_corrected)],
+        [
+            "Count rate (cnt/s)",
+            np.nansum(lexi_histogram) / 300.0,
+            np.nansum(lexi_bgnd_corrected) / 300.0,
+        ],
+    ]
+    print(tabulate.tabulate(table2, headers=headers2))
+
+    # Clip negatives to zero (no physical negative counts after subtraction)
     lexi_bgnd_corrected = np.clip(lexi_bgnd_corrected, 0.0, None)
 
     # Add results to output dict
@@ -1017,7 +1075,7 @@ def save_lexi_results(
     selected_data["flat_field_map"] = data["flat_field_hist_norm"]
     selected_data["cosmic_background_map"] = data["expected_galactic_bg_counts"]
     selected_data["dark_background_map"] = data["expected_dark_bg_counts"]
-    selected_data["total_background_map"] = data["galactic_counts"]
+    selected_data["total_background_map"] = data["expected_bg_counts"]
     selected_data["pixel_area"] = data["pixel_area_arcmin2"]
     selected_data["lexi_image"] = data["lexi_histogram_raw"] / data["exposure_at_centers_sec"][:, :]
     selected_data["lexi_image_background_corrected"] = (
@@ -1101,7 +1159,7 @@ def save_lexi_results(
 
 
 delta_v = 5  # degree
-start_time = "2025-03-16 19:00:00"
+start_time = "2025-03-16 19:30:00"
 end_time = "2025-03-16 21:15:00"
 read_all_lexi = False
 if read_all_lexi:
@@ -1119,7 +1177,7 @@ if read_all_lexi:
         },
     )
 
-delta_time_minutes = 1
+delta_time_minutes = 30
 time_ranges = pd.date_range(start=start_time, end=end_time, freq=f"{delta_time_minutes}min")
 time_ranges = [(str(t), str(t + pd.Timedelta(delta_time_minutes, unit="m"))) for t in time_ranges][
     :-1
@@ -1135,7 +1193,7 @@ spc_df["Epoch"] = pd.to_datetime(spc_df["Epoch"], utc=True)
 spc_df.set_index("Epoch", inplace=True)
 
 recompute = True
-for start, end in time_ranges[1:]:
+for start, end in time_ranges[:]:
     if recompute:
         # Select the dataframe within the time range
         time_range = pd.to_datetime([start, end], utc=True)
@@ -1176,4 +1234,5 @@ for start, end in time_ranges[1:]:
 
         cdf_file = save_lexi_results(
             data=counts_dict,
+            output_dir=f"/mnt/cephadrius/bu_research/lexi_data/l2/{delta_time_minutes}min/",
         )

@@ -1,75 +1,92 @@
-import datetime
-import glob
-import importlib
-
-import get_l1c_files_sci_parallel as tlxf
 import numpy as np
-import pandas as pd
-import pytz
-from dateutil import parser
+import tabulate
+from spacepy.pycdf import CDF as cdf
 
-importlib.reload(tlxf)
-
-quaternion_type = "actual"
-epoch_value = "2025-03-03T00:01:29Z"
-quaternion_folder = "../data/quaternions/"
-all_files = sorted(glob.glob(str(quaternion_folder) + "*.csv"))
-if quaternion_type == "actual":
-    quaternion_file_name = [f for f in all_files if "Actual" in f]
-else:
-    quaternion_file_name = [f for f in all_files if "Nominal" in f]
-
-df_quaternions = pd.read_csv(quaternion_file_name[0], index_col=None)
-# Drop the "Epoch_MJD" column if it exists
-if "Epoch_MJD" in df_quaternions.columns:
-    df_quaternions.drop(columns=["Epoch_MJD"], inplace=True)
-# Convert Epoch_UTC to datetime and set as index
-df_quaternions["Epoch_UTC"] = pd.to_datetime(
-    df_quaternions["Epoch_UTC"].str.slice(0, -3), format="mixed", utc=True
+file_name = (
+    "/mnt/cephadrius/bu_research/lexi_data/l2/5min/clps-bgm1_lexi_l2-images_202503161905_V0.cdf"
 )
-df_quaternions.set_index("Epoch_UTC", inplace=True)
+dat = cdf(file_name)
 
-df_quaternions.sort_index(inplace=True)
+cosmic_background_map = np.asarray(dat["cosmic_background_map"][...])[0]
+dark_background_map = np.asarray(dat["dark_background_map"][...])[0]
+total_background_map = np.asarray(dat["total_background_map"][...])[0]
+lexi_image = np.asarray(dat["lexi_image"][...])[0]
+lexi_image_background_corrected = np.asarray(dat["lexi_image_background_corrected"][...])[0]
+lexi_image_background_flatfield_corrected = np.asarray(
+    dat["lexi_image_background_flatfield_corrected"][...]
+)[0]
+fill_value = -1e31
+cosmic_background_map[cosmic_background_map == fill_value] = np.nan
+dark_background_map[dark_background_map == fill_value] = np.nan
+total_background_map[total_background_map == fill_value] = np.nan
+lexi_image[lexi_image == fill_value] = np.nan
+lexi_image_background_corrected[lexi_image_background_corrected == fill_value] = np.nan
+lexi_image_background_flatfield_corrected[
+    lexi_image_background_flatfield_corrected == fill_value
+] = np.nan
 
-if epoch_value is not None:
-    # print(f"Finding quaternion for epoch value: {epoch_value}")
-    # print(f"The type of epoch_value is: {type(epoch_value)}")
+print(f"Loaded CDF file: {file_name}")
+# Print the statistics of all the maps in a table
+headers = ["Map", "Mean", "Median", "Std Dev", "Min", "Max"]
+table = [
+    [
+        "Cosmic Background Map",
+        np.nanmean(cosmic_background_map),
+        np.nanmedian(cosmic_background_map),
+        np.nanstd(cosmic_background_map),
+        np.nanmin(cosmic_background_map),
+        np.nanmax(cosmic_background_map),
+    ],
+    [
+        "Dark Background Map",
+        np.nanmean(dark_background_map),
+        np.nanmedian(dark_background_map),
+        np.nanstd(dark_background_map),
+        np.nanmin(dark_background_map),
+        np.nanmax(dark_background_map),
+    ],
+    [
+        "Total Background Map",
+        np.nanmean(total_background_map),
+        np.nanmedian(total_background_map),
+        np.nanstd(total_background_map),
+        np.nanmin(total_background_map),
+        np.nanmax(total_background_map),
+    ],
+]
 
-    # epoch_value = parser.parse(epoch_value)
-    # Set the timezone of the epoch_value to UTC
-    if isinstance(epoch_value, str):
-        epoch_value = parser.parse(epoch_value)
-    elif isinstance(epoch_value, datetime.datetime):
-        # If epoch_value is already a datetime object, ensure it is timezone-aware
-        if epoch_value.tzinfo is None:
-            epoch_value = epoch_value.replace(tzinfo=pytz.UTC)
+# Print the table
+print(tabulate.tabulate(table, headers=headers))
 
-    # Convert from numpy.datetime64 to pandas datetime
-    if isinstance(epoch_value, np.datetime64):
-        epoch_value = pd.to_datetime(epoch_value).tz_localize("UTC")
-    elif isinstance(epoch_value, pd.Timestamp):
-        # If epoch_value is already a pandas Timestamp, ensure it is timezone-aware
-        if epoch_value.tzinfo is None:
-            epoch_value = epoch_value.tz_localize("UTC")
-    elif isinstance(epoch_value, pd.DatetimeIndex):
-        # If epoch_value is a DatetimeIndex, convert it to a single timestamp
-        epoch_value = epoch_value[0].tz_localize("UTC")
+print("\n\n")
+# Print new table for lexi images
+headers = ["Map", "Mean", "Median", "Std Dev", "Min", "Max"]
+table = [
+    [
+        "Lexi Image",
+        np.nanmean(lexi_image),
+        np.nanmedian(lexi_image),
+        np.nanstd(lexi_image),
+        np.nanmin(lexi_image),
+        np.nanmax(lexi_image),
+    ],
+    [
+        "BG Corrected",
+        np.nanmean(lexi_image_background_corrected),
+        np.nanmedian(lexi_image_background_corrected),
+        np.nanstd(lexi_image_background_corrected),
+        np.nanmin(lexi_image_background_corrected),
+        np.nanmax(lexi_image_background_corrected),
+    ],
+    [
+        "BG F Corrected",
+        np.nanmean(lexi_image_background_flatfield_corrected),
+        np.nanmedian(lexi_image_background_flatfield_corrected),
+        np.nanstd(lexi_image_background_flatfield_corrected),
+        np.nanmin(lexi_image_background_flatfield_corrected),
+        np.nanmax(lexi_image_background_flatfield_corrected),
+    ],
+]
 
-    # closest_index = df_quaternions.index.get_loc(epoch_value, method="nearest")
-    closest_index = df_quaternions.index.get_indexer(
-        [epoch_value], method="nearest", tolerance=pd.Timedelta("5min")
-    )[0]
-    quaternion_value = df_quaternions.iloc[closest_index]
-
-    if quaternion_value.empty:
-        # raise ValueError(
-        #     f"No quaternion data found for the provided epoch value: {epoch_value}"
-        # )
-        quaternion_value = quaternion_value.iloc[0]
-    # print(f"Quaternion value:\n{quaternion_value.values}")
-else:
-    # If no epoch_value is provided, use the entire DataFrame
-    quaternion_value = df_quaternions.iloc[0]
-
-# Convert quaternion to rotation matrix
-rotation_matrix_b_J2000 = tlxf.quaternions_to_rotation_matrix(quaternion_value.values)
+# Print the table
+print(tabulate.tabulate(table, headers=headers))

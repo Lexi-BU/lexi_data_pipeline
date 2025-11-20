@@ -43,18 +43,18 @@ def generate_lexi_cdf_filename(
     start_str = start_time.strftime("%Y%m%d%H%M")
     while True:
         version_str = f"V{version}"
-        print(f"Current version: {version}, type {type(version)} {version_str}")
+        # print(f"Current version: {version}, type {type(version)} {version_str}")
         filename = f"{logical_source}_{start_str}_{version_str}.cdf"
         file_path = output_dir / filename
 
         if not file_path.exists():
             break
 
-        print(f"File {filename} exists. Incrementing version.")
+        # print(f"File {filename} exists. Incrementing version.")
         # Update version
         version += 1
 
-    print(f"Generated CDF filename: {filename} in {output_dir}")
+    # print(f"Generated CDF filename: {filename} in {output_dir}")
     return output_dir / filename
 
 
