@@ -8,7 +8,7 @@ from spacepy.pycdf import CDF as cdf
 folder_name = "/mnt/cephadrius/bu_research/lexi_data/L1c/sci/cdf/2025-03-16/"
 
 # Get the list of CDF files in the folder and subfolders
-file_val_list = sorted(glob.glob(str(folder_name) + "/**/*v0.0.cdf", recursive=True))
+file_val_list = sorted(glob.glob(str(folder_name) + "*V0.0.cdf", recursive=True))
 
 df_list = []
 selected_columns = [
