@@ -287,7 +287,7 @@ keys_to_plot = [
 # Example
 time_res = "5min"
 all_l2_files = sorted(
-    glob.glob(f"/mnt/cephadrius/bu_research/lexi_data/l2/{time_res}/clps-bgm1_lexi_l2-images*.cdf")
+    glob.glob(f"/mnt/cephadrius/bu_research/lexi_data/l2/{time_res}/clps-bgm1_lexi_l2-images*v00.cdf")
 )
 l2_files = keep_highest_versions(all_l2_files)
 
@@ -419,7 +419,7 @@ for i, f in enumerate(l2_files[:]):
     figure_path = Path(f"./figures/exposure_maps/bg_corrected/from_l2/{time_res}/ra_dec/")
     figure_path.mkdir(parents=True, exist_ok=True)
     fig.savefig(
-        figure_path / (Path(f).stem + "_exposure_and_counts)_ra_dec.png"),
+        figure_path / (Path(f).stem + "_exposure_and_counts_ra_dec.png"),
         dpi=200,
         bbox_inches="tight",
         pad_inches=0.1,

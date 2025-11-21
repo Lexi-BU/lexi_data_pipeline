@@ -176,7 +176,8 @@ def calc_exposure_maps(
 
     # Loop through each pointing step and add the exposure to the map
     for map_idx, (group) in enumerate(integ_groups):
-        for row in group.itertuples():
+        group_len = len(group)
+        for row_idx, row in enumerate(group.itertuples(), start=1):
             # Pointing (boresight) in degrees
             ra0 = float(row.RA)  # ensure plain float
             dec0 = float(row.DEC)
@@ -195,11 +196,13 @@ def calc_exposure_maps(
 
             if verbose:
                 print(
-                    f"Computing exposure map ==> \x1b[1;32m {np.round(map_idx/len(integ_groups)*100, 6)}\x1b[0m % complete",
+                    f"Computing exposure map ==> \x1b[1;32m {np.round(((map_idx + (row_idx - 1)/group_len)/len(integ_groups))*100, 6)}\x1b[0m % complete",
                     end="\r",
                     flush=True,
                 )
 
+    if verbose:
+        print(f"Computing exposure map ==> \x1b[1;32m 100.0\x1b[0m % complete")
     # Find the time resolution of the spacecraft ephemeris data
     time_deltas = spc_df_selected.index.to_series().diff().dropna()
     time_res = time_deltas.mode()[0].total_seconds()
