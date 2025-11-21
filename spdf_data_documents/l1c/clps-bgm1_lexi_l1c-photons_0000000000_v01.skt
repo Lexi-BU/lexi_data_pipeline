@@ -12,7 +12,7 @@
 
 ! Variables  G.Attributes  V.Attributes  Records  Dims  Sizes
 ! ---------  ------------  ------------  -------  ----  -----
-     0/17          24            18         0/z      1     3
+     0/17          21            18         0/z      1     3
 ! CDF_COMPRESSION: None
 ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
 ! CDF_CHECKSUM: None
@@ -82,13 +82,6 @@
 
   "DOI"                 1:    CDF_CHAR     { " " } .
 
-  "LINK_TEXT"           1:    CDF_CHAR     { "Full LEXI mission L1 and L2 files " -
-                                             "2 March 2025 through 16 March 2025 " -
-                                             "are available at " } .
-
-  "LINK_TITLE"          1:    CDF_CHAR     { "LEXI Full Mission" } .
-
-  "HTTP_LINK"           1:    CDF_CHAR     { "https://sites.bu.edu/lexi/data-access/" } .
 
 
 #VARIABLEattributes

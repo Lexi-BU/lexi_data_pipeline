@@ -198,7 +198,7 @@ def main(start_time: str = None, end_time: str = None):
     return (l1c_sci_files, data_df, cdf_file)
 
 
-start_date = "2025-03-16T21:00:00"
+start_date = "2025-03-16T19:00:00"
 end_date = "2025-03-16T21:15:00"
 if __name__ == "__main__":
     results = main(start_time=start_date, end_time=end_date)

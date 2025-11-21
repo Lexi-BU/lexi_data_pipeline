@@ -195,8 +195,9 @@ def calc_exposure_maps(
 
             if verbose:
                 print(
-                    f"Computing exposure map ==> \x1b[1;32;255m {np.round(map_idx/len(integ_groups)*100, 6)}\x1b[0m % complete",
+                    f"Computing exposure map ==> \x1b[1;32m {np.round(map_idx/len(integ_groups)*100, 6)}\x1b[0m % complete",
                     end="\r",
+                    flush=True,
                 )
 
     # Find the time resolution of the spacecraft ephemeris data
@@ -1159,7 +1160,7 @@ def save_lexi_results(
 
 
 delta_v = 5  # degree
-start_time = "2025-03-16 19:30:00"
+start_time = "2025-03-16 19:00:00"
 end_time = "2025-03-16 21:15:00"
 read_all_lexi = False
 if read_all_lexi:
@@ -1177,7 +1178,7 @@ if read_all_lexi:
         },
     )
 
-delta_time_minutes = 30
+delta_time_minutes = 5
 time_ranges = pd.date_range(start=start_time, end=end_time, freq=f"{delta_time_minutes}min")
 time_ranges = [(str(t), str(t + pd.Timedelta(delta_time_minutes, unit="m"))) for t in time_ranges][
     :-1

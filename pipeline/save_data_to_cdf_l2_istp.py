@@ -2,7 +2,7 @@ import datetime
 import shutil
 import warnings
 from pathlib import Path
-from typing import Optional, Union
+from typing import Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -20,7 +20,7 @@ def generate_lexi_cdf_filename(
     logical_source: str = "clps-bgm1_lexi_l2-images",
     version: int = 0,
     output_dir: Path = Path("."),
-) -> Path:
+) -> Tuple[Path, str]:
     """
     Generate an ISTP-compliant LEXI CDF filename.
 
@@ -42,7 +42,7 @@ def generate_lexi_cdf_filename(
     """
     start_str = start_time.strftime("%Y%m%d%H%M")
     while True:
-        version_str = f"V{version}"
+        version_str = f"v{version:02d}"
         # print(f"Current version: {version}, type {type(version)} {version_str}")
         filename = f"{logical_source}_{start_str}_{version_str}.cdf"
         file_path = output_dir / filename
@@ -50,12 +50,12 @@ def generate_lexi_cdf_filename(
         if not file_path.exists():
             break
 
-        # print(f"File {filename} exists. Incrementing version.")
+        print(f"File {filename} exists. Incrementing version.")
         # Update version
         version += 1
-
+    print(f"Generated CDF filename: {filename} in {output_dir}")
     # print(f"Generated CDF filename: {filename} in {output_dir}")
-    return output_dir / filename
+    return (output_dir / filename, version_str)
 
 
 def save_data_to_cdf(
@@ -93,7 +93,7 @@ def save_data_to_cdf(
     output_dir.mkdir(parents=True, exist_ok=True)
 
     # Generate filename
-    cdf_file = generate_lexi_cdf_filename(
+    (cdf_file, version_str) = generate_lexi_cdf_filename(
         start_time=data["epoch_start"],
         logical_source=logical_source,
         version=version,
@@ -121,7 +121,9 @@ def save_data_to_cdf(
         {
             "Generation_date": str(datetime.datetime.now(datetime.timezone.utc)),
             "Logical_file_id": cdf_file.stem,
+            "Logical_source": logical_source,
             "source": cdf_file.name,
+            "Data_version": version_str,
         }
     )
 
