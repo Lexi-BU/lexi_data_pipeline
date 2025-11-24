@@ -174,6 +174,10 @@ def calc_exposure_maps(
     # Make as many empty exposure maps as there are integration groups
     exposure_maps = np.zeros((len(integ_groups), len(ra_arr), len(dec_arr)))
 
+    # Precompute total rows to track progress correctly across variable-sized groups
+    total_rows = sum(len(group) for group in integ_groups)
+    processed_rows = 0
+
     # Loop through each pointing step and add the exposure to the map
     for map_idx, (group) in enumerate(integ_groups):
         group_len = len(group)
@@ -194,9 +198,11 @@ def calc_exposure_maps(
             # Accumulate
             exposure_maps[map_idx] += exposure_delt
 
+            processed_rows += 1
             if verbose:
+                percent_complete = (processed_rows / total_rows) * 100 if total_rows else 0.0
                 print(
-                    f"Computing exposure map ==> \x1b[1;32m {np.round(((map_idx + (row_idx - 1)/group_len)/len(integ_groups))*100, 6)}\x1b[0m % complete",
+                    f"Computing exposure map ==> \x1b[1;32m {np.round(percent_complete, 6)}\x1b[0m % complete",
                     end="\r",
                     flush=True,
                 )
@@ -1197,7 +1203,7 @@ spc_df["Epoch"] = pd.to_datetime(spc_df["Epoch"], utc=True)
 spc_df.set_index("Epoch", inplace=True)
 
 recompute = True
-for start, end in time_ranges[:]:
+for start, end in time_ranges[:1]:
     if recompute:
         # Select the dataframe within the time range
         time_range = pd.to_datetime([start, end], utc=True)
@@ -1232,11 +1238,11 @@ for start, end in time_ranges[:]:
             counts_dict=org_counts_dict, lexi_df=lexi_df
         )
 
-        counts_dict = implement_flat_field_correction(counts_dict=bgnd_counts_dict)
+        # counts_dict = implement_flat_field_correction(counts_dict=bgnd_counts_dict)
 
-        #
+        # #
 
-        cdf_file = save_lexi_results(
-            data=counts_dict,
-            output_dir=f"/mnt/cephadrius/bu_research/lexi_data/l2/{delta_time_minutes}min/",
-        )
+        # cdf_file = save_lexi_results(
+        #     data=counts_dict,
+        #     output_dir=f"/mnt/cephadrius/bu_research/lexi_data/l2/{delta_time_minutes}min/",
+        # )
