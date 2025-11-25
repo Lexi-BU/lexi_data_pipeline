@@ -140,13 +140,11 @@ def save_data_to_cdf(
         "el_bin_map",
         "pixel_area",
         "exposure_map",
-        "flat_field_map",
         "cosmic_background_map",
         "dark_background_map",
         "total_background_map",
         "lexi_image",
         "lexi_image_background_corrected",
-        "lexi_image_background_flatfield_corrected",
     ]
 
     for vname in data_vars:

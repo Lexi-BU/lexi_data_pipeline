@@ -843,7 +843,37 @@ def implement_background_correction(
     counts_dict: dict,
     lexi_df: pd.DataFrame,
 ) -> dict:
-    """ """
+    """
+    Given a dictionary of background counts per pixel and a LEXI event dataframe,
+    compute the LEXI histogram and subtract the expected background counts per pixel.
+
+    Parameters
+    ----------
+    counts_dict : dict
+        Dictionary containing:
+          - ra_center_map (2D array): RA coordinates of pixel centers [deg].
+          - dec_center_map (2D array): Dec coordinates of pixel centers [deg].
+          - background_counts_per_s_per_arcmin2 (2D array): Background rate [cnt/s/arcmin^2].
+          - pixel_area_arcmin2 (2D array): Pixel area [arcmin^2].
+          - exposure_at_centers_sec (2D array): Exposure time at pixel centers [s].
+          - time_range (list): [start_time, end_time] of the observation.
+    lexi_df : pandas.DataFrame
+        DataFrame containing LEXI photon events with columns:
+          - "photon_RA": Photon Right Ascension [deg].
+          - "photon_Dec": Photon Declination [deg].
+
+    Returns
+    -------
+    result_dict : dict
+        Dictionary containing:
+          - "lexi_histogram": 2D array of LEXI event counts per pixel before background correction.
+          - "expected_background": 2D array of expected background counts per pixel.
+          - "background_corrected_histogram": 2D array of background-corrected LEXI counts per pixel (clipped at zero).
+          - "expected_background_rate": 2D array of expected background rate per pixel [cnt/s].
+
+    NOTE: The unit of all the counts arrays included in the returned dictionary is simply "counts /
+    pixel" (cnts/pixel).
+    """
 
     ra_map = np.asarray(counts_dict["ra_center_map"], dtype=float)
     dec_map = np.asarray(counts_dict["dec_center_map"], dtype=float)
@@ -944,6 +974,7 @@ def implement_background_correction(
             np.nansum(expected_bg_rate),
         ],
     ]
+    print("\nExpected Background Statistics:")
     print(tabulate.tabulate(table, headers=headers))
     ##############
     # --- Background-corrected histogram ---
@@ -964,7 +995,9 @@ def implement_background_correction(
             np.nansum(lexi_bgnd_corrected) / 300.0,
         ],
     ]
+    print("\nLEXI Histogram Statistics:")
     print(tabulate.tabulate(table2, headers=headers2))
+    print("\n")
 
     # Clip negatives to zero (no physical negative counts after subtraction)
     lexi_bgnd_corrected = np.clip(lexi_bgnd_corrected, 0.0, None)
@@ -1082,7 +1115,6 @@ def save_lexi_results(
     selected_data = {}
 
     selected_data["exposure_map"] = data["exposure_at_centers_sec"]
-    selected_data["flat_field_map"] = data["flat_field_hist_norm"]
     selected_data["cosmic_background_map"] = data["expected_galactic_bg_counts"]
     selected_data["dark_background_map"] = data["expected_dark_bg_counts"]
     selected_data["total_background_map"] = data["expected_bg_counts"]
@@ -1091,21 +1123,16 @@ def save_lexi_results(
     selected_data["lexi_image_background_corrected"] = (
         data["lexi_hist_bgnd_corrected"] / data["exposure_at_centers_sec"][:, :]
     )
-    selected_data["lexi_image_background_flatfield_corrected"] = (
-        data["lexi_flat_corrected_hist"] / data["exposure_at_centers_sec"][:, :]
-    )
 
     # Selected keys
     selected_keys = [
         # "exposure_map",
         "pixel_area",
-        "flat_field_map",
         "cosmic_background_map",
         "dark_background_map",
         "total_background_map",
         "lexi_image",
         "lexi_image_background_corrected",
-        "lexi_image_background_flatfield_corrected",
     ]
 
     # Create a mask of bins where exposure is greater than zero, and only select those bins
@@ -1147,13 +1174,11 @@ def save_lexi_results(
         "el_bin_map": np.float32,
         "pixel_area": np.float32,
         "exposure_map": np.float32,
-        "flat_field_map": np.float32,
         "cosmic_background_map": np.float32,
         "dark_background_map": np.float32,
         "total_background_map": np.float32,
         "lexi_image": np.float32,
         "lexi_image_background_corrected": np.float32,
-        "lexi_image_background_flatfield_corrected": np.float32,
     }
     formatted_selected_data = {}
     for k in data_format_dict_lexi_l2.keys():
@@ -1203,7 +1228,7 @@ spc_df["Epoch"] = pd.to_datetime(spc_df["Epoch"], utc=True)
 spc_df.set_index("Epoch", inplace=True)
 
 recompute = True
-for start, end in time_ranges[:1]:
+for start, end in time_ranges[:]:
     if recompute:
         # Select the dataframe within the time range
         time_range = pd.to_datetime([start, end], utc=True)
@@ -1242,7 +1267,7 @@ for start, end in time_ranges[:1]:
 
         # #
 
-        # cdf_file = save_lexi_results(
-        #     data=counts_dict,
-        #     output_dir=f"/mnt/cephadrius/bu_research/lexi_data/l2/{delta_time_minutes}min/",
-        # )
+        cdf_file = save_lexi_results(
+            data=bgnd_counts_dict,
+            output_dir=f"/mnt/cephadrius/bu_research/lexi_data/l2/{delta_time_minutes}min/",
+        )

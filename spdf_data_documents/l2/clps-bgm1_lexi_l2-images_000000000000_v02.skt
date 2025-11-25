@@ -12,7 +12,7 @@
 
 ! Variables  G.Attributes  V.Attributes  Records  Dims  Sizes
 ! ---------  ------------  ------------  -------  ----  -----
-    0/19          21            23         0/z      2   91 91
+    0/17          21            23         0/z      2   91 91
 ! CDF_COMPRESSION: None
 ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
 ! CDF_CHECKSUM: None
@@ -580,49 +580,6 @@
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
 ! --------          ----     --------  ----  -----  --------  ---------
 
-  "flat_field_map"
-                  CDF_REAL4      1       2   91 91      T        T T
-
-  ! VAR_COMPRESSION: None
-  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
-  ! VAR_SPARSERECORDS: None
-  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
-  ! VAR_PADVALUE: -1.0e+30
-
-  ! Attribute       Data
-  ! Name            Type       Value
-  ! --------        ----       -----
-
-    "FIELDNAM"    CDF_CHAR     { "Flat field correction at bin centers" }
-    "VALIDMIN"    CDF_REAL4    { 0.0 }
-    "VALIDMAX"    CDF_REAL4    { 1.0 }
-    "SCALEMIN"    CDF_REAL4    { 0.0 }
-    "SCALEMAX"    CDF_REAL4    { 1.0 }
-    "LABLAXIS"    CDF_CHAR     { "FlatField" }
-    "UNITS"       CDF_CHAR     { " " }
-    "VAR_TYPE"    CDF_CHAR     { "support_data" }
-    "FORMAT"      CDF_CHAR     { "f12.3" }
-    "FILLVAL"     CDF_REAL4    { -1.0e+31 }
-    "DEPEND_0"    CDF_CHAR     { "epoch_start" }
-    "DEPEND_1"    CDF_CHAR     { "ra_bin" }
-    "DEPEND_2"    CDF_CHAR     { "dec_bin" }
-    "DICT_KEY"    CDF_CHAR     { "image>flat_field_map" }
-    "DISPLAY_TYPE"
-                  CDF_CHAR     { "image" }
-    "CATDESC"     CDF_CHAR     { "Flat field correction factor per (RA, " -
-                                 "Dec) pixel. The histogram is " -
-                                 "normalized by the mode of the map." }
-    "VAR_NOTES"   CDF_CHAR     { "Flat field correction factor, " -
-                                 "typically close to 1.0. The size of " -
-                                 "each bin is 0.1 degrees" } .
-
-  ! RV values were not requested.
-
-
-! Variable          Data      Number                 Record   Dimension
-! Name              Type     Elements  Dims  Sizes  Variance  Variances
-! --------          ----     --------  ----  -----  --------  ---------
-
   "cosmic_background_map"
                   CDF_REAL4      1       2   91 91      T        T T
 
@@ -826,49 +783,6 @@
                                  "second, background subtracted." }
     "VAR_NOTES"   CDF_CHAR     { " LEXI counts, background subtracted, " -
                                  "flat field not applied. The size of each pixel is 0.1 degrees" } .
-
-  ! RV values were not requested.
-
-
-! Variable          Data      Number                 Record   Dimension
-! Name              Type     Elements  Dims  Sizes  Variance  Variances
-! --------          ----     --------  ----  -----  --------  ---------
-
-  "lexi_image_background_flatfield_corrected"
-                  CDF_REAL4      1       2   91 91      T        T T
-
-  ! VAR_COMPRESSION: None
-  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
-  ! VAR_SPARSERECORDS: None
-  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
-  ! VAR_PADVALUE: -1.0e+30
-
-  ! Attribute       Data
-  ! Name            Type       Value
-  ! --------        ----       -----
-
-    "FIELDNAM"    CDF_CHAR     { "Background and flat field corrected " -
-                                 "LEXI counts at bin centers" }
-    "VALIDMIN"    CDF_REAL4    { 0.0 }
-    "VALIDMAX"    CDF_REAL4    { 1.0e+06 }
-    "SCALEMIN"    CDF_REAL4    { 0.0 }
-    "SCALEMAX"    CDF_REAL4    { 100000.0 }
-    "LABLAXIS"    CDF_CHAR     { "Counts/sec" }
-    "UNITS"       CDF_CHAR     { "counts/sec" }
-    "VAR_TYPE"    CDF_CHAR     { "data" }
-    "FORMAT"      CDF_CHAR     { "f12.3" }
-    "FILLVAL"     CDF_REAL4    { -1.0e+31 }
-    "DEPEND_0"    CDF_CHAR     { "epoch_start" }
-    "DEPEND_1"    CDF_CHAR     { "ra_bin" }
-    "DEPEND_2"    CDF_CHAR     { "dec_bin" }
-    "DICT_KEY"    CDF_CHAR     { "image>lexi_image_background_flatfield_corrected" }
-    "DISPLAY_TYPE"
-                  CDF_CHAR     { "image" }
-    "CATDESC"     CDF_CHAR     { "LEXI counts per (RA, Dec) pixel per " -
-                                 "second, background and flat field " -
-                                 "corrected." }
-    "VAR_NOTES"   CDF_CHAR     { " LEXI counts, background subtracted, " -
-                                 "flat field applied. The size of each pixel is 0.1 degrees" } .
 
   ! RV values were not requested.
 
