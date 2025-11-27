@@ -739,7 +739,7 @@
     "CATDESC"     CDF_CHAR     { "LEXI counts per (RA, Dec) pixel per " -
                                  "second." }
     "VAR_NOTES"   CDF_CHAR     { "Raw LEXI counts, background not " -
-                                 "subtracted, flat field not applied." -
+                                 "subtracted." -
                                  "The size of each pixel is 0.1 degrees." } .
 
   ! RV values were not requested.
@@ -781,8 +781,7 @@
                   CDF_CHAR     { "image" }
     "CATDESC"     CDF_CHAR     { "LEXI counts per (RA, Dec) pixel per " -
                                  "second, background subtracted." }
-    "VAR_NOTES"   CDF_CHAR     { " LEXI counts, background subtracted, " -
-                                 "flat field not applied. The size of each pixel is 0.1 degrees" } .
+    "VAR_NOTES"   CDF_CHAR     { " LEXI counts, background subtracted." } .
 
   ! RV values were not requested.
 

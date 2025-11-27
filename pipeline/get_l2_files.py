@@ -1196,7 +1196,7 @@ def save_lexi_results(
 delta_v = 5  # degree
 start_time = "2025-03-16 19:00:00"
 end_time = "2025-03-16 21:15:00"
-read_all_lexi = False
+read_all_lexi = True
 if read_all_lexi:
     # Read all L1c data files in the time range
     all_lexi_df = gl1c.read_all_data_files(
