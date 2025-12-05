@@ -102,7 +102,7 @@ def save_data_to_cdf(
 
     # Path to the read-only skeleton file
     skeleton_path = Path(
-        "/home/cephadrius/Desktop/git/Lexi-BU/lexi_data_pipeline/spdf_data_documents/l2/clps-bgm1_lexi_l2-images_000000000000_v02.cdf"
+        "/home/cephadrius/Desktop/git/Lexi-BU/lexi_data_pipeline/spdf_data_documents/l2/clps-bgm1_lexi_l2-images_000000000000_v01.cdf"
     )
     if not skeleton_path.exists():
         raise FileNotFoundError(f"Skeleton file not found: {skeleton_path}")

@@ -1,1 +1,1 @@
-skeletoncdf -nolog -report "errors,warnings" -delete -cdf clps-bgm1_lexi_l2-images_000000000000_v02.cdf   "clps-bgm1_lexi_l2-images_000000000000_v02.skt"
+skeletoncdf -nolog -report "errors,warnings" -delete -cdf clps-bgm1_lexi_l2-images_000000000000_v01.cdf   "clps-bgm1_lexi_l2-images_000000000000_v01.skt"

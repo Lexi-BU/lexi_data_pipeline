@@ -1,11 +1,11 @@
-! Skeleton table for the "clps-bgm1_lexi_l2-images_000000000000_v02.cdf" CDF.
+! Skeleton table for the "clps-bgm1_lexi_l2-images_000000000000_v01.cdf" CDF.
 ! Generated: Tuesday, 16-Sep-2025 11:29:17
 ! CDF created/modified by CDF V3.9.1
 ! Skeleton table created by CDF V3.9.1_0
 
 #header
 
-                       CDF NAME: clps-bgm1_lexi_l2-images_000000000000_v02.cdf
+                       CDF NAME: clps-bgm1_lexi_l2-images_000000000000_v01.cdf
                   DATA ENCODING: NETWORK
                        MAJORITY: COLUMN
                          FORMAT: SINGLE
@@ -44,7 +44,7 @@
 
   "Data_type"           1:    CDF_CHAR     { "L2>RADEC_IMAGE" } .
 
-  "Data_version"        1:    CDF_CHAR     { "02" } .
+  "Data_version"        1:    CDF_CHAR     { "01" } .
 
   "TEXT"                1:    CDF_CHAR     { "The lunar environment " -
                                              "heliophysics X-ray imager " -
@@ -53,9 +53,9 @@
                                              "2024https://doi.org/10.100" -
                                              "7/s11214-024-01063-4" } .
 
-  "MODS"                1:    CDF_CHAR     { "TBD" } .
+  "MODS"                1:    CDF_CHAR     { "Initial Release" } .
 
-  "Logical_file_id"     1:    CDF_CHAR     { "clps-bgm1_lexi_l2-images_000000000000_v02" } .
+  "Logical_file_id"     1:    CDF_CHAR     { "clps-bgm1_lexi_l2-images_000000000000_v01" } .
 
   "Logical_source"      1:    CDF_CHAR     { "clps-bgm1_lexi_l2-images" } .
 
