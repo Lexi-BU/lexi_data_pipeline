@@ -10,7 +10,7 @@ packages = [{include = "lexi_data_pipeline"}]
 [tool.poetry.dependencies]
 python = ">=3.10"
 ipython = "^8.21.0"
-spacepy = "^0.4.1"
+spacepy = "^0.7.0"
 pandas = "^2.2.0"
 scikit-learn = "^1.4.0"
 tqdm = "^4.67.1"
